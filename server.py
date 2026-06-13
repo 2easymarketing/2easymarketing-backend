@@ -40,7 +40,7 @@ OWNER_PASSWORD = "2easymarketing2026!"   # hashed on first use
 OWNER_SECRET   = "2em-owner-secret-key-2026"
 
 # ─── DATABASE SETUP ─────────────────────────────────────────────────────────
-DB_PATH = "/home/user/workspace/devmarketing/2easymarketing.db"
+DB_PATH = os.environ.get("DB_PATH", "/app/2easymarketing.db")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
