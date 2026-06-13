@@ -33,10 +33,10 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      background: linear-gradient(135deg, #00c4b4, #008c80);
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(14,165,233,0.45), 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(0,196,180,0.45), 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -49,7 +49,7 @@
     }
     #em-launcher:hover {
       transform: scale(1.08);
-      box-shadow: 0 6px 28px rgba(14,165,233,0.6), 0 2px 10px rgba(0,0,0,0.35);
+      box-shadow: 0 6px 28px rgba(0,196,180,0.6), 0 2px 10px rgba(0,0,0,0.35);
     }
     #em-launcher svg { transition: transform 0.3s ease; }
     #em-launcher.open svg.chat-icon { display: none; }
@@ -82,10 +82,10 @@
       z-index: 9998;
       width: 380px;
       max-height: 580px;
-      background: #0d1117;
-      border: 1px solid #1e2d44;
+      background: #061018;
+      border: 1px solid #0a2a2a;
       border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(14,165,233,0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,196,180,0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -104,8 +104,8 @@
     /* Panel header */
     #em-header {
       padding: 16px 20px;
-      background: linear-gradient(135deg, rgba(14,165,233,0.15), rgba(99,102,241,0.15));
-      border-bottom: 1px solid #1e2d44;
+      background: linear-gradient(135deg, rgba(0,196,180,0.15), rgba(0,196,180,0.08));
+      border-bottom: 1px solid #0a2a2a;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -114,11 +114,11 @@
     #em-avatar {
       width: 40px; height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      background: linear-gradient(135deg, #00c4b4, #008c80);
       display: flex; align-items: center; justify-content: center;
       font-size: 18px;
       flex-shrink: 0;
-      box-shadow: 0 0 0 3px rgba(14,165,233,0.2);
+      box-shadow: 0 0 0 3px rgba(0,196,180,0.2);
     }
     #em-header-info { flex: 1; }
     #em-header-name {
@@ -166,7 +166,7 @@
     }
     #em-messages::-webkit-scrollbar { width: 4px; }
     #em-messages::-webkit-scrollbar-track { background: transparent; }
-    #em-messages::-webkit-scrollbar-thumb { background: #1e2d44; border-radius: 4px; }
+    #em-messages::-webkit-scrollbar-thumb { background: #0a2a2a; border-radius: 4px; }
 
     /* Message bubbles */
     .em-msg {
@@ -183,14 +183,14 @@
     .em-msg-avatar {
       width: 28px; height: 28px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      background: linear-gradient(135deg, #00c4b4, #008c80);
       display: flex; align-items: center; justify-content: center;
       font-size: 13px;
       flex-shrink: 0;
       align-self: flex-end;
     }
     .em-msg.user .em-msg-avatar {
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+      background: linear-gradient(135deg, #00c4b4, #008c80);
     }
     .em-bubble {
       max-width: calc(100% - 44px);
@@ -201,17 +201,17 @@
       color: #e8eef7;
     }
     .em-msg.assistant .em-bubble {
-      background: #111827;
-      border: 1px solid #1e2d44;
+      background: #071416;
+      border: 1px solid #0a2a2a;
       border-bottom-left-radius: 4px;
     }
     .em-msg.user .em-bubble {
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      background: linear-gradient(135deg, #00c4b4, #008c80);
       color: white;
       border-bottom-right-radius: 4px;
     }
     /* Bold in assistant messages */
-    .em-bubble strong { color: #38bdf8; font-weight: 700; }
+    .em-bubble strong { color: #00c4b4; font-weight: 700; }
 
     /* Typing indicator */
     #em-typing {
@@ -222,14 +222,14 @@
       display: flex;
       gap: 4px;
       padding: 12px 16px;
-      background: #111827;
-      border: 1px solid #1e2d44;
+      background: #071416;
+      border: 1px solid #0a2a2a;
       border-radius: 16px;
       border-bottom-left-radius: 4px;
     }
     .em-typing-dots span {
       width: 6px; height: 6px;
-      background: #38bdf8;
+      background: #00c4b4;
       border-radius: 50%;
       animation: em-bounce 1.2s infinite ease-in-out;
     }
@@ -250,35 +250,35 @@
     }
     .em-chip {
       padding: 5px 12px;
-      background: rgba(14,165,233,0.1);
-      border: 1px solid rgba(14,165,233,0.25);
+      background: rgba(0,196,180,0.1);
+      border: 1px solid rgba(0,196,180,0.25);
       border-radius: 999px;
       font-size: 12px;
-      color: #38bdf8;
+      color: #00c4b4;
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s, transform 0.15s;
       white-space: nowrap;
     }
     .em-chip:hover {
-      background: rgba(14,165,233,0.2);
-      border-color: rgba(14,165,233,0.5);
+      background: rgba(0,196,180,0.2);
+      border-color: rgba(0,196,180,0.5);
       transform: translateY(-1px);
     }
 
     /* Input area */
     #em-input-area {
       padding: 12px 16px 16px;
-      border-top: 1px solid #1e2d44;
+      border-top: 1px solid #0a2a2a;
       display: flex;
       gap: 8px;
       align-items: flex-end;
       flex-shrink: 0;
-      background: #0d1117;
+      background: #061018;
     }
     #em-input {
       flex: 1;
-      background: #111827;
-      border: 1.5px solid #1e2d44;
+      background: #071416;
+      border: 1.5px solid #0a2a2a;
       border-radius: 12px;
       padding: 10px 14px;
       font-family: 'Satoshi', sans-serif;
@@ -292,11 +292,11 @@
       line-height: 1.5;
     }
     #em-input::placeholder { color: #3d4f6b; }
-    #em-input:focus { border-color: #0ea5e9; }
+    #em-input:focus { border-color: #00c4b4; }
     #em-send {
       width: 42px; height: 42px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      background: linear-gradient(135deg, #00c4b4, #008c80);
       border: none;
       cursor: pointer;
       display: flex;
@@ -306,7 +306,7 @@
       transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
       box-shadow: 0 2px 10px rgba(14,165,233,0.3);
     }
-    #em-send:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(14,165,233,0.45); }
+    #em-send:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(0,196,180,0.45); }
     #em-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     #em-send svg { color: white; }
 

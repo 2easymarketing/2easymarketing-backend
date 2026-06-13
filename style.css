@@ -1397,8 +1397,8 @@ h1,h2,h3,h4,h5,h6 {
   object-fit: unset;
   display: block;
   border-radius: var(--radius-2xl);
-  /* Shift the blue-heavy roadmap toward teal to match site palette */
-  filter: hue-rotate(160deg) saturate(0.85) brightness(0.9);
+  /* Shift orange/brown roadmap colors to teal — orange is ~30deg, teal is ~180deg */
+  filter: hue-rotate(150deg) saturate(0.75) brightness(0.85) sepia(0.2);
 }
 
 /* ===== CONTACT ALTERNATIVES ===== */
