@@ -192,24 +192,11 @@
   }
 
   /* =============================================
-     3. HERO TITLE — INSTANT REVEAL WITH FADE
+     3. HERO TITLE — no JS override, CSS animation handles it
   ============================================= */
   function initTypewriter() {
-    const titleEl = document.querySelector('.hero-title');
-    if (!titleEl) return;
-
-    // Instantly set the full content — no slow typing
-    titleEl.innerHTML = '<span class="tw-line1">Dominate the</span><br/><span class="tw-line2 gradient-text">Digital Space.</span>';
-
-    // Add fade-in animation
-    titleEl.style.opacity = '0';
-    titleEl.style.transform = 'translateY(20px)';
-    titleEl.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-
-    setTimeout(() => {
-      titleEl.style.opacity = '1';
-      titleEl.style.transform = 'translateY(0)';
-    }, 100);
+    // Hero title is pure HTML + CSS animated — no JS needed
+    // CSS @keyframes hero-title-in in premium.css handles the fade-in
   }
 
   /* =============================================
@@ -274,23 +261,10 @@
   }
 
   /* =============================================
-     6. PARALLAX HERO
+     6. PARALLAX HERO — disabled, CSS animation handles drift
   ============================================= */
   function initParallax() {
-    const heroBg = document.querySelector('.hero-bg-img');
-    if (!heroBg) return;
-
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          heroBg.style.transform = `translateY(${scrollY * 0.3}px) scale(1.05)`;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }, { passive: true });
+    // CSS @keyframes hero-drift in premium.css handles subtle movement
   }
 
   /* =============================================

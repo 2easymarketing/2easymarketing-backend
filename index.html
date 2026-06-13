@@ -99,28 +99,41 @@
     </nav>
   </div>
 
-  <!-- ===== HERO ===== -->
+  <!-- ===== HERO — VISAGE LAYOUT ===== -->
   <section class="hero" id="hero">
+    <!-- Background -->
     <div class="hero-bg">
-      <img src="hero-bg.png" alt="Digital marketing data visualization" class="hero-bg-img" />
+      <img src="hero-bg.png" alt="2EasyMarketing — Digital marketing background" class="hero-bg-img" />
       <canvas id="particles-canvas" aria-hidden="true"></canvas>
       <div class="hero-overlay"></div>
     </div>
+
+    <!-- Left dot navigation (Visage style) -->
+    <nav class="hero-dot-nav" aria-label="Section navigation">
+      <a href="#hero"    class="hero-dot active" aria-label="Hero"></a>
+      <a href="#services" class="hero-dot" aria-label="Services"></a>
+      <a href="#roadmap"  class="hero-dot" aria-label="Roadmap"></a>
+      <a href="#pricing"  class="hero-dot" aria-label="Pricing"></a>
+      <a href="#contact"  class="hero-dot" aria-label="Contact"></a>
+    </nav>
+
+    <!-- Hero content — left-aligned, sits at bottom like Visage -->
     <div class="container hero-content">
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        2EasyMarketing — Marketing Without the Headache
+        AI-Powered Digital Marketing
       </div>
       <h1 class="hero-title">
-        Dominate the<br/>
+        Dominate<br/>
+        the<br/>
         <span class="gradient-text">Digital Space.</span>
       </h1>
       <p class="hero-subtitle">
-        We make digital marketing simple, clear, and profitable. Whether you're a business owner or launching your own agency — 2EasyMarketing has your roadmap.
+        Sign up to gain priority access to 2EasyMarketing — AI handles the work, you approve the results.
       </p>
       <div class="hero-actions">
-        <a href="#roadmap" class="btn btn-primary">Start Your Journey →</a>
-        <a href="#services" class="btn btn-ghost">Our Services</a>
+        <a href="#roadmap" class="btn btn-primary">Learn More</a>
+        <a href="#contact"  class="btn btn-ghost">Get Started</a>
       </div>
       <div class="hero-stats">
         <div class="stat-item">
@@ -139,10 +152,11 @@
         </div>
       </div>
     </div>
-    <div class="hero-scroll-hint">
-      <span>Scroll to explore</span>
+
+    <!-- Teal down-arrow at bottom center (Visage style) -->
+    <a href="#services" class="hero-scroll-hint" aria-label="Scroll to services">
       <div class="scroll-arrow"></div>
-    </div>
+    </a>
   </section>
 
   <!-- ===== SERVICES ===== -->
