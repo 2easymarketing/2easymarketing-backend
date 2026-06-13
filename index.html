@@ -774,7 +774,7 @@
           }
           btn.disabled = false; btn.textContent = 'Book My Free Strategy Call →';
         }
-        </script
+        </script>
         </form>
 
         <div class="contact-alternatives">
@@ -918,7 +918,7 @@
       <div class="auth-card">
         <div class="auth-logo" style="display:flex;align-items:center;gap:.6rem;font-family:'Clash Display',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:2rem;">
           <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="10" fill="url(#plg1)"/><path d="M8 14.5C8 11 10.5 9 13.5 9C16.5 9 19 11 19 14C19 16.5 17 18.5 14 21L8 25.5L8 28L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 9L23 28M23 9L31 9M23 18.5L29 18.5M23 28L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/><defs><linearGradient id="plg1" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
-          <span>2Easy<span style="background:linear-gradient(135deg,#00d4ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Media</span> Portal</span>
+          <span>2Easy<span style="background:linear-gradient(135deg,#00d4ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Marketing</span> Portal</span>
         </div>
 
         <div id="login-form">
@@ -981,6 +981,11 @@
           <a href="#" class="sidebar-link owner-only" data-view="clients" style="display:none">&#128101; Clients</a>
           <a href="#" class="sidebar-link" data-view="media-factory">&#127910; Media Factory</a>
           <a href="#" class="sidebar-link owner-only" data-view="autonomous" style="display:none">&#129504; Autonomous <span id="auto-alert-badge" style="display:none;background:#f59e0b;color:#000;font-size:.65rem;font-weight:700;border-radius:9999px;padding:1px 6px;margin-left:4px;vertical-align:middle">0</span></a>
+          <a href="#" class="sidebar-link" data-view="channel-hub">&#127760; Channel Hub</a>
+          <a href="#" class="sidebar-link" data-view="content-calendar">&#128197; Content Calendar</a>
+          <a href="#" class="sidebar-link owner-only" data-view="competitor-spy" style="display:none">&#128269; Competitor Spy</a>
+          <a href="#" class="sidebar-link owner-only" data-view="revenue" style="display:none">&#128200; Revenue</a>
+          <a href="#" class="sidebar-link owner-only" data-view="client-reports" style="display:none">&#128196; Client Reports</a>
           <a href="#" class="sidebar-link owner-only" data-view="system-health" style="display:none">&#128268; System Health</a>
           <a href="#" class="sidebar-link owner-only" data-view="update-log" style="display:none">&#128203; Update Log</a>
         </nav>
@@ -1156,6 +1161,51 @@
           <!-- Live DB Log -->
           <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 .75rem">&#128336; Live Activity Log</h2>
           <div id="update-log-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
+        </div>
+
+        <!-- CHANNEL HUB -->
+        <div id="view-channel-hub" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#127760; Channel Hub</h1>
+            <span style="color:rgba(180,200,220,.5);font-size:.8rem">Manage all your marketing channels in one place</span>
+          </div>
+          <div id="channel-hub-content"></div>
+        </div>
+
+        <!-- CONTENT CALENDAR -->
+        <div id="view-content-calendar" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128197; Content Calendar</h1>
+            <button style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="loadContentCalendar()">&#43; Add Post</button>
+          </div>
+          <div id="content-calendar-content"></div>
+        </div>
+
+        <!-- COMPETITOR SPY -->
+        <div id="view-competitor-spy" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128269; Competitor Spy</h1>
+            <button style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="loadCompetitorSpy()">&#8635; Refresh Intel</button>
+          </div>
+          <div id="competitor-spy-content"></div>
+        </div>
+
+        <!-- REVENUE DASHBOARD -->
+        <div id="view-revenue" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128200; Revenue Dashboard</h1>
+            <span style="color:rgba(180,200,220,.5);font-size:.8rem">Marketing activity connected to real dollars</span>
+          </div>
+          <div id="revenue-content"></div>
+        </div>
+
+        <!-- CLIENT REPORTS -->
+        <div id="view-client-reports" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128196; Client Reports</h1>
+            <button style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="generateClientReport()">&#128196; Generate Report</button>
+          </div>
+          <div id="client-reports-content"></div>
         </div>
 
       </main>

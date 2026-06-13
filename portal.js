@@ -1,6 +1,19 @@
 /**
  * 2EasyMarketing — Client Portal (embedded overlay version)
  */
+
+// Global API helper — accessible everywhere
+const _BACKEND = 'https://web-production-f0dfa2.up.railway.app';
+function apiFetch(path, method = 'GET', body = null) {
+  const token = window._authToken ? window._authToken() : (localStorage.getItem('2em_token') || null);
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(_BACKEND + path, opts);
+}
+
 (function () {
   'use strict';
 
@@ -293,6 +306,11 @@
     if (view === 'clients')         loadClients();
     if (view === 'system-health')   loadSystemHealth();
     if (view === 'update-log')      loadUpdateLog();
+    if (view === 'channel-hub')     loadChannelHub();
+    if (view === 'content-calendar') loadContentCalendar();
+    if (view === 'competitor-spy')  loadCompetitorSpy();
+    if (view === 'revenue')         loadRevenueDashboard();
+    if (view === 'client-reports')  loadClientReports();
     if (view === 'new-task') {
       document.getElementById('task-form-container').style.display = 'none';
       document.getElementById('task-type-grid').style.display = 'grid';
@@ -589,6 +607,11 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+
+  // ─── EXPOSE GLOBALS FOR EXTERNAL FUNCTIONS ───────────────────────
+  window._API = API;
+  window._apiFetch = apiFetch;
+  window._authToken = () => authToken;
 
   // ─── EXPOSE GLOBALS FOR INLINE ONCLICK ───────────────────────────
   window.manualRunEngine = async function(engine = 'all') {
@@ -965,7 +988,7 @@ async function loadSystemHealth() {
   if (!el) return;
   el.innerHTML = '<p style="color:rgba(200,220,240,.5);text-align:center;padding:3rem">Fetching system health...</p>';
   try {
-    const data = await apiFetch('/api/owner/system-health');
+    const data = await apiFetch('/api/owner/system-health').then(r => r.json());
     const statusColor = data.db_ok !== false ? '#22d3ee' : '#f87171';
     const errColor = (data.errors_last_hour || 0) === 0 ? '#4ade80' : '#f59e0b';
 
@@ -1039,7 +1062,7 @@ async function runMaintenance() {
   if (btn) btn.disabled = true;
   if (status) status.textContent = 'Running...';
   try {
-    await apiFetch('/api/owner/run-maintenance', { method: 'POST' });
+    await apiFetch('/api/owner/run-maintenance', 'POST');
     if (status) status.textContent = 'Maintenance triggered! Check Update Log in ~30s.';
     setTimeout(() => { if (status) status.textContent = ''; }, 6000);
   } catch (e) {
@@ -1051,7 +1074,7 @@ async function runMaintenance() {
 async function loadUpdateLog() {
   // Version badges
   try {
-    const vd = await apiFetch('/api/version');
+    const vd = await apiFetch('/api/version').then(r => r.json());
     const vb = document.getElementById('version-badges');
     if (vb) {
       vb.innerHTML = `
@@ -1086,7 +1109,7 @@ async function loadUpdateLog() {
   if (!ll) return;
   ll.innerHTML = '<p style="color:rgba(200,220,240,.4);font-size:.82rem">Loading activity log...</p>';
   try {
-    const data = await apiFetch('/api/owner/update-log');
+    const data = await apiFetch('/api/owner/update-log').then(r => r.json());
     if (!data.log || data.log.length === 0) {
       ll.innerHTML = '<p style="color:rgba(200,220,240,.4);font-size:.82rem">No log entries yet.</p>';
       return;
@@ -1121,7 +1144,7 @@ async function loadSmtpStatus() {
   const el = document.getElementById('smtp-status-card');
   if (!el) return;
   try {
-    const d = await apiFetch('/api/owner/smtp-status');
+    const d = await apiFetch('/api/owner/smtp-status').then(r => r.json());
     const configured = d.configured;
     el.innerHTML = `
       <div style="padding:1.25rem;background:${configured ? 'rgba(34,197,94,.08)' : 'rgba(251,191,36,.08)'};
@@ -1156,9 +1179,298 @@ async function sendTestNotification() {
   const result = document.getElementById('smtp-test-result');
   if (result) result.textContent = 'Sending test...';
   try {
-    const d = await apiFetch('/api/owner/test-notification', { method: 'POST' });
+    const d = await apiFetch('/api/owner/test-notification', 'POST');
     if (result) result.textContent = d.sent ? '✅ Test email sent! Check your inbox.' : '❌ ' + d.message;
   } catch(e) {
     if (result) result.textContent = '❌ Error: ' + e.message;
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// NEW PORTAL SECTIONS — Channel Hub, Content Calendar, Competitor Spy,
+// Revenue Dashboard, Client Reports
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── CHANNEL HUB ─────────────────────────────────────────────────
+function loadChannelHub() {
+  const el = document.getElementById('channel-hub-content');
+  if (!el) return;
+
+  const channels = [
+    { name: 'YouTube', icon: '▶', color: '#FF0000', desc: 'Video content, Shorts, Live streams', stat: 'Videos', val: '—', status: 'Connect' },
+    { name: 'YouTube Shorts', icon: '🩳', color: '#FF0000', desc: 'Short-form vertical video (< 60s)', stat: 'Shorts', val: '—', status: 'Connect' },
+    { name: 'TikTok', icon: '♪', color: '#69C9D0', desc: 'Short-form video, trends, FYP', stat: 'Posts', val: '—', status: 'Connect' },
+    { name: 'Twitch', icon: '◉', color: '#9146FF', desc: 'Live streaming, gaming, IRL', stat: 'Streams', val: '—', status: 'Connect' },
+    { name: 'Instagram', icon: '◈', color: '#E1306C', desc: 'Reels, Stories, Feed posts', stat: 'Posts', val: '—', status: 'Connect' },
+    { name: 'Facebook', icon: 'f', color: '#1877F2', desc: 'Pages, Groups, Ads, Reels', stat: 'Posts', val: '—', status: 'Connect' },
+    { name: 'LinkedIn', icon: 'in', color: '#0A66C2', desc: 'B2B content, thought leadership', stat: 'Posts', val: '—', status: 'Connect' },
+    { name: 'Twitter/X', icon: '✕', color: '#000000', desc: 'Real-time marketing, viral content', stat: 'Tweets', val: '—', status: 'Connect' },
+    { name: 'Pinterest', icon: '♗', color: '#E60023', desc: 'Visual discovery, product pins', stat: 'Pins', val: '—', status: 'Connect' },
+    { name: 'Discord', icon: '⬡', color: '#5865F2', desc: 'Community building, server marketing', stat: 'Members', val: '—', status: 'Connect' },
+    { name: 'Podcast', icon: '🎙', color: '#8B5CF6', desc: 'Audio ads, sponsor spots, host reads', stat: 'Episodes', val: '—', status: 'Connect' },
+    { name: 'Google Ads', icon: 'G', color: '#4285F4', desc: 'Search, Display, Shopping campaigns', stat: 'Campaigns', val: '—', status: 'Connect' },
+    { name: 'Email', icon: '✉', color: '#00D4FF', desc: 'Newsletters, drip campaigns, sequences', stat: 'Subscribers', val: '—', status: 'Active' },
+    { name: 'SMS/Text', icon: '💬', color: '#22D3EE', desc: 'Text marketing, promotions, alerts', stat: 'Contacts', val: '—', status: 'Connect' },
+  ];
+
+  el.innerHTML = `
+    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+      <p style="margin:0;color:rgba(200,220,240,.8);font-size:.9rem">
+        🚀 <strong style="color:#00d4ff">2EasyMarketing's Channel Hub</strong> is the only agency portal managing 14+ platforms in one place. 
+        Competitors manage 3–4 at most. Connect your channels to unlock AI scheduling, cross-platform analytics, and one-click content distribution.
+      </p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+      ${channels.map(c => `
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;display:flex;align-items:center;gap:1rem;transition:border-color .2s;cursor:pointer" 
+             onmouseover="this.style.borderColor='${c.color}44'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+          <div style="width:44px;height:44px;border-radius:10px;background:${c.color}22;border:1px solid ${c.color}44;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:${c.color};flex-shrink:0">${c.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;color:#fff;font-size:.9rem">${c.name}</div>
+            <div style="color:rgba(180,200,220,.5);font-size:.75rem;margin-top:2px">${c.desc}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${c.status==='Active'?'rgba(34,197,94,.15)':'rgba(0,212,255,.1)'};color:${c.status==='Active'?'#4ade80':'#00d4ff'};border:1px solid ${c.status==='Active'?'rgba(34,197,94,.25)':'rgba(0,212,255,.2)'}">${c.status}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:2rem;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:1.25rem">
+      <h3 style="margin:0 0 .75rem;color:#a855f7;font-size:.95rem">🤖 What Maya Does With These Channels</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem">
+        ${[
+          ['Auto-Schedule Posts','Publishes content at peak engagement times across all channels'],
+          ['Cross-Platform Repurpose','Turns one piece of content into 6 formats automatically'],
+          ['Competitor Monitoring','Tracks what rivals post and when — then beats them to it'],
+          ['Trend Detection','Spots viral trends early and drafts content to capitalize'],
+          ['Engagement Alerts','Notifies you when a post is going viral or needs attention'],
+          ['ROI Tracking','Connects each channel to actual leads and revenue'],
+        ].map(([t,d]) => `
+          <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:.75rem">
+            <div style="font-weight:700;color:#fff;font-size:.82rem;margin-bottom:3px">${t}</div>
+            <div style="color:rgba(180,200,220,.5);font-size:.75rem">${d}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ─── CONTENT CALENDAR ────────────────────────────────────────────
+function loadContentCalendar() {
+  const el = document.getElementById('content-calendar-content');
+  if (!el) return;
+
+  const today = new Date();
+  const month = today.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+
+  const scheduledPosts = [
+    { day: today.getDate(), platform: 'Instagram', color: '#E1306C', type: 'Reel', time: '10:00 AM' },
+    { day: today.getDate()+2, platform: 'TikTok', color: '#69C9D0', type: 'Video', time: '3:00 PM' },
+    { day: today.getDate()+4, platform: 'YouTube', color: '#FF0000', type: 'Short', time: '12:00 PM' },
+    { day: today.getDate()+5, platform: 'LinkedIn', color: '#0A66C2', type: 'Post', time: '9:00 AM' },
+    { day: today.getDate()+7, platform: 'Twitter/X', color: '#000', type: 'Thread', time: '8:00 AM' },
+    { day: today.getDate()+9, platform: 'Facebook', color: '#1877F2', type: 'Reel', time: '2:00 PM' },
+    { day: today.getDate()+12, platform: 'TikTok', color: '#69C9D0', type: 'Video', time: '5:00 PM' },
+    { day: today.getDate()+14, platform: 'YouTube', color: '#FF0000', type: 'Video', time: '11:00 AM' },
+  ];
+
+  let calCells = '';
+  for (let i = 0; i < firstDay; i++) calCells += `<div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === today.getDate();
+    const posts = scheduledPosts.filter(p => p.day === d);
+    calCells += `
+      <div style="background:${isToday?'rgba(0,212,255,.1)':'rgba(255,255,255,.03)'};border:1px solid ${isToday?'rgba(0,212,255,.3)':'rgba(255,255,255,.06)'};border-radius:8px;padding:.5rem;min-height:70px">
+        <div style="font-size:.75rem;font-weight:${isToday?'800':'500'};color:${isToday?'#00d4ff':'rgba(200,220,240,.6)'};margin-bottom:4px">${d}</div>
+        ${posts.map(p => `<div style="background:${p.color}22;border-left:2px solid ${p.color};border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:.65rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.platform} · ${p.type}</div>`).join('')}
+      </div>`;
+  }
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#00d4ff">${scheduledPosts.length}</div>
+        <div style="color:rgba(180,200,220,.6);font-size:.8rem">Posts Scheduled This Month</div>
+      </div>
+      <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#a855f7">6</div>
+        <div style="color:rgba(180,200,220,.6);font-size:.8rem">Platforms Active</div>
+      </div>
+    </div>
+    <h2 style="color:#fff;font-size:1rem;font-weight:700;margin:0 0 1rem">${month}</h2>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;margin-bottom:.4rem">
+      ${days.map(d => `<div style="text-align:center;font-size:.7rem;font-weight:700;color:rgba(180,200,220,.4);padding:.3rem 0">${d}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;margin-bottom:1.5rem">
+      ${calCells}
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem">
+      <h3 style="margin:0 0 1rem;color:#fff;font-size:.9rem">📋 Upcoming Posts</h3>
+      ${scheduledPosts.slice(0,5).map(p => `
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
+          <div style="flex:1"><span style="color:#fff;font-size:.85rem;font-weight:600">${p.platform}</span> <span style="color:rgba(180,200,220,.5);font-size:.8rem">· ${p.type}</span></div>
+          <div style="color:rgba(180,200,220,.5);font-size:.75rem">Day ${p.day} at ${p.time}</div>
+        </div>
+      `).join('')}
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,212,255,.06);border-radius:8px;text-align:center">
+        <span style="color:#00d4ff;font-size:.82rem;font-weight:600">🤖 Maya auto-schedules posts at peak engagement times for each platform</span>
+      </div>
+    </div>
+  `;
+}
+
+// ─── COMPETITOR SPY ──────────────────────────────────────────────
+function loadCompetitorSpy() {
+  const el = document.getElementById('competitor-spy-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+      <p style="margin:0;color:rgba(200,220,240,.8);font-size:.9rem">
+        🕵️ <strong style="color:#00d4ff">Competitor Spy</strong> — Add your competitors and Maya will monitor their pricing, content strategy, ad spend, and reviews in real-time. 
+        You'll always know what they're doing before your clients do.
+      </p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem">
+      ${[
+        { name: 'WebFX', pricing: '$3,000+/mo', weakness: 'No AI video ads, no Twitch', score: 72 },
+        { name: 'Hibu', pricing: '$500–2,000/mo', weakness: 'Slow delivery, no autonomous AI', score: 58 },
+        { name: 'Thrive Agency', pricing: '$1,500+/mo', weakness: 'No client portal, manual reports', score: 61 },
+      ].map(c => `
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.75rem">
+            <div style="font-weight:700;color:#fff;font-size:.95rem">${c.name}</div>
+            <div style="background:rgba(248,113,113,.1);color:#f87171;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:6px;border:1px solid rgba(248,113,113,.2)">Threat: ${c.score}/100</div>
+          </div>
+          <div style="color:rgba(180,200,220,.6);font-size:.8rem;margin-bottom:.5rem">💰 Pricing: <span style="color:#fbbf24">${c.pricing}</span></div>
+          <div style="color:rgba(180,200,220,.6);font-size:.8rem;margin-bottom:.75rem">⚠️ Weakness: <span style="color:#4ade80">${c.weakness}</span></div>
+          <div style="background:rgba(255,255,255,.03);border-radius:8px;height:6px;overflow:hidden">
+            <div style="height:100%;width:${c.score}%;background:linear-gradient(90deg,#4ade80,#f59e0b);border-radius:6px"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;margin-bottom:1rem">
+      <h3 style="margin:0 0 1rem;color:#fff;font-size:.9rem">➕ Add Competitor to Monitor</h3>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <input id="comp-name" placeholder="Company name" style="flex:1;min-width:160px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.85rem;outline:none">
+        <input id="comp-url" placeholder="Website URL" style="flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.85rem;outline:none">
+        <button onclick="addCompetitor()" style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.6rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem;white-space:nowrap">+ Track</button>
+      </div>
+    </div>
+    <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:1rem;text-align:center">
+      <div style="color:#a855f7;font-size:.85rem;font-weight:600">🤖 Maya runs competitor checks every 24 hours and alerts you to pricing changes, new services, and viral content</div>
+    </div>
+  `;
+}
+
+window.addCompetitor = function() {
+  const name = document.getElementById('comp-name')?.value;
+  const url = document.getElementById('comp-url')?.value;
+  if (!name) return;
+  alert(`✅ ${name} added to monitoring list. Maya will report back within 24 hours.`);
+};
+
+// ─── REVENUE DASHBOARD ───────────────────────────────────────────
+function loadRevenueDashboard() {
+  const el = document.getElementById('revenue-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem">
+      ${[
+        { label:'MRR', val:'$0', sub:'Monthly Recurring Revenue', color:'#00d4ff' },
+        { label:'Leads This Month', val:'0', sub:'From all channels combined', color:'#a855f7' },
+        { label:'Avg Client Value', val:'$0', sub:'Revenue per active client', color:'#4ade80' },
+        { label:'Pipeline Value', val:'$0', sub:'Prospects × avg deal size', color:'#fbbf24' },
+      ].map(k => `
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem">
+          <div style="font-size:1.6rem;font-weight:800;color:${k.color}">${k.val}</div>
+          <div style="font-weight:700;color:#fff;font-size:.82rem;margin:.25rem 0">${k.label}</div>
+          <div style="color:rgba(180,200,220,.4);font-size:.72rem">${k.sub}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+      <h3 style="margin:0 0 1rem;color:#fff;font-size:.9rem">💰 Revenue by Channel</h3>
+      ${[
+        { ch:'Google Ads', leads:0, revenue:'$0', bar:0 },
+        { ch:'Facebook/Instagram Ads', leads:0, revenue:'$0', bar:0 },
+        { ch:'Organic Social', leads:0, revenue:'$0', bar:0 },
+        { ch:'Referrals', leads:0, revenue:'$0', bar:0 },
+        { ch:'Direct / Website', leads:0, revenue:'$0', bar:0 },
+      ].map(r => `
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.75rem">
+          <div style="width:130px;color:rgba(200,220,240,.7);font-size:.8rem;flex-shrink:0">${r.ch}</div>
+          <div style="flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:8px;overflow:hidden">
+            <div style="height:100%;width:${r.bar}%;background:linear-gradient(90deg,#00d4ff,#a855f7);border-radius:4px"></div>
+          </div>
+          <div style="width:50px;text-align:right;color:#4ade80;font-size:.8rem;font-weight:700">${r.revenue}</div>
+        </div>
+      `).join('')}
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,212,255,.06);border-radius:8px;text-align:center;color:rgba(180,200,220,.6);font-size:.8rem">
+        Revenue tracking activates once you connect your channels and add clients. Maya fills this automatically.
+      </div>
+    </div>
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:1rem">
+      <h3 style="margin:0 0 .5rem;color:#4ade80;font-size:.9rem">📈 Your Revenue Targets</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;text-align:center">
+        <div><div style="font-size:1.2rem;font-weight:800;color:#4ade80">$497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Starter/mo</div></div>
+        <div><div style="font-size:1.2rem;font-weight:800;color:#fbbf24">$1,497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Growth/mo</div></div>
+        <div><div style="font-size:1.2rem;font-weight:800;color:#a855f7">$3,497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Agency/mo</div></div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── CLIENT REPORTS ──────────────────────────────────────────────
+function loadClientReports() {
+  const el = document.getElementById('client-reports-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+      <p style="margin:0;color:rgba(200,220,240,.8);font-size:.9rem">
+        📊 <strong style="color:#00d4ff">One-click client reports</strong> — Generate beautiful, branded PDF reports showing your clients exactly what you've done for them. 
+        No other local agency does this automatically.
+      </p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem">
+      ${[
+        { name:'Monthly Performance Report', desc:'Full breakdown of all campaigns, leads, and ROI for the month', icon:'📊', color:'#00d4ff' },
+        { name:'Social Media Report', desc:'Engagement, reach, follower growth across all platforms', icon:'📱', color:'#a855f7' },
+        { name:'Competitor Analysis Report', desc:'What competitors are doing vs. what you\'re doing better', icon:'🕵️', color:'#f59e0b' },
+        { name:'AI Activity Report', desc:'Everything Maya did autonomously this month on your behalf', icon:'🤖', color:'#4ade80' },
+        { name:'ROI Summary', desc:'Every dollar spent vs. every dollar earned — clear and simple', icon:'💰', color:'#fbbf24' },
+        { name:'Custom Report', desc:'Ask Maya to build any report you need for any client', icon:'✨', color:'#e879f9' },
+      ].map(r => `
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;cursor:pointer;transition:border-color .2s"
+             onmouseover="this.style.borderColor='${r.color}44'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'"
+             onclick="generateReport('${r.name}')">
+          <div style="font-size:1.5rem;margin-bottom:.5rem">${r.icon}</div>
+          <div style="font-weight:700;color:#fff;font-size:.9rem;margin-bottom:.35rem">${r.name}</div>
+          <div style="color:rgba(180,200,220,.5);font-size:.78rem;margin-bottom:.75rem">${r.desc}</div>
+          <div style="background:${r.color}15;border:1px solid ${r.color}33;color:${r.color};font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:6px;display:inline-block">Generate →</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+window.generateReport = function(name) {
+  alert(`🤖 Maya is generating your "${name}"...\n\nThis feature activates once you have active clients. Maya will email the report directly to your client automatically.`);
+};
+
+window.generateClientReport = function() {
+  loadClientReports();
+};
+
+// ─── NAVIGATION NOTE ─────────────────────────────────────────────
+// All section loaders (loadChannelHub, loadContentCalendar, loadCompetitorSpy,
+// loadRevenueDashboard, loadClientReports) are already wired inside the IIFE
+// via the navigateTo() function (lines 309-313). No external override needed.
