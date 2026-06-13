@@ -36,17 +36,17 @@ html { scroll-behavior: smooth; }
 #particles-canvas {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  pointer-events: all;
-  cursor: none;
+  z-index: 0;
+  pointer-events: none;
+  cursor: default;
 }
 
 /* ── HERO TOTAL REBUILD ── */
 .hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   overflow: hidden;
   background: #000;
 }
