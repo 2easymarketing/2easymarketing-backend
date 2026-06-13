@@ -337,14 +337,14 @@ h1,h2,h3,h4,h5,h6 {
   pointer-events: none;
 }
 
-/* Hero content — LEFT aligned, vertically centered, clear of dot nav */
+/* Hero content — LEFT aligned, vertically centered */
 .hero-content {
   position: relative;
   z-index: 5;
   padding-bottom: var(--space-4);
-  padding-top: var(--space-20);      /* push down from fixed nav bar */
-  max-width: 600px;
-  margin-left: 40px;                 /* clear the dot nav on the left */
+  padding-top: var(--space-20);
+  max-width: 580px;
+  /* Sits within container which already has 2rem side padding */
 }
 
 /* Visage has no badge pill — but keep ours subtle */
@@ -437,13 +437,13 @@ h1,h2,h3,h4,h5,h6 {
 /* === VERTICAL DOT NAV (Visage left-edge dots) === */
 .hero-dot-nav {
   position: absolute;
-  left: 16px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .hero-dot {
   width: 8px; height: 8px;
@@ -536,11 +536,12 @@ h1,h2,h3,h4,h5,h6 {
 }
 .section-title {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: clamp(2rem, 1rem + 3vw, 3.5rem);
   font-weight: 800;
   color: var(--text);
   margin-bottom: var(--space-4);
   letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 .section-desc {
   font-size: var(--text-base);
@@ -858,14 +859,31 @@ h1,h2,h3,h4,h5,h6 {
   font-size: var(--text-sm); color: var(--text-muted);
   padding: var(--space-3) 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
-  padding-left: var(--space-6); position: relative;
+  padding-left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
 }
-.pricing-features li::before {
-  content: '✓'; position: absolute; left: 0;
-  color: var(--accent); font-weight: 700; font-size: var(--text-sm);
+/* No ::before — HTML already has a .check span */
+.pricing-features li .check {
+  color: var(--accent); font-weight: 700; flex-shrink: 0; margin-top: 1px;
 }
 .pricing-features li.unavailable { color: var(--text-dim); }
-.pricing-features li.unavailable::before { content: '—'; color: var(--text-dim); }
+.pricing-features li.unavailable .check { color: var(--text-dim); }
+/* btn-outline = same as btn-ghost */
+.btn-outline {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 14px 32px; font-family: var(--font-display); font-weight: 700;
+  font-size: var(--text-sm); letter-spacing: 0.1em; text-transform: uppercase;
+  text-decoration: none; cursor: pointer; transition: all var(--transition);
+  border: 2px solid var(--accent); color: var(--accent); background: transparent;
+  border-radius: 0;
+}
+.btn-outline:hover { background: var(--accent); color: var(--bg); }
+/* btn-large = bigger padding */
+.btn-large { padding: 18px 40px; font-size: var(--text-base); }
+/* full-width form group */
+.form-group.full-width { grid-column: 1 / -1; }
 .pricing-cta {
   display: block; width: 100%; text-align: center;
   padding: var(--space-4);
@@ -918,6 +936,12 @@ h1,h2,h3,h4,h5,h6 {
   background: radial-gradient(ellipse at 50% 0%, rgba(0,196,180,0.08) 0%, transparent 70%);
   border-top: 1px solid rgba(0,196,180,0.1);
 }
+/* Center everything in the contact section */
+.cta-inner {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto;
+}
 .cta-title {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
@@ -926,6 +950,25 @@ h1,h2,h3,h4,h5,h6 {
   margin-bottom: var(--space-5);
   letter-spacing: -0.02em;
 }
+.cta-desc {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: var(--space-8);
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.contact-extras {
+  margin-top: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.contact-extras a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.contact-extras a:hover { text-decoration: underline; }
 .contact-form {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -1176,4 +1219,70 @@ h1,h2,h3,h4,h5,h6 {
   .hero-actions .btn { text-align: center; justify-content: center; width: 100%; }
   .footer-links { grid-template-columns: 1fr; }
   .contact-form { padding: var(--space-5); }
+}
+
+/* ===== ROADMAP IMAGE VISUAL ===== */
+.roadmap-visual {
+  margin-bottom: var(--space-12);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-glass);
+  max-height: 420px;
+}
+.roadmap-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== CONTACT ALTERNATIVES ===== */
+.contact-alternatives {
+  margin-top: var(--space-8);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.contact-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+}
+.contact-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity var(--transition);
+}
+.contact-link:hover { opacity: 0.75; }
+
+/* Contact form submit button — full width, teal filled */
+.contact-form .btn-primary,
+.contact-form .btn-large {
+  width: 100%;
+  display: block;
+  text-align: center;
+  justify-content: center;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  padding: 18px var(--space-8);
+  margin-top: var(--space-4);
+  font-size: var(--text-base);
+  border-radius: var(--radius-lg);
+}
+.contact-form .btn-primary:hover,
+.contact-form .btn-large:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #fff;
+}
+
+/* Make the form-row work inside the full-width cta-inner */
+.contact-form .form-row {
+  margin-bottom: var(--space-4);
 }
