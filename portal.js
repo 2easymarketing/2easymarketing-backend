@@ -1520,13 +1520,10 @@ window.loadSecurityDashboard = async function() {
   });
 
   try {
-    const [statsRes, blockedRes] = await Promise.all([
-      apiFetch(`/api/owner/security/stats?hours=${hours}`),
-      apiFetch('/api/owner/security/blocked'),
+    const [d, blockedData] = await Promise.all([
+      apiFetch(`/api/owner/security/stats?hours=${hours}`).then(r => r.json()),
+      apiFetch('/api/owner/security/blocked').then(r => r.json()),
     ]);
-
-    const d = statsRes;
-    const blockedData = blockedRes;
 
     // KPI cards
     const critCount = (d.by_severity || []).find(s => s.severity === 'critical')?.c || 0;
@@ -1636,10 +1633,7 @@ window.manualBlockIP = async function() {
   const permanent = document.getElementById('block-ip-type')?.value === 'true';
   if (!ip) { alert('Enter an IP address.'); return; }
   try {
-    await apiFetch('/api/owner/security/block', {
-      method: 'POST',
-      body: JSON.stringify({ ip, reason: 'manual_block', permanent }),
-    });
+    await apiFetch('/api/owner/security/block', 'POST', { ip, reason: 'manual_block', permanent });
     document.getElementById('block-ip-input').value = '';
     await window.loadSecurityDashboard();
   } catch (e) {
@@ -1657,20 +1651,14 @@ window.manualUnblockIP = async function() {
 window.quickBlock = async function(ip) {
   if (!confirm(`Block ${ip} for 24 hours?`)) return;
   try {
-    await apiFetch('/api/owner/security/block', {
-      method: 'POST',
-      body: JSON.stringify({ ip, reason: 'manual_block_ui', permanent: false }),
-    });
+    await apiFetch('/api/owner/security/block', 'POST', { ip, reason: 'manual_block_ui', permanent: false });
     await window.loadSecurityDashboard();
   } catch (e) { alert('Failed: ' + e.message); }
 };
 
 window.quickUnblock = async function(ip) {
   try {
-    await apiFetch('/api/owner/security/unblock', {
-      method: 'POST',
-      body: JSON.stringify({ ip }),
-    });
+    await apiFetch('/api/owner/security/unblock', 'POST', { ip });
     await window.loadSecurityDashboard();
   } catch (e) { alert('Failed: ' + e.message); }
 };
