@@ -21,7 +21,7 @@
   --text-xl:   clamp(1.5rem,   1.2rem + 1.2vw,   2.25rem);
   --text-2xl:  clamp(2rem,     1.2rem + 2.5vw,   3.5rem);
   --text-3xl:  clamp(2.5rem,   1rem + 4vw,       5rem);
-  --text-hero: clamp(3rem,     0.5rem + 5.5vw,    6.5rem);
+  --text-hero: clamp(2.8rem,   0.5rem + 4.5vw,    5.5rem);
 
   /* Spacing */
   --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;
@@ -291,7 +291,7 @@ h1,h2,h3,h4,h5,h6 {
   height: 100vh;
   min-height: 600px;
   display: flex;
-  align-items: flex-end;      /* content sits at BOTTOM-LEFT like Visage */
+  align-items: center;        /* vertically center so all content is visible */
   overflow: hidden;
   background: var(--bg);
 }
@@ -337,14 +337,14 @@ h1,h2,h3,h4,h5,h6 {
   pointer-events: none;
 }
 
-/* Hero content — LEFT aligned, sits in lower-left like Visage */
+/* Hero content — LEFT aligned, vertically centered, clear of dot nav */
 .hero-content {
   position: relative;
   z-index: 5;
-  padding-bottom: var(--space-16);
-  padding-top: var(--space-20);      /* push down from nav bar */
-  max-width: 620px;
-  margin-left: 40px;   /* clear the dot nav dots on the left */
+  padding-bottom: var(--space-4);
+  padding-top: var(--space-20);      /* push down from fixed nav bar */
+  max-width: 600px;
+  margin-left: 40px;                 /* clear the dot nav on the left */
 }
 
 /* Visage has no badge pill — but keep ours subtle */
