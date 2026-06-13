@@ -728,7 +728,7 @@
   white-space:nowrap; flex-shrink:0; text-transform:uppercase; letter-spacing:.06em;
 }
 .status-processing { background:rgba(245,158,11,0.1); color:#f59e0b; border:1px solid rgba(245,158,11,0.28); box-shadow:0 0 12px rgba(245,158,11,0.12); }
-.status-review     { background:rgba(0,196,180,0.1);  color:#c084fc; border:1px solid rgba(0,196,180,0.28); box-shadow:0 0 12px rgba(0,196,180,0.12); }
+.status-review     { background:rgba(0,196,180,0.1);  color:#00c4b4; border:1px solid rgba(0,196,180,0.28); box-shadow:0 0 12px rgba(0,196,180,0.12); }
 .status-approved   { background:rgba(0,255,136,0.08);  color:#00ff88; border:1px solid rgba(0,255,136,0.22); box-shadow:0 0 12px rgba(0,255,136,0.12); }
 .status-delivered  { background:rgba(0,196,180,0.08);  color:#00c4b4; border:1px solid rgba(0,196,180,0.22); box-shadow:0 0 12px rgba(0,196,180,0.12); }
 .status-error      { background:rgba(255,51,102,0.08); color:#ff3366; border:1px solid rgba(255,51,102,0.22); box-shadow:0 0 10px rgba(255,51,102,0.1); }
@@ -763,7 +763,7 @@
 /* ── OWNER PANEL ─────────────────────────────────────────────── */
 .owner-badge {
   background:rgba(0,196,180,.1); border:1px solid rgba(0,196,180,.28);
-  color:#c084fc; font-size:.73rem; font-weight:700; padding:.28rem .78rem;
+  color:#00c4b4; font-size:.73rem; font-weight:700; padding:.28rem .78rem;
   border-radius:20px; text-transform:uppercase; letter-spacing:.07em; box-shadow:0 0 12px rgba(0,196,180,0.12);
 }
 .owner-task-card {
@@ -792,13 +792,13 @@
 /* Action buttons */
 .btn-approve { background:linear-gradient(135deg,#00ff88,#16a34a); color:#000; padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:700; border:none; cursor:pointer; transition:box-shadow .2s; box-shadow:0 0 14px rgba(0,255,136,0.25); }
 .btn-approve:hover { box-shadow:0 0 24px rgba(0,255,136,0.45); }
-.btn-deliver { background:linear-gradient(135deg,var(--neon-blue),#0ea5e9); color:#fff; padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:700; border:none; cursor:pointer; transition:box-shadow .2s; box-shadow:0 0 14px rgba(0,196,180,0.25); }
+.btn-deliver { background:linear-gradient(135deg,var(--neon-blue),#008c80); color:#fff; padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:700; border:none; cursor:pointer; transition:box-shadow .2s; box-shadow:0 0 14px rgba(0,196,180,0.25); }
 .btn-deliver:hover { box-shadow:0 0 24px rgba(0,196,180,0.45); }
 .btn-edit { background:rgba(255,255,255,.055); color:var(--text-primary); border:1px solid rgba(255,255,255,.1); padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .18s; }
 .btn-edit:hover { border-color:var(--neon-blue); color:var(--neon-blue); box-shadow:0 0 8px rgba(0,196,180,0.15); }
 .btn-reject { background:rgba(255,51,102,0.09); color:var(--error); border:1px solid rgba(255,51,102,0.22); padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .18s; }
 .btn-reject:hover { background:rgba(255,51,102,0.18); box-shadow:0 0 14px rgba(255,51,102,0.2); }
-.btn-regen { background:rgba(0,196,180,.1); color:#c084fc; border:1px solid rgba(0,196,180,.22); padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .18s; }
+.btn-regen { background:rgba(0,196,180,.1); color:#00c4b4; border:1px solid rgba(0,196,180,.22); padding:.5rem 1.2rem; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .18s; }
 .btn-regen:hover { background:rgba(0,196,180,.2); box-shadow:0 0 14px rgba(0,196,180,0.22); }
 
 /* ── TABLE ──────────────────────────────────────────────────── */

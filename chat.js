@@ -603,7 +603,7 @@
           const btn = document.getElementById('maya-chat-btn');
           if (btn) {
             btn.style.transform = 'scale(1.15)';
-            btn.style.boxShadow = '0 0 30px rgba(0,212,255,0.6)';
+            btn.style.boxShadow = '0 0 30px rgba(0,196,180,0.6)';
             setTimeout(() => {
               btn.style.transform = '';
               btn.style.boxShadow = '';

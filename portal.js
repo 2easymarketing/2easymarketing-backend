@@ -1202,17 +1202,17 @@ function loadChannelHub() {
     { name: 'YouTube', icon: '▶', color: '#FF0000', desc: 'Video content, Shorts, Live streams', stat: 'Videos', val: '—', status: 'Connect' },
     { name: 'YouTube Shorts', icon: '🩳', color: '#FF0000', desc: 'Short-form vertical video (< 60s)', stat: 'Shorts', val: '—', status: 'Connect' },
     { name: 'TikTok', icon: '♪', color: '#69C9D0', desc: 'Short-form video, trends, FYP', stat: 'Posts', val: '—', status: 'Connect' },
-    { name: 'Twitch', icon: '◉', color: '#9146FF', desc: 'Live streaming, gaming, IRL', stat: 'Streams', val: '—', status: 'Connect' },
+    { name: 'Twitch', icon: '◉', color: '#00c4b4', desc: 'Live streaming, gaming, IRL', stat: 'Streams', val: '—', status: 'Connect' },
     { name: 'Instagram', icon: '◈', color: '#E1306C', desc: 'Reels, Stories, Feed posts', stat: 'Posts', val: '—', status: 'Connect' },
     { name: 'Facebook', icon: 'f', color: '#1877F2', desc: 'Pages, Groups, Ads, Reels', stat: 'Posts', val: '—', status: 'Connect' },
     { name: 'LinkedIn', icon: 'in', color: '#0A66C2', desc: 'B2B content, thought leadership', stat: 'Posts', val: '—', status: 'Connect' },
     { name: 'Twitter/X', icon: '✕', color: '#000000', desc: 'Real-time marketing, viral content', stat: 'Tweets', val: '—', status: 'Connect' },
     { name: 'Pinterest', icon: '♗', color: '#E60023', desc: 'Visual discovery, product pins', stat: 'Pins', val: '—', status: 'Connect' },
-    { name: 'Discord', icon: '⬡', color: '#5865F2', desc: 'Community building, server marketing', stat: 'Members', val: '—', status: 'Connect' },
-    { name: 'Podcast', icon: '🎙', color: '#8B5CF6', desc: 'Audio ads, sponsor spots, host reads', stat: 'Episodes', val: '—', status: 'Connect' },
+    { name: 'Discord', icon: '⬡', color: '#00c4b4', desc: 'Community building, server marketing', stat: 'Members', val: '—', status: 'Connect' },
+    { name: 'Podcast', icon: '🎙', color: '#00c4b4', desc: 'Audio ads, sponsor spots, host reads', stat: 'Episodes', val: '—', status: 'Connect' },
     { name: 'Google Ads', icon: 'G', color: '#4285F4', desc: 'Search, Display, Shopping campaigns', stat: 'Campaigns', val: '—', status: 'Connect' },
     { name: 'Email', icon: '✉', color: '#00c4b4', desc: 'Newsletters, drip campaigns, sequences', stat: 'Subscribers', val: '—', status: 'Active' },
-    { name: 'SMS/Text', icon: '💬', color: '#22D3EE', desc: 'Text marketing, promotions, alerts', stat: 'Contacts', val: '—', status: 'Connect' },
+    { name: 'SMS/Text', icon: '💬', color: '#00c4b4', desc: 'Text marketing, promotions, alerts', stat: 'Contacts', val: '—', status: 'Connect' },
   ];
 
   el.innerHTML = `
