@@ -877,8 +877,14 @@ class FortressMiddleware(BaseHTTPMiddleware):
             "frame-ancestors 'none';"
         )
         # Remove server fingerprint headers
-        response.headers.pop("server", None)
-        response.headers.pop("x-powered-by", None)
+        try:
+            del response.headers["server"]
+        except (KeyError, AttributeError):
+            pass
+        try:
+            del response.headers["x-powered-by"]
+        except (KeyError, AttributeError):
+            pass
 
         return response
 
