@@ -732,7 +732,64 @@ h1,h2,h3,h4,h5,h6 {
   font-size: 0.75rem;
 }
 
-/* ===== TOOLS — grid of glass pills ===== */
+/* ===== TOOLS — two-column layout ===== */
+.tools-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-10);
+  align-items: start;
+}
+.tools-image-col img.tools-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.tools-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.tool-pill {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition);
+}
+.tool-pill:hover { border-color: var(--border-h); color: var(--text); }
+.free-badge {
+  background: rgba(0,196,180,0.12);
+  border: 1px solid rgba(0,196,180,0.25);
+  color: var(--accent);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tool-category {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--transition);
+}
+.tool-category:hover { border-color: var(--border-h); }
+
+/* ===== TOOLS — old grid (kept for compatibility) ===== */
 .tools-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -807,6 +864,17 @@ h1,h2,h3,h4,h5,h6 {
 .cert-badge.free { background: rgba(0,196,180,0.15); color: var(--accent); }
 .cert-link { font-size: var(--text-xs); color: var(--accent); text-decoration: none; }
 .cert-link:hover { text-decoration: underline; }
+/* Cert logo colors */
+.cert-logo.google   { background: #4285F4; }
+.cert-logo.meta     { background: #0866FF; }
+.cert-logo.hubspot  { background: #FF7A59; }
+.cert-logo.semrush  { background: #FF6B2C; }
+.cert-logo.linkedin { background: #0A66C2; }
+/* Cert HTML class variants used in markup */
+.cert-provider { font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-1); }
+.cert-note     { font-size: var(--text-xs); color: var(--text-dim); line-height: 1.5; }
+.cert-arrow    { font-size: 1.2rem; color: var(--accent); flex-shrink: 0; opacity: 0.6; transition: opacity var(--transition); }
+.cert-card:hover .cert-arrow { opacity: 1; }
 
 /* ===== PRICING ===== */
 .pricing-grid {
@@ -905,6 +973,12 @@ h1,h2,h3,h4,h5,h6 {
 
 /* ===== TESTIMONIALS ===== */
 .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+/* Testimonial missing classes */
+.testimonial-quote { font-size: 4rem; line-height: 1; color: var(--accent); opacity: 0.3; font-family: Georgia, serif; margin-bottom: var(--space-2); }
+.testimonial-result { margin-left: auto; font-family: var(--font-display); font-size: var(--text-xs); font-weight: 700; color: var(--accent); background: rgba(0,196,180,0.1); border: 1px solid rgba(0,196,180,0.2); border-radius: var(--radius-full); padding: 4px 10px; white-space: nowrap; }
+.av1 { background: rgba(0,196,180,0.2); }
+.av2 { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+.av3 { background: rgba(251,191,36,0.2); color: #fbbf24; }
 .testimonial-card {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -1181,6 +1255,8 @@ h1,h2,h3,h4,h5,h6 {
 @media (max-width: 1024px) {
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .steps-grid    { grid-template-columns: repeat(2, 1fr); }
+  .tools-layout  { grid-template-columns: 1fr; }
+  .tools-image-col { display: none; }
   .tools-grid    { grid-template-columns: repeat(2, 1fr); }
   .certs-grid    { grid-template-columns: repeat(2, 1fr); }
   .pricing-grid  { grid-template-columns: repeat(2, 1fr); }
@@ -1201,6 +1277,7 @@ h1,h2,h3,h4,h5,h6 {
   .hero-actions .btn { width: auto; }
   .services-grid { grid-template-columns: 1fr; }
   .steps-grid    { grid-template-columns: 1fr; }
+  .tools-layout  { grid-template-columns: 1fr; }
   .tools-grid    { grid-template-columns: 1fr; }
   .certs-grid    { grid-template-columns: 1fr; }
   .pricing-grid  { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto var(--space-8); }
