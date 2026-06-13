@@ -1,0 +1,5 @@
+vercel.json
+.vercel
+*.db
+__pycache__
+.env.railway
