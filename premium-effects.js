@@ -192,82 +192,24 @@
   }
 
   /* =============================================
-     3. TYPEWRITER HERO TITLE
+     3. HERO TITLE — INSTANT REVEAL WITH FADE
   ============================================= */
   function initTypewriter() {
     const titleEl = document.querySelector('.hero-title');
     if (!titleEl) return;
 
-    // Extract plain text lines
-    const lines = [
-      { text: 'Dominate the', class: '' },
-      { text: 'Digital Space.', class: 'gradient-text' }
-    ];
+    // Instantly set the full content — no slow typing
+    titleEl.innerHTML = '<span class="tw-line1">Dominate the</span><br/><span class="tw-line2 gradient-text">Digital Space.</span>';
 
-    titleEl.innerHTML = '';
-    titleEl.style.minHeight = '1.2em';
+    // Add fade-in animation
+    titleEl.style.opacity = '0';
+    titleEl.style.transform = 'translateY(20px)';
+    titleEl.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
 
-    let lineIdx = 0;
-    let charIdx = 0;
-    let isDeleting = false;
-
-    // Build the structure
-    const line1 = document.createElement('span');
-    line1.className = 'tw-line1';
-    const line2 = document.createElement('span');
-    line2.className = 'tw-line2 gradient-text';
-    const cursor = document.createElement('span');
-    cursor.className = 'tw-cursor';
-    cursor.textContent = '|';
-    cursor.style.cssText = 'animation: cursorBlink 0.8s infinite; color: #00d4ff; font-weight: 300;';
-
-    titleEl.appendChild(line1);
-    titleEl.appendChild(document.createElement('br'));
-    titleEl.appendChild(line2);
-    titleEl.appendChild(cursor);
-
-    // Add blink keyframe
-    if (!document.getElementById('tw-style')) {
-      const s = document.createElement('style');
-      s.id = 'tw-style';
-      s.textContent = `@keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }`;
-      document.head.appendChild(s);
-    }
-
-    // Type line 1 then line 2
-    function typeSequence() {
-      const fullLine1 = 'Dominate the';
-      const fullLine2 = 'Digital Space.';
-
-      let i = 0, j = 0;
-      const delay1 = 80;
-      const delay2 = 80;
-      const pauseBetween = 300;
-
-      function typeLine1() {
-        if (i <= fullLine1.length) {
-          line1.textContent = fullLine1.slice(0, i++);
-          setTimeout(typeLine1, delay1);
-        } else {
-          setTimeout(typeLine2, pauseBetween);
-        }
-      }
-
-      function typeLine2() {
-        if (j <= fullLine2.length) {
-          line2.textContent = fullLine2.slice(0, j++);
-          setTimeout(typeLine2, delay2);
-        } else {
-          // Done — hide cursor after 2s
-          setTimeout(() => { cursor.style.opacity = '0'; }, 2000);
-        }
-      }
-
-      typeLine1();
-    }
-
-    // Start after a brief delay
-    setTimeout(typeSequence, 500);
+    setTimeout(() => {
+      titleEl.style.opacity = '1';
+      titleEl.style.transform = 'translateY(0)';
+    }, 100);
   }
 
   /* =============================================
