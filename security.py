@@ -740,6 +740,7 @@ class FortressMiddleware(BaseHTTPMiddleware):
             try:
                 body = await request.body()
                 payload = body.decode("utf-8", errors="replace")[:500]
+                # No need to replay — we're returning immediately for honeypot
             except Exception:
                 pass
             headers_str = json.dumps(dict(request.headers))
@@ -806,9 +807,17 @@ class FortressMiddleware(BaseHTTPMiddleware):
                 return self._block_response("Request blocked")
 
         # Inspect request body (only for non-GET/HEAD, within size limit)
+        # CRITICAL: After reading the body we MUST replay it back into the
+        # request's receive channel, otherwise FastAPI handlers get empty body.
         if method not in ("GET", "HEAD", "OPTIONS"):
             try:
                 body = await request.body()
+
+                # ── Replay body so downstream handlers can read it ────────
+                async def _replay_receive():
+                    return {"type": "http.request", "body": body, "more_body": False}
+                request._receive = _replay_receive  # patch the receive callable
+
                 if len(body) > MAX_BODY_SIZE:
                     log_threat(ip, "oversized_body", "medium", path, method, f"{len(body)} bytes", ua, "blocked")
                     return self._block_response("Request too large", status_code=413)
