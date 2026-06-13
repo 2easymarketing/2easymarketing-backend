@@ -935,3 +935,511 @@ tr:hover td { background:rgba(0,196,180,0.025); }
   .portal-sidebar { display:none; }
   .portal-main { margin-left:0; }
 }
+
+/* =========================================================
+   AD ENGINE — 2EasyMarketing
+   ========================================================= */
+
+/* Tabs */
+.ae-tabs {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(0,196,180,.15);
+  padding-bottom: .75rem;
+}
+.ae-tab {
+  background: none;
+  border: 1px solid rgba(0,196,180,.2);
+  color: rgba(255,255,255,.55);
+  padding: .5rem 1.1rem;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .02em;
+}
+.ae-tab:hover { border-color: #00c4b4; color: #00c4b4; }
+.ae-tab.active {
+  background: rgba(0,196,180,.12);
+  border-color: #00c4b4;
+  color: #00c4b4;
+}
+.ae-tab-content { display: block; }
+
+/* Two-column layout */
+.ae-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 1024px) { .ae-two-col { grid-template-columns: 1fr; } }
+
+/* Panels */
+.ae-form-panel,
+.ae-output-panel {
+  background: rgba(0,196,180,.04);
+  border: 1px solid rgba(0,196,180,.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.ae-panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 .3rem;
+}
+.ae-panel-sub {
+  font-size: .8rem;
+  color: rgba(255,255,255,.45);
+  margin: 0 0 1.25rem;
+}
+
+/* Form fields */
+.ae-form { display: flex; flex-direction: column; gap: .9rem; }
+.ae-field { display: flex; flex-direction: column; gap: .35rem; }
+.ae-field label {
+  font-size: .76rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.65);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.ae-field input,
+.ae-field select,
+.ae-field textarea {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(0,196,180,.2);
+  border-radius: 8px;
+  color: #fff;
+  padding: .6rem .85rem;
+  font-size: .85rem;
+  font-family: inherit;
+  transition: border-color .2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ae-field input:focus,
+.ae-field select:focus,
+.ae-field textarea:focus {
+  outline: none;
+  border-color: #00c4b4;
+  box-shadow: 0 0 0 2px rgba(0,196,180,.15);
+}
+.ae-field select option { background: #0d2030; }
+.ae-field textarea { resize: vertical; min-height: 80px; }
+.ae-field-hint {
+  font-size: .72rem;
+  color: rgba(255,255,255,.35);
+  line-height: 1.4;
+}
+.ae-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+.ae-input-prefix {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(0,196,180,.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ae-input-prefix span {
+  padding: 0 .75rem;
+  color: #00c4b4;
+  font-weight: 700;
+  font-size: .9rem;
+  background: rgba(0,196,180,.08);
+  border-right: 1px solid rgba(0,196,180,.2);
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.ae-input-prefix input {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Generate button */
+.ae-generate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  background: linear-gradient(135deg, #00c4b4, #008c80);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .85rem 1.5rem;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  width: 100%;
+  margin-top: .5rem;
+  letter-spacing: .03em;
+}
+.ae-generate-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,196,180,.35);
+}
+.ae-generate-btn:active { transform: translateY(0); }
+.ae-generate-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Output panel content */
+.ae-section-label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #00c4b4;
+  margin: 1.25rem 0 .6rem;
+}
+.ae-summary-card {
+  background: rgba(0,196,180,.08);
+  border: 1px solid rgba(0,196,180,.25);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  font-size: .83rem;
+  color: rgba(255,255,255,.8);
+  line-height: 1.6;
+}
+.ae-ad-variation {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  margin-bottom: .65rem;
+  position: relative;
+}
+.ae-ad-variation:hover { border-color: rgba(0,196,180,.3); }
+.ae-ad-var-num {
+  position: absolute;
+  top: .65rem;
+  right: .75rem;
+  font-size: .7rem;
+  font-weight: 700;
+  color: #00c4b4;
+  background: rgba(0,196,180,.12);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.ae-ad-var-headline {
+  font-size: .9rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: .3rem;
+}
+.ae-ad-var-body {
+  font-size: .8rem;
+  color: rgba(255,255,255,.65);
+  line-height: 1.5;
+  margin-bottom: .3rem;
+}
+.ae-ad-var-cta {
+  font-size: .75rem;
+  font-weight: 600;
+  color: #00c4b4;
+}
+.ae-audience-box,
+.ae-budget-box {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  font-size: .82rem;
+  color: rgba(255,255,255,.75);
+  line-height: 1.7;
+}
+.ae-audience-box strong,
+.ae-budget-box strong { color: #00c4b4; }
+
+/* Launch bar */
+.ae-launch-bar {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0,196,180,.12);
+}
+.ae-api-warning {
+  background: rgba(255,180,0,.08);
+  border: 1px solid rgba(255,180,0,.25);
+  border-radius: 8px;
+  padding: .6rem .85rem;
+  font-size: .78rem;
+  color: rgba(255,220,100,.85);
+  margin-bottom: .75rem;
+}
+.ae-api-warning a { color: #00c4b4; }
+.ae-launch-btns { display: flex; gap: .75rem; }
+.ae-btn-save {
+  flex: 1;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.8);
+  border-radius: 9px;
+  padding: .7rem 1rem;
+  font-size: .83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ae-btn-save:hover { border-color: #00c4b4; color: #00c4b4; }
+.ae-btn-launch {
+  flex: 2;
+  background: linear-gradient(135deg, #00c4b4, #008c80);
+  border: none;
+  color: #fff;
+  border-radius: 9px;
+  padding: .7rem 1rem;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+}
+.ae-btn-launch:hover { box-shadow: 0 4px 16px rgba(0,196,180,.35); }
+.ae-btn-launch:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Generating spinner */
+.ae-generating {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: rgba(255,255,255,.5);
+  font-size: .85rem;
+}
+.ae-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(0,196,180,.2);
+  border-top-color: #00c4b4;
+  border-radius: 50%;
+  animation: ae-spin .8s linear infinite;
+  margin: 0 auto 1rem;
+}
+@keyframes ae-spin { to { transform: rotate(360deg); } }
+
+/* Live Campaigns tab */
+.ae-campaigns-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.ae-stat-row { display: flex; gap: .75rem; flex-wrap: wrap; }
+.ae-stat-chip {
+  background: rgba(0,196,180,.06);
+  border: 1px solid rgba(0,196,180,.18);
+  border-radius: 10px;
+  padding: .6rem 1rem;
+  text-align: center;
+  min-width: 80px;
+}
+.ae-stat-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #00c4b4;
+  line-height: 1;
+  margin-bottom: .2rem;
+}
+.ae-stat-lbl {
+  font-size: .68rem;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.ae-refresh-btn {
+  background: rgba(0,196,180,.1);
+  border: 1px solid rgba(0,196,180,.25);
+  color: #00c4b4;
+  border-radius: 8px;
+  padding: .5rem 1rem;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ae-refresh-btn:hover { background: rgba(0,196,180,.18); }
+.ae-campaigns-list { display: flex; flex-direction: column; gap: .75rem; }
+.ae-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(255,255,255,.35);
+  font-size: .85rem;
+  background: rgba(255,255,255,.02);
+  border: 1px dashed rgba(0,196,180,.15);
+  border-radius: 14px;
+}
+.ae-campaign-card {
+  background: rgba(0,196,180,.04);
+  border: 1px solid rgba(0,196,180,.15);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .75rem;
+  align-items: center;
+}
+.ae-campaign-name {
+  font-size: .9rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: .25rem;
+}
+.ae-campaign-meta {
+  font-size: .75rem;
+  color: rgba(255,255,255,.45);
+}
+.ae-campaign-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: .5rem;
+}
+.ae-campaign-stat { font-size: .75rem; color: rgba(255,255,255,.6); }
+.ae-campaign-stat strong { color: #00c4b4; }
+.ae-campaign-controls { display: flex; gap: .5rem; }
+.ae-ctrl-btn {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.75);
+  border-radius: 7px;
+  padding: .35rem .7rem;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.ae-ctrl-btn:hover { border-color: #00c4b4; color: #00c4b4; }
+.ae-ctrl-btn.danger:hover { border-color: #ff4444; color: #ff4444; }
+.ae-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.ae-status-badge.active { background: rgba(0,196,180,.15); color: #00c4b4; }
+.ae-status-badge.paused { background: rgba(255,180,0,.12); color: #ffb400; }
+.ae-status-badge.draft { background: rgba(255,255,255,.08); color: rgba(255,255,255,.55); }
+.ae-status-badge.ended { background: rgba(100,100,100,.15); color: rgba(255,255,255,.4); }
+
+/* Settings tab */
+.ae-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+.ae-settings-card {
+  background: rgba(0,196,180,.04);
+  border: 1px solid rgba(0,196,180,.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.ae-settings-card h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 .4rem;
+}
+.ae-settings-card p {
+  font-size: .8rem;
+  color: rgba(255,255,255,.45);
+  margin: 0 0 1.1rem;
+  line-height: 1.5;
+}
+.ae-settings-icon {
+  font-size: 1.6rem;
+  margin-bottom: .6rem;
+}
+.ae-settings-guide .ae-steps { display: flex; flex-direction: column; gap: .9rem; }
+.ae-step {
+  display: flex;
+  gap: .85rem;
+  align-items: flex-start;
+}
+.ae-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00c4b4, #008c80);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ae-step-title {
+  font-size: .82rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: .2rem;
+}
+.ae-step-desc {
+  font-size: .76rem;
+  color: rgba(255,255,255,.5);
+  line-height: 1.5;
+}
+.ae-step-desc a { color: #00c4b4; }
+.ae-conn-status {
+  margin-top: .75rem;
+  font-size: .8rem;
+  min-height: 1.5rem;
+}
+.ae-conn-status.success { color: #00c4b4; }
+.ae-conn-status.error { color: #ff6b6b; }
+.ae-btn-test,
+.ae-btn-save-settings {
+  padding: .6rem 1.1rem;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ae-btn-test {
+  background: rgba(0,196,180,.1);
+  border: 1px solid rgba(0,196,180,.3);
+  color: #00c4b4;
+}
+.ae-btn-test:hover { background: rgba(0,196,180,.18); }
+.ae-btn-save-settings {
+  background: linear-gradient(135deg, #00c4b4, #008c80);
+  border: none;
+  color: #fff;
+}
+.ae-btn-save-settings:hover { box-shadow: 0 4px 14px rgba(0,196,180,.3); }
+.ae-toggle-pw {
+  position: absolute;
+  right: .6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .9rem;
+  opacity: .6;
+}
+.ae-toggle-pw:hover { opacity: 1; }

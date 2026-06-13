@@ -1887,3 +1887,808 @@ window.deleteCouncilSession = async function(id) {
     alert('Delete failed: ' + e.message);
   }
 };
+
+/* =============================================================
+   AD ENGINE — 2EasyMarketing
+   Full AI Campaign Builder + Meta Ads API Integration
+   ============================================================= */
+
+(function AdEngine() {
+  'use strict';
+
+  // ── Storage keys ──────────────────────────────────────────
+  const AE_SETTINGS_KEY = '2em_ae_settings';
+  const AE_CAMPAIGNS_KEY = '2em_ae_campaigns';
+  const AE_DRAFTS_KEY = '2em_ae_drafts';
+
+  // ── State ─────────────────────────────────────────────────
+  let aeSettings = {};
+  let aeCampaigns = [];
+  let aeCurrentOutput = null; // holds latest AI-generated campaign data
+
+  // ── Meta API base ─────────────────────────────────────────
+  const META_GRAPH = 'https://graph.facebook.com/v19.0';
+
+  // ── Anthropic API key ─────────────────────────────────────
+  const CLAUDE_KEY = 'sk-ant-api03-oZYx56RjHe2DRm2ElAz8YblUjNkDCYWx1qfDpuABOJUDp-UhtIExkhg7QE0y3tKdEAP1eVkeozAOg4GTPZ2RWQ-ht4BYQAA';
+  const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
+
+  // ── Init ──────────────────────────────────────────────────
+  function aeInit() {
+    aeLoadSettings();
+    aeLoadCampaigns();
+    aeBindTabs();
+    aeBindForm();
+    aeBindSettings();
+    aeBindCampaignControls();
+  }
+
+  // ── Load / Save helpers ───────────────────────────────────
+  function aeLoadSettings() {
+    try { aeSettings = JSON.parse(localStorage.getItem(AE_SETTINGS_KEY)) || {}; } catch(e) { aeSettings = {}; }
+    // Populate settings form
+    setValue('ae-meta-token', aeSettings.metaToken || '');
+    setValue('ae-ad-account-id', aeSettings.adAccountId || '');
+    setValue('ae-page-id', aeSettings.pageId || '');
+    setValue('ae-ig-id', aeSettings.igId || '');
+    setValue('ae-markup', aeSettings.markup !== undefined ? aeSettings.markup : 25);
+    setValue('ae-approval-mode', aeSettings.approvalMode || 'manual');
+    setValue('ae-alert-threshold', aeSettings.alertThreshold || 100);
+  }
+
+  function aeSaveSettings() {
+    aeSettings.metaToken = getVal('ae-meta-token');
+    aeSettings.adAccountId = getVal('ae-ad-account-id');
+    aeSettings.pageId = getVal('ae-page-id');
+    aeSettings.igId = getVal('ae-ig-id');
+    aeSettings.markup = parseFloat(getVal('ae-markup')) || 25;
+    aeSettings.approvalMode = getVal('ae-approval-mode');
+    aeSettings.alertThreshold = parseFloat(getVal('ae-alert-threshold')) || 100;
+    localStorage.setItem(AE_SETTINGS_KEY, JSON.stringify(aeSettings));
+  }
+
+  function aeLoadCampaigns() {
+    try { aeCampaigns = JSON.parse(localStorage.getItem(AE_CAMPAIGNS_KEY)) || []; } catch(e) { aeCampaigns = []; }
+  }
+
+  function aeSaveCampaigns() {
+    localStorage.setItem(AE_CAMPAIGNS_KEY, JSON.stringify(aeCampaigns));
+  }
+
+  function getValue(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  function getVal(id) { return getValue(id); }
+  function setValue(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+  function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  function show(id) { const el = document.getElementById(id); if (el) el.style.display = ''; }
+  function hide(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+  function showBlock(id) { const el = document.getElementById(id); if (el) el.style.display = 'block'; }
+
+  // ── Tab switching ─────────────────────────────────────────
+  function aeBindTabs() {
+    document.addEventListener('click', function(e) {
+      const tab = e.target.closest('[data-ae-tab]');
+      if (!tab) return;
+      const name = tab.dataset.aeTab;
+      // Activate tab button
+      document.querySelectorAll('.ae-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      // Show/hide tab content
+      ['create','campaigns','settings'].forEach(function(t) {
+        const el = document.getElementById('ae-tab-' + t);
+        if (el) el.style.display = (t === name) ? 'block' : 'none';
+      });
+      if (name === 'campaigns') aeRenderCampaigns();
+      if (name === 'settings') aeLoadSettings();
+    });
+
+    // Goto settings link inside warning
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'ae-goto-settings') {
+        e.preventDefault();
+        const settingsTab = document.querySelector('[data-ae-tab="settings"]');
+        if (settingsTab) settingsTab.click();
+      }
+    });
+  }
+
+  // ── Campaign form ─────────────────────────────────────────
+  function aeBindForm() {
+    document.addEventListener('click', async function(e) {
+      if (e.target && e.target.id === 'ae-generate-btn') {
+        await aeGenerateCampaign();
+      }
+      if (e.target && e.target.id === 'ae-save-draft-btn') {
+        aeSaveDraft();
+      }
+      if (e.target && e.target.id === 'ae-launch-btn') {
+        await aeLaunchCampaign();
+      }
+    });
+  }
+
+  // ── Collect form data ─────────────────────────────────────
+  function aeCollectBrief() {
+    return {
+      clientName:  getVal('ae-client-name'),
+      product:     getVal('ae-product'),
+      goal:        getVal('ae-goal'),
+      platform:    getVal('ae-platform'),
+      format:      getVal('ae-format'),
+      dailyBudget: parseFloat(getVal('ae-daily-budget')) || 50,
+      duration:    getVal('ae-duration'),
+      location:    getVal('ae-location'),
+      ageMin:      getVal('ae-age-min'),
+      ageMax:      getVal('ae-age-max'),
+      interests:   getVal('ae-interests'),
+      offer:       getVal('ae-offer'),
+      url:         getVal('ae-url'),
+    };
+  }
+
+  // ── AI Campaign Generator ─────────────────────────────────
+  async function aeGenerateCampaign() {
+    const brief = aeCollectBrief();
+
+    // Validate required fields
+    if (!brief.clientName || !brief.product || !brief.offer) {
+      alert('Please fill in Client Name, Product/Service, and Key Offer before generating.');
+      return;
+    }
+
+    // Show loading state
+    hide('ae-output-content');
+    showBlock('ae-generating');
+    const btn = document.getElementById('ae-generate-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+
+    const msgs = [
+      'AI is analyzing your offer...',
+      'Crafting high-converting headlines...',
+      'Building audience targeting...',
+      'Optimizing budget allocation...',
+      'Finalizing your campaign...'
+    ];
+    let mi = 0;
+    const msgInterval = setInterval(function() {
+      const el = document.getElementById('ae-generating-msg');
+      if (el && mi < msgs.length) { el.textContent = msgs[mi++]; }
+    }, 1200);
+
+    try {
+      // Build the AI prompt
+      const goalLabels = {
+        LEAD_GENERATION: 'Lead Generation',
+        CONVERSIONS: 'Sales / Conversions',
+        TRAFFIC: 'Website Traffic',
+        BRAND_AWARENESS: 'Brand Awareness',
+        MESSAGES: 'Messenger Leads'
+      };
+      const markup = aeSettings.markup !== undefined ? aeSettings.markup : 25;
+      const actualDailyBudget = (brief.dailyBudget * (1 - markup/100)).toFixed(2);
+      const totalBudget = brief.duration === 'ongoing'
+        ? 'Ongoing (no end date)'
+        : '$' + (brief.dailyBudget * parseInt(brief.duration)).toLocaleString();
+
+      const prompt = `You are a world-class Meta Ads strategist and copywriter. Create a complete, high-performing ad campaign.
+
+CLIENT: ${brief.clientName}
+PRODUCT/SERVICE: ${brief.product}
+CAMPAIGN GOAL: ${goalLabels[brief.goal] || brief.goal}
+PLATFORM: ${brief.platform}
+AD FORMAT: ${brief.format}
+DAILY BUDGET: $${brief.dailyBudget}/day (${brief.duration === 'ongoing' ? 'ongoing' : brief.duration + ' days'})
+LOCATION: ${brief.location || 'United States'}
+TARGET AGE: ${brief.ageMin}-${brief.ageMax}
+INTERESTS: ${brief.interests || 'general'}
+KEY OFFER: ${brief.offer}
+LANDING PAGE: ${brief.url || 'Not specified'}
+
+Respond ONLY with valid JSON in this exact structure (no markdown, no code blocks, just raw JSON):
+{
+  "campaignName": "string - compelling campaign name",
+  "summary": "string - 2-3 sentence campaign strategy overview",
+  "variations": [
+    {
+      "headline": "string - 40 chars max, attention-grabbing",
+      "body": "string - 125 chars max, benefit-focused, conversational",
+      "cta": "string - one of: Learn More, Get Quote, Book Now, Shop Now, Sign Up, Contact Us, Get Offer"
+    },
+    {
+      "headline": "string - different angle from first",
+      "body": "string - different hook/benefit from first",
+      "cta": "string"
+    },
+    {
+      "headline": "string - urgency or social proof angle",
+      "body": "string - urgency or proof-based",
+      "cta": "string"
+    }
+  ],
+  "audience": {
+    "targeting": "string - detailed audience description",
+    "interests": ["string", "string", "string", "string", "string"],
+    "behaviors": "string - behavioral targeting recommendation",
+    "lookalike": "string - lookalike audience recommendation"
+  },
+  "budget": {
+    "dailySpend": "${actualDailyBudget}",
+    "totalEstimate": "${totalBudget}",
+    "splitRecommendation": "string - how to split budget (e.g. 60% Facebook feed, 40% Instagram)",
+    "bestTimes": "string - best days/times to run this ad",
+    "expectedResults": "string - realistic expected results for this budget and goal"
+  },
+  "strategy": "string - one key optimization tip for this specific campaign"
+}`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CLAUDE_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-calls': 'true'
+        },
+        body: JSON.stringify({
+          model: CLAUDE_MODEL,
+          max_tokens: 1200,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('AI request failed: ' + response.status);
+      }
+
+      const data = await response.json();
+      const rawText = data.content[0].text.trim();
+
+      // Parse JSON — handle any stray markdown wrapping
+      let campaignData;
+      try {
+        const jsonStr = rawText.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/```\s*$/,'');
+        campaignData = JSON.parse(jsonStr);
+      } catch(parseErr) {
+        throw new Error('AI response could not be parsed. Please try again.');
+      }
+
+      aeCurrentOutput = { brief, campaignData, generatedAt: Date.now() };
+      aeRenderOutput(brief, campaignData);
+
+    } catch(err) {
+      clearInterval(msgInterval);
+      hide('ae-generating');
+      show('ae-output-content');
+      const sub = document.getElementById('ae-output-sub');
+      if (sub) {
+        sub.textContent = 'Error: ' + err.message + '. Please try again.';
+        sub.style.color = '#ff6b6b';
+      }
+    } finally {
+      clearInterval(msgInterval);
+      if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate Campaign with AI'; }
+    }
+  }
+
+  // ── Render AI Output ──────────────────────────────────────
+  function aeRenderOutput(brief, d) {
+    // Hide spinner, show content
+    hide('ae-generating');
+    showBlock('ae-output-content');
+
+    // Summary card
+    const summary = document.getElementById('ae-summary-card');
+    if (summary) {
+      summary.innerHTML = `
+        <div style="font-size:.72rem;font-weight:700;color:#00c4b4;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">${d.campaignName}</div>
+        <div style="color:rgba(255,255,255,.8);font-size:.82rem;line-height:1.6">${d.summary}</div>
+        ${d.strategy ? '<div style="margin-top:.6rem;padding:.5rem .75rem;background:rgba(0,196,180,.08);border-radius:6px;font-size:.76rem;color:rgba(255,255,255,.65)"><strong style="color:#00c4b4">Tip:</strong> ' + d.strategy + '</div>' : ''}
+      `;
+    }
+
+    // Ad variations
+    const vars = document.getElementById('ae-ad-variations');
+    if (vars && d.variations) {
+      vars.innerHTML = d.variations.map(function(v, i) {
+        return `<div class="ae-ad-variation">
+          <div class="ae-ad-var-num">Ad ${i+1}</div>
+          <div class="ae-ad-var-headline">${aeEscape(v.headline)}</div>
+          <div class="ae-ad-var-body">${aeEscape(v.body)}</div>
+          <div class="ae-ad-var-cta">CTA: ${aeEscape(v.cta)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Audience
+    const aud = document.getElementById('ae-audience-box');
+    if (aud && d.audience) {
+      const interests = Array.isArray(d.audience.interests) ? d.audience.interests.join(', ') : '';
+      aud.innerHTML = `
+        <div><strong>Targeting:</strong> ${aeEscape(d.audience.targeting)}</div>
+        ${interests ? '<div><strong>Interests:</strong> ' + aeEscape(interests) + '</div>' : ''}
+        ${d.audience.behaviors ? '<div><strong>Behaviors:</strong> ' + aeEscape(d.audience.behaviors) + '</div>' : ''}
+        ${d.audience.lookalike ? '<div><strong>Lookalike:</strong> ' + aeEscape(d.audience.lookalike) + '</div>' : ''}
+        <div style="margin-top:.4rem"><strong>Age:</strong> ${brief.ageMin}–${brief.ageMax} &nbsp;|&nbsp; <strong>Location:</strong> ${aeEscape(brief.location || 'United States')}</div>
+      `;
+    }
+
+    // Budget
+    const bud = document.getElementById('ae-budget-box');
+    if (bud && d.budget) {
+      bud.innerHTML = `
+        <div><strong>Daily Ad Spend (after markup):</strong> $${d.budget.dailySpend}/day</div>
+        <div><strong>Total Campaign Budget:</strong> ${d.budget.totalEstimate}</div>
+        ${d.budget.splitRecommendation ? '<div><strong>Budget Split:</strong> ' + aeEscape(d.budget.splitRecommendation) + '</div>' : ''}
+        ${d.budget.bestTimes ? '<div><strong>Best Times:</strong> ' + aeEscape(d.budget.bestTimes) + '</div>' : ''}
+        ${d.budget.expectedResults ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(0,196,180,.06);border-radius:6px"><strong>Expected Results:</strong> ' + aeEscape(d.budget.expectedResults) + '</div>' : ''}
+      `;
+    }
+
+    // Check Meta API connection and show/hide warning
+    const hasApi = !!(aeSettings.metaToken && aeSettings.adAccountId && aeSettings.pageId);
+    const warning = document.getElementById('ae-api-warning');
+    const launchBtn = document.getElementById('ae-launch-btn');
+    if (warning) warning.style.display = hasApi ? 'none' : 'block';
+    if (launchBtn) {
+      launchBtn.disabled = !hasApi;
+      launchBtn.title = hasApi ? '' : 'Connect Meta API in Settings first';
+    }
+  }
+
+  // ── Save Draft ────────────────────────────────────────────
+  function aeSaveDraft() {
+    if (!aeCurrentOutput) { alert('Generate a campaign first before saving.'); return; }
+    const brief = aeCurrentOutput.brief;
+    const draft = {
+      id: 'draft_' + Date.now(),
+      status: 'draft',
+      clientName: brief.clientName,
+      product: brief.product,
+      goal: brief.goal,
+      platform: brief.platform,
+      dailyBudget: brief.dailyBudget,
+      duration: brief.duration,
+      campaignName: aeCurrentOutput.campaignData.campaignName,
+      data: aeCurrentOutput,
+      createdAt: Date.now(),
+      spend: 0,
+      impressions: 0,
+      clicks: 0,
+      leads: 0,
+    };
+    aeCampaigns.unshift(draft);
+    aeSaveCampaigns();
+    // Flash confirmation
+    const btn = document.getElementById('ae-save-draft-btn');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Saved!';
+      btn.style.color = '#00c4b4';
+      setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 2000);
+    }
+  }
+
+  // ── Launch Campaign on Meta ───────────────────────────────
+  async function aeLaunchCampaign() {
+    if (!aeCurrentOutput) { alert('Generate a campaign first.'); return; }
+    const hasApi = !!(aeSettings.metaToken && aeSettings.adAccountId && aeSettings.pageId);
+    if (!hasApi) { alert('Please connect your Meta API in Settings first.'); return; }
+
+    if (aeSettings.approvalMode === 'manual') {
+      const brief = aeCurrentOutput.brief;
+      const d = aeCurrentOutput.campaignData;
+      const confirmed = confirm(
+        'Launch this campaign on Meta?\n\n' +
+        'Campaign: ' + d.campaignName + '\n' +
+        'Client: ' + brief.clientName + '\n' +
+        'Daily Budget: $' + brief.dailyBudget + '/day\n' +
+        'Platform: ' + brief.platform + '\n' +
+        'Duration: ' + (brief.duration === 'ongoing' ? 'Ongoing' : brief.duration + ' days') + '\n\n' +
+        'This will charge your Meta Ad Account. Confirm?'
+      );
+      if (!confirmed) return;
+    }
+
+    const btn = document.getElementById('ae-launch-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Launching...'; }
+
+    try {
+      const result = await aeCreateMetaCampaign();
+
+      // Record in campaigns
+      const brief = aeCurrentOutput.brief;
+      const campaign = {
+        id: result.campaignId || ('local_' + Date.now()),
+        metaCampaignId: result.campaignId,
+        metaAdSetId: result.adSetId,
+        status: 'active',
+        clientName: brief.clientName,
+        product: brief.product,
+        goal: brief.goal,
+        platform: brief.platform,
+        dailyBudget: brief.dailyBudget,
+        duration: brief.duration,
+        campaignName: aeCurrentOutput.campaignData.campaignName,
+        data: aeCurrentOutput,
+        createdAt: Date.now(),
+        spend: 0,
+        impressions: 0,
+        clicks: 0,
+        leads: 0,
+      };
+      aeCampaigns.unshift(campaign);
+      aeSaveCampaigns();
+
+      // Switch to live campaigns tab
+      const camTab = document.querySelector('[data-ae-tab="campaigns"]');
+      if (camTab) camTab.click();
+
+      alert('Campaign launched successfully on Meta!\n\nCampaign ID: ' + (result.campaignId || 'N/A'));
+
+    } catch(err) {
+      alert('Launch failed: ' + err.message + '\n\nThe campaign has been saved as a draft.');
+      aeSaveDraft();
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Launch on Meta →'; }
+    }
+  }
+
+  // ── Meta Ads API: Create Campaign ─────────────────────────
+  async function aeCreateMetaCampaign() {
+    const brief = aeCurrentOutput.brief;
+    const d = aeCurrentOutput.campaignData;
+    const token = aeSettings.metaToken;
+    const accountId = aeSettings.adAccountId; // e.g. "act_1234567890"
+    const pageId = aeSettings.pageId;
+
+    // 1. Create Campaign object
+    const campaignBody = new URLSearchParams({
+      name: d.campaignName,
+      objective: brief.goal,
+      status: 'PAUSED', // Start paused — owner activates manually
+      special_ad_categories: '[]',
+      access_token: token
+    });
+
+    const campRes = await fetch(`${META_GRAPH}/${accountId}/campaigns`, {
+      method: 'POST',
+      body: campaignBody
+    });
+    const campData = await campRes.json();
+    if (campData.error) throw new Error('Campaign create failed: ' + campData.error.message);
+    const campaignId = campData.id;
+
+    // 2. Create Ad Set (targeting + budget)
+    const markup = aeSettings.markup !== undefined ? aeSettings.markup : 25;
+    const actualDailyBudgetCents = Math.round(brief.dailyBudget * (1 - markup/100) * 100);
+
+    // Build targeting spec
+    const targetingSpec = {
+      age_min: parseInt(brief.ageMin) || 25,
+      age_max: parseInt(brief.ageMax) || 55,
+      geo_locations: { countries: ['US'] },
+      publisher_platforms: brief.platform === 'facebook' ? ['facebook']
+        : brief.platform === 'instagram' ? ['instagram']
+        : ['facebook', 'instagram']
+    };
+
+    const adSetBody = new URLSearchParams({
+      name: d.campaignName + ' — Ad Set',
+      campaign_id: campaignId,
+      daily_budget: actualDailyBudgetCents,
+      billing_event: 'IMPRESSIONS',
+      optimization_goal: brief.goal === 'LEAD_GENERATION' ? 'LEAD_GENERATION'
+        : brief.goal === 'TRAFFIC' ? 'LINK_CLICKS'
+        : brief.goal === 'BRAND_AWARENESS' ? 'REACH'
+        : 'CONVERSIONS',
+      targeting: JSON.stringify(targetingSpec),
+      status: 'PAUSED',
+      access_token: token
+    });
+
+    // Add end time if not ongoing
+    if (brief.duration !== 'ongoing') {
+      const endTime = Math.floor(Date.now() / 1000) + (parseInt(brief.duration) * 86400);
+      adSetBody.append('end_time', endTime);
+    }
+
+    const adSetRes = await fetch(`${META_GRAPH}/${accountId}/adsets`, {
+      method: 'POST',
+      body: adSetBody
+    });
+    const adSetData = await adSetRes.json();
+    if (adSetData.error) throw new Error('Ad Set create failed: ' + adSetData.error.message);
+    const adSetId = adSetData.id;
+
+    // 3. Create Ad Creative (first variation)
+    const variation = d.variations[0];
+    const creativeBody = new URLSearchParams({
+      name: d.campaignName + ' — Creative',
+      object_story_spec: JSON.stringify({
+        page_id: pageId,
+        link_data: {
+          link: brief.url || 'https://2easymarketing.net',
+          message: variation.body,
+          name: variation.headline,
+          call_to_action: { type: variation.cta.toUpperCase().replace(/\s+/g,'_').replace(/\//g,'_') }
+        }
+      }),
+      access_token: token
+    });
+
+    const creativeRes = await fetch(`${META_GRAPH}/${accountId}/adcreatives`, {
+      method: 'POST',
+      body: creativeBody
+    });
+    const creativeData = await creativeRes.json();
+    if (creativeData.error) throw new Error('Creative create failed: ' + creativeData.error.message);
+    const creativeId = creativeData.id;
+
+    // 4. Create Ad
+    const adBody = new URLSearchParams({
+      name: d.campaignName + ' — Ad',
+      adset_id: adSetId,
+      creative: JSON.stringify({ creative_id: creativeId }),
+      status: 'PAUSED',
+      access_token: token
+    });
+
+    const adRes = await fetch(`${META_GRAPH}/${accountId}/ads`, {
+      method: 'POST',
+      body: adBody
+    });
+    const adData = await adRes.json();
+    if (adData.error) throw new Error('Ad create failed: ' + adData.error.message);
+
+    return { campaignId, adSetId, adId: adData.id, creativeId };
+  }
+
+  // ── Test Meta API Connection ──────────────────────────────
+  async function aeTestConnection() {
+    aeSaveSettings();
+    const token = aeSettings.metaToken;
+    const accountId = aeSettings.adAccountId;
+    const statusEl = document.getElementById('ae-conn-status');
+
+    if (!token || !accountId) {
+      if (statusEl) { statusEl.textContent = '⚠ Please enter your Access Token and Ad Account ID first.'; statusEl.className = 'ae-conn-status error'; }
+      return;
+    }
+
+    if (statusEl) { statusEl.textContent = 'Testing connection...'; statusEl.className = 'ae-conn-status'; }
+
+    try {
+      const res = await fetch(`${META_GRAPH}/${accountId}?fields=name,account_status,currency,timezone_name&access_token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error.message);
+
+      const statusLabels = { 1:'ACTIVE', 2:'DISABLED', 3:'UNSETTLED', 7:'PENDING_REVIEW', 8:'PENDING_CLOSURE', 100:'PENDING_CLOSURE', 101:'CLOSED', 201:'TEMPORARILY_CLOSED' };
+      const accStatus = statusLabels[data.account_status] || data.account_status;
+
+      if (statusEl) {
+        statusEl.innerHTML = `
+          <div>&#10003; Connected! Account: <strong>${data.name || accountId}</strong></div>
+          <div>Status: ${accStatus} &nbsp;|&nbsp; Currency: ${data.currency || 'USD'} &nbsp;|&nbsp; Timezone: ${data.timezone_name || 'N/A'}</div>
+        `;
+        statusEl.className = 'ae-conn-status success';
+      }
+
+      // Enable launch button if output is ready
+      const launchBtn = document.getElementById('ae-launch-btn');
+      if (launchBtn) launchBtn.disabled = false;
+      const warning = document.getElementById('ae-api-warning');
+      if (warning) warning.style.display = 'none';
+
+    } catch(err) {
+      if (statusEl) {
+        statusEl.textContent = '✗ Connection failed: ' + err.message;
+        statusEl.className = 'ae-conn-status error';
+      }
+    }
+  }
+
+  // ── Fetch Live Campaign Stats from Meta ───────────────────
+  async function aeFetchMetaStats() {
+    if (!aeSettings.metaToken || !aeSettings.adAccountId) return;
+    try {
+      const res = await fetch(
+        `${META_GRAPH}/${aeSettings.adAccountId}/campaigns?fields=name,status,insights{spend,impressions,clicks,actions}&date_preset=all_time&access_token=${encodeURIComponent(aeSettings.metaToken)}`
+      );
+      const data = await res.json();
+      if (data.error || !data.data) return;
+
+      // Merge stats into local campaigns by metaCampaignId
+      data.data.forEach(function(mc) {
+        const local = aeCampaigns.find(function(c) { return c.metaCampaignId === mc.id; });
+        if (local && mc.insights && mc.insights.data && mc.insights.data[0]) {
+          const ins = mc.insights.data[0];
+          local.spend = parseFloat(ins.spend) || 0;
+          local.impressions = parseInt(ins.impressions) || 0;
+          local.clicks = parseInt(ins.clicks) || 0;
+          // Extract leads from actions
+          const leadAction = (ins.actions || []).find(function(a) { return a.action_type === 'lead'; });
+          local.leads = leadAction ? parseInt(leadAction.value) : 0;
+          local.status = mc.status.toLowerCase();
+        }
+      });
+      aeSaveCampaigns();
+      aeRenderCampaigns();
+    } catch(e) { /* silently fail if no connection */ }
+  }
+
+  // ── Render Live Campaigns ─────────────────────────────────
+  function aeRenderCampaigns() {
+    const list = document.getElementById('ae-campaigns-list');
+    if (!list) return;
+
+    if (!aeCampaigns.length) {
+      list.innerHTML = '<div class="ae-empty-state"><div style="font-size:2rem;margin-bottom:.5rem">⚡</div><div>No campaigns yet. Create your first above.</div></div>';
+    } else {
+      // Totals
+      let totalSpend = 0, totalImpressions = 0, totalClicks = 0, totalLeads = 0, activeCount = 0;
+      aeCampaigns.forEach(function(c) {
+        totalSpend += c.spend || 0;
+        totalImpressions += c.impressions || 0;
+        totalClicks += c.clicks || 0;
+        totalLeads += c.leads || 0;
+        if (c.status === 'active') activeCount++;
+      });
+
+      setValue('ae-stat-active', activeCount);
+      const totalSpendEl = document.getElementById('ae-stat-total-spend');
+      if (totalSpendEl) totalSpendEl.textContent = '$' + totalSpend.toFixed(2);
+      setValue('ae-stat-impressions', totalImpressions.toLocaleString());
+      setValue('ae-stat-clicks', totalClicks.toLocaleString());
+      setValue('ae-stat-leads', totalLeads.toLocaleString());
+
+      list.innerHTML = aeCampaigns.map(function(c) {
+        const statusClass = c.status === 'active' ? 'active'
+          : c.status === 'paused' ? 'paused'
+          : c.status === 'draft' ? 'draft' : 'ended';
+        const date = new Date(c.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        return `<div class="ae-campaign-card" data-campaign-id="${c.id}">
+          <div>
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem">
+              <div class="ae-campaign-name">${aeEscape(c.campaignName || c.product)}</div>
+              <span class="ae-status-badge ${statusClass}">${c.status}</span>
+            </div>
+            <div class="ae-campaign-meta">${aeEscape(c.clientName)} &nbsp;|&nbsp; ${aeEscape(c.platform)} &nbsp;|&nbsp; $${c.dailyBudget}/day &nbsp;|&nbsp; ${date}</div>
+            <div class="ae-campaign-stats">
+              <span class="ae-campaign-stat">Spent: <strong>$${(c.spend||0).toFixed(2)}</strong></span>
+              <span class="ae-campaign-stat">Impressions: <strong>${(c.impressions||0).toLocaleString()}</strong></span>
+              <span class="ae-campaign-stat">Clicks: <strong>${(c.clicks||0).toLocaleString()}</strong></span>
+              <span class="ae-campaign-stat">Leads: <strong>${c.leads||0}</strong></span>
+            </div>
+          </div>
+          <div class="ae-campaign-controls">
+            ${c.status === 'active'
+              ? `<button class="ae-ctrl-btn" data-action="pause" data-id="${c.id}">Pause</button>`
+              : c.status === 'paused'
+              ? `<button class="ae-ctrl-btn" data-action="resume" data-id="${c.id}">Resume</button>`
+              : ''}
+            <button class="ae-ctrl-btn danger" data-action="delete" data-id="${c.id}">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Campaign Controls (pause/resume/delete) ───────────────
+  function aeBindCampaignControls() {
+    document.addEventListener('click', async function(e) {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if (!id) return;
+
+      if (action === 'delete') {
+        if (!confirm('Delete this campaign record? This only removes it from your dashboard — it does NOT stop the Meta campaign.')) return;
+        aeCampaigns = aeCampaigns.filter(function(c) { return c.id !== id; });
+        aeSaveCampaigns();
+        aeRenderCampaigns();
+        return;
+      }
+
+      if (action === 'pause' || action === 'resume') {
+        const campaign = aeCampaigns.find(function(c) { return c.id === id; });
+        if (!campaign) return;
+
+        // If connected to Meta, update via API
+        if (aeSettings.metaToken && campaign.metaCampaignId) {
+          try {
+            await aeToggleMetaCampaign(campaign.metaCampaignId, action);
+          } catch(err) {
+            alert('Meta API error: ' + err.message + '\n\nUpdated locally only.');
+          }
+        }
+        campaign.status = action === 'pause' ? 'paused' : 'active';
+        aeSaveCampaigns();
+        aeRenderCampaigns();
+        return;
+      }
+
+      // Settings buttons
+      if (e.target && e.target.id === 'ae-test-connection') {
+        await aeTestConnection();
+      }
+      if (e.target && e.target.id === 'ae-save-settings') {
+        aeSaveSettings();
+        const statusEl = document.getElementById('ae-conn-status');
+        if (statusEl) { statusEl.textContent = '✓ Settings saved.'; statusEl.className = 'ae-conn-status success'; }
+      }
+      if (e.target && e.target.id === 'ae-save-margin') {
+        aeSaveSettings();
+        alert('Margin settings saved.');
+      }
+      if (e.target && e.target.id === 'ae-refresh-campaigns') {
+        await aeFetchMetaStats();
+        aeRenderCampaigns();
+      }
+    });
+
+    // Settings save buttons (separate listener to catch IDs)
+    document.addEventListener('click', async function(e) {
+      if (e.target && e.target.id === 'ae-test-connection') { await aeTestConnection(); }
+      if (e.target && e.target.id === 'ae-save-settings') {
+        aeSaveSettings();
+        const s = document.getElementById('ae-conn-status');
+        if (s) { s.textContent = '✓ Settings saved.'; s.className = 'ae-conn-status success'; }
+        setTimeout(function() { if (s) s.textContent = ''; }, 3000);
+      }
+      if (e.target && e.target.id === 'ae-save-margin') {
+        aeSaveSettings();
+        const b = e.target;
+        const orig = b.textContent; b.textContent = '✓ Saved!';
+        setTimeout(function() { b.textContent = orig; }, 2000);
+      }
+      if (e.target && e.target.id === 'ae-refresh-campaigns') {
+        await aeFetchMetaStats();
+        aeRenderCampaigns();
+      }
+    });
+  }
+
+  // ── Toggle Meta Campaign status ───────────────────────────
+  async function aeToggleMetaCampaign(metaCampaignId, action) {
+    const newStatus = action === 'pause' ? 'PAUSED' : 'ACTIVE';
+    const body = new URLSearchParams({
+      status: newStatus,
+      access_token: aeSettings.metaToken
+    });
+    const res = await fetch(`${META_GRAPH}/${metaCampaignId}`, { method: 'POST', body });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+  }
+
+  // ── Utility ───────────────────────────────────────────────
+  function aeEscape(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  // ── Hook into portal's showView so Ad Engine inits on view ─
+  const _origShowView = window._aeOrigShowView || null;
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('[data-view="ad-engine"]');
+    if (link) {
+      setTimeout(function() {
+        aeLoadSettings();
+        aeLoadCampaigns();
+        aeRenderCampaigns();
+      }, 100);
+    }
+  });
+
+  // ── Auto-init when DOM ready ───────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', aeInit);
+  } else {
+    aeInit();
+  }
+
+})(); // end AdEngine IIFE

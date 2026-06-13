@@ -119,6 +119,11 @@
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           Clients
         </a>
+        <a href="#" class="sidebar-link owner-only" data-view="ad-engine" style="display:none">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Ad Engine
+          <span class="nav-badge" style="background:#00c4b4;color:#061018;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:auto">AI</span>
+        </a>
       </nav>
 
       <button class="sidebar-logout" id="logout-btn">
@@ -245,7 +250,257 @@
           <h1 class="view-title">Clients</h1>
         </div>
         <div id="clients-table-wrap" class="table-wrap"></div>
-      </div>
+
+      <!-- AD ENGINE VIEW -->
+      <div id="view-ad-engine" class="portal-view" style="display:none">
+        <div class="view-header">
+          <h1 class="view-title">&#9889; Ad Engine</h1>
+          <span class="owner-badge" style="background:linear-gradient(135deg,#00c4b4,#008c80);color:#fff">AI-POWERED</span>
+        </div>
+
+        <div class="ae-tabs">
+          <button class="ae-tab active" data-ae-tab="create">&#9889; Create Campaign</button>
+          <button class="ae-tab" data-ae-tab="campaigns">&#128202; Live Campaigns</button>
+          <button class="ae-tab" data-ae-tab="settings">&#9881; Meta API Settings</button>
+        </div>
+
+        <!-- TAB: CREATE -->
+        <div id="ae-tab-create" class="ae-tab-content">
+          <div class="ae-two-col">
+            <div class="ae-form-panel">
+              <h3 class="ae-panel-title">Campaign Brief</h3>
+              <p class="ae-panel-sub">Fill in the details &mdash; AI builds your complete campaign.</p>
+              <div class="ae-form">
+                <div class="ae-field">
+                  <label>Client Name</label>
+                  <input type="text" id="ae-client-name" placeholder="e.g. Mike's Plumbing LLC" />
+                </div>
+                <div class="ae-field">
+                  <label>Product / Service Being Advertised</label>
+                  <input type="text" id="ae-product" placeholder="e.g. Emergency plumbing repair, 24/7" />
+                </div>
+                <div class="ae-field">
+                  <label>Campaign Goal</label>
+                  <select id="ae-goal">
+                    <option value="LEAD_GENERATION">Lead Generation (calls &amp; inquiries)</option>
+                    <option value="CONVERSIONS">Sales / Conversions</option>
+                    <option value="TRAFFIC">Website Traffic</option>
+                    <option value="BRAND_AWARENESS">Brand Awareness</option>
+                    <option value="MESSAGES">Messages (Messenger leads)</option>
+                  </select>
+                </div>
+                <div class="ae-field-row">
+                  <div class="ae-field">
+                    <label>Platform</label>
+                    <select id="ae-platform">
+                      <option value="facebook">Facebook Only</option>
+                      <option value="instagram">Instagram Only</option>
+                      <option value="both" selected>Facebook + Instagram</option>
+                    </select>
+                  </div>
+                  <div class="ae-field">
+                    <label>Ad Format</label>
+                    <select id="ae-format">
+                      <option value="single_image">Single Image</option>
+                      <option value="carousel">Carousel</option>
+                      <option value="video">Video Ad</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="ae-field-row">
+                  <div class="ae-field">
+                    <label>Daily Budget (USD)</label>
+                    <div class="ae-input-prefix">
+                      <span>$</span>
+                      <input type="number" id="ae-daily-budget" placeholder="50" min="1" />
+                    </div>
+                  </div>
+                  <div class="ae-field">
+                    <label>Duration</label>
+                    <select id="ae-duration">
+                      <option value="7">7 days</option>
+                      <option value="14">14 days</option>
+                      <option value="30" selected>30 days</option>
+                      <option value="60">60 days</option>
+                      <option value="ongoing">Ongoing</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="ae-field">
+                  <label>Target Location</label>
+                  <input type="text" id="ae-location" placeholder="e.g. Providence, RI - 25 mile radius" />
+                </div>
+                <div class="ae-field-row">
+                  <div class="ae-field">
+                    <label>Min Age</label>
+                    <select id="ae-age-min">
+                      <option value="18">18</option>
+                      <option value="25" selected>25</option>
+                      <option value="30">30</option>
+                      <option value="35">35</option>
+                      <option value="45">45</option>
+                    </select>
+                  </div>
+                  <div class="ae-field">
+                    <label>Max Age</label>
+                    <select id="ae-age-max">
+                      <option value="35">35</option>
+                      <option value="45">45</option>
+                      <option value="55" selected>55</option>
+                      <option value="65">65</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="ae-field">
+                  <label>Target Interests / Keywords</label>
+                  <input type="text" id="ae-interests" placeholder="e.g. Home improvement, homeowners, real estate" />
+                </div>
+                <div class="ae-field">
+                  <label>Key Offer (what makes this irresistible?)</label>
+                  <textarea id="ae-offer" rows="3" placeholder="e.g. Free same-day estimate. Licensed & insured. 500+ 5-star reviews."></textarea>
+                </div>
+                <div class="ae-field">
+                  <label>Landing Page URL</label>
+                  <input type="text" id="ae-url" placeholder="https://example.com/offer" />
+                </div>
+                <button class="ae-generate-btn" id="ae-generate-btn">
+                  &#9889; Generate Campaign with AI
+                </button>
+              </div>
+            </div>
+
+            <div class="ae-output-panel">
+              <h3 class="ae-panel-title">AI Campaign Output</h3>
+              <p class="ae-panel-sub" id="ae-output-sub">Fill in the brief and click Generate.</p>
+              <div id="ae-output-content" style="display:none">
+                <div class="ae-summary-card" id="ae-summary-card"></div>
+                <div class="ae-section-label">Ad Copy Variations</div>
+                <div id="ae-ad-variations"></div>
+                <div class="ae-section-label">Recommended Audience</div>
+                <div class="ae-audience-box" id="ae-audience-box"></div>
+                <div class="ae-section-label">Budget &amp; Timeline</div>
+                <div class="ae-budget-box" id="ae-budget-box"></div>
+                <div class="ae-launch-bar">
+                  <div id="ae-api-warning" class="ae-api-warning" style="display:none">
+                    &#9888;&#65039; Meta API not connected. <a href="#" id="ae-goto-settings">Connect in Settings &rarr;</a>
+                  </div>
+                  <div class="ae-launch-btns">
+                    <button class="ae-btn-save" id="ae-save-draft-btn">Save Draft</button>
+                    <button class="ae-btn-launch" id="ae-launch-btn">Launch on Meta &rarr;</button>
+                  </div>
+                </div>
+              </div>
+              <div id="ae-generating" style="display:none" class="ae-generating">
+                <div class="ae-spinner"></div>
+                <p id="ae-generating-msg">AI is crafting your campaign...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: LIVE CAMPAIGNS -->
+        <div id="ae-tab-campaigns" class="ae-tab-content" style="display:none">
+          <div class="ae-campaigns-header">
+            <div class="ae-stat-row">
+              <div class="ae-stat-chip"><div class="ae-stat-num" id="ae-stat-active">0</div><div class="ae-stat-lbl">Active</div></div>
+              <div class="ae-stat-chip"><div class="ae-stat-num" id="ae-stat-total-spend">$0</div><div class="ae-stat-lbl">Total Spent</div></div>
+              <div class="ae-stat-chip"><div class="ae-stat-num" id="ae-stat-impressions">0</div><div class="ae-stat-lbl">Impressions</div></div>
+              <div class="ae-stat-chip"><div class="ae-stat-num" id="ae-stat-clicks">0</div><div class="ae-stat-lbl">Clicks</div></div>
+              <div class="ae-stat-chip"><div class="ae-stat-num" id="ae-stat-leads">0</div><div class="ae-stat-lbl">Leads</div></div>
+            </div>
+            <button class="ae-refresh-btn" id="ae-refresh-campaigns">&#8635; Refresh Stats</button>
+          </div>
+          <div id="ae-campaigns-list" class="ae-campaigns-list">
+            <div class="ae-empty-state">
+              <div style="font-size:2rem;margin-bottom:.5rem">&#9889;</div>
+              <div>No campaigns yet. Create your first above.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: SETTINGS -->
+        <div id="ae-tab-settings" class="ae-tab-content" style="display:none">
+          <div class="ae-settings-grid">
+
+            <div class="ae-settings-card">
+              <div class="ae-settings-icon">&#128279;</div>
+              <h3>Meta API Connection</h3>
+              <p>Connect your Meta Ads account to launch campaigns automatically.</p>
+              <div class="ae-field">
+                <label>Meta Access Token</label>
+                <div style="position:relative">
+                  <input type="password" id="ae-meta-token" placeholder="EAAxxxxxxxxxxxxxxx..." />
+                  <button class="ae-toggle-pw" onclick="var i=document.getElementById('ae-meta-token');i.type=i.type==='password'?'text':'password'">&#128065;</button>
+                </div>
+                <span class="ae-field-hint">developers.facebook.com &rarr; Your App &rarr; Tools &rarr; Graph API Explorer</span>
+              </div>
+              <div class="ae-field">
+                <label>Ad Account ID</label>
+                <input type="text" id="ae-ad-account-id" placeholder="act_1234567890" />
+                <span class="ae-field-hint">Business Manager &rarr; Settings &rarr; Ad Accounts</span>
+              </div>
+              <div class="ae-field">
+                <label>Facebook Page ID</label>
+                <input type="text" id="ae-page-id" placeholder="123456789012345" />
+                <span class="ae-field-hint">Facebook Page &rarr; About &rarr; Page ID</span>
+              </div>
+              <div class="ae-field">
+                <label>Instagram Account ID (optional)</label>
+                <input type="text" id="ae-ig-id" placeholder="17841400000000000" />
+              </div>
+              <div id="ae-conn-status" class="ae-conn-status"></div>
+              <div style="display:flex;gap:.75rem;margin-top:1rem">
+                <button class="ae-btn-test" id="ae-test-connection">Test Connection</button>
+                <button class="ae-btn-save-settings" id="ae-save-settings">Save Settings</button>
+              </div>
+            </div>
+
+            <div class="ae-settings-card">
+              <div class="ae-settings-icon">&#128176;</div>
+              <h3>Agency Margin Settings</h3>
+              <p>Automatically apply your markup to every client campaign budget.</p>
+              <div class="ae-field">
+                <label>Your Markup</label>
+                <div class="ae-input-prefix">
+                  <input type="number" id="ae-markup" value="25" min="0" max="100" />
+                  <span>%</span>
+                </div>
+                <span class="ae-field-hint">Client pays $1,000 &rarr; You spend $750 on Meta &rarr; You keep $250</span>
+              </div>
+              <div class="ae-field">
+                <label>Approval Mode</label>
+                <select id="ae-approval-mode">
+                  <option value="manual" selected>Manual &mdash; You approve every launch</option>
+                  <option value="auto">Auto-launch &mdash; AI launches immediately</option>
+                </select>
+              </div>
+              <div class="ae-field">
+                <label>Daily Spend Alert (USD)</label>
+                <div class="ae-input-prefix">
+                  <span>$</span>
+                  <input type="number" id="ae-alert-threshold" value="100" />
+                </div>
+                <span class="ae-field-hint">Alert when any campaign spends above this per day</span>
+              </div>
+              <button class="ae-btn-save-settings" id="ae-save-margin" style="margin-top:1rem">Save Settings</button>
+            </div>
+
+            <div class="ae-settings-card ae-settings-guide">
+              <div class="ae-settings-icon">&#128203;</div>
+              <h3>Setup Guide</h3>
+              <div class="ae-steps">
+                <div class="ae-step"><div class="ae-step-num">1</div><div><div class="ae-step-title">Create Facebook Business Portfolio</div><div class="ae-step-desc">Go to <a href="https://business.facebook.com" target="_blank">business.facebook.com</a> &rarr; Create Account &rarr; Name it 2EasyMarketing</div></div></div>
+                <div class="ae-step"><div class="ae-step-num">2</div><div><div class="ae-step-title">Create a Meta Developer App</div><div class="ae-step-desc">Go to <a href="https://developers.facebook.com/apps" target="_blank">developers.facebook.com/apps</a> &rarr; Create App &rarr; Business type</div></div></div>
+                <div class="ae-step"><div class="ae-step-num">3</div><div><div class="ae-step-title">Generate Your Access Token</div><div class="ae-step-desc">Inside your App &rarr; Tools &rarr; Graph API Explorer &rarr; Generate token with ads_management &amp; ads_read permissions</div></div></div>
+                <div class="ae-step"><div class="ae-step-num">4</div><div><div class="ae-step-title">Add Payment to Ad Account</div><div class="ae-step-desc">Business Manager &rarr; Ad Accounts &rarr; Add a credit card (Meta charges this for ad spend)</div></div></div>
+                <div class="ae-step"><div class="ae-step-num">5</div><div><div class="ae-step-title">Paste Credentials Above &amp; Test</div><div class="ae-step-desc">Enter your Token, Ad Account ID, and Page ID above &rarr; click Test Connection &rarr; you're live</div></div></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /view-ad-engine -->
 
     </main>
   </div>
