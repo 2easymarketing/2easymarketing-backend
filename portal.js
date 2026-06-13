@@ -1179,8 +1179,8 @@ async function sendTestNotification() {
   const result = document.getElementById('smtp-test-result');
   if (result) result.textContent = 'Sending test...';
   try {
-    const d = await apiFetch('/api/owner/test-notification', 'POST');
-    if (result) result.textContent = d.sent ? '✅ Test email sent! Check your inbox.' : '❌ ' + d.message;
+    const d = await apiFetch('/api/owner/test-notification', 'POST').then(r => r.json());
+    if (result) result.textContent = d.sent ? '✅ Test email sent! Check your inbox.' : '❌ ' + (d.message || 'SMTP not configured.');
   } catch(e) {
     if (result) result.textContent = '❌ Error: ' + e.message;
   }

@@ -36,7 +36,7 @@ security = HTTPBearer(auto_error=False)
 
 # ─── OWNER CREDENTIALS ──────────────────────────────────────────────────────
 OWNER_EMAIL    = "dev@2easymarketing.net"
-OWNER_PASSWORD = "2easymarketing2026!"   # hashed on first use
+OWNER_PASSWORD_HASH = hashlib.sha256(("2easymarketing2026!" + "2em_salt_2026").encode()).hexdigest()
 OWNER_SECRET   = "2em-owner-secret-key-2026"
 
 # ─── DATABASE SETUP ─────────────────────────────────────────────────────────
@@ -169,13 +169,15 @@ init_db()
 def make_token(client_id: int, role: str = "client") -> str:
     token = secrets.token_hex(32)
     conn = get_db()
-    expires = (datetime.utcnow() + timedelta(hours=24)).isoformat()
-    conn.execute(
-        "INSERT INTO sessions (token, client_id, role, expires_at) VALUES (?,?,?,?)",
-        (token, client_id, role, expires)
-    )
-    conn.commit()
-    conn.close()
+    try:
+        expires = (datetime.utcnow() + timedelta(hours=24)).isoformat()
+        conn.execute(
+            "INSERT INTO sessions (token, client_id, role, expires_at) VALUES (?,?,?,?)",
+            (token, client_id, role, expires)
+        )
+        conn.commit()
+    finally:
+        conn.close()
     return token
 
 def get_session(token: str) -> Optional[dict]:
@@ -507,7 +509,7 @@ async def login(request: Request):
         password = body.get("password", "").strip()
 
         # Owner login
-        if email == OWNER_EMAIL.lower() and password == OWNER_PASSWORD:
+        if email == OWNER_EMAIL.lower() and hash_password(password) == OWNER_PASSWORD_HASH:
             # Create a virtual owner session
             conn = get_db()
             owner_row = conn.execute("SELECT id FROM clients WHERE email=?", (email,)).fetchone()
@@ -516,7 +518,7 @@ async def login(request: Request):
             else:
                 cur = conn.execute(
                     "INSERT INTO clients (name, email, password, business, plan) VALUES (?,?,?,?,?)",
-                    ("Dev (Owner)", OWNER_EMAIL, hash_password(OWNER_PASSWORD), "2EasyMarketing", "agency")
+                    ("Dev (Owner)", OWNER_EMAIL, OWNER_PASSWORD_HASH, "2EasyMarketing", "agency")
                 )
                 conn.commit()
                 owner_id = cur.lastrowid
@@ -1340,7 +1342,7 @@ import subprocess, uuid
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-MEDIA_DIR = "/home/user/workspace/devmarketing/media"
+MEDIA_DIR = os.environ.get("MEDIA_DIR", "/app/media")
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
 # Serve generated media files statically
@@ -1814,7 +1816,7 @@ async def run_db_maintenance():
         finally:
             conn.close()
 
-    await asyncio.get_event_loop().run_in_executor(None, _sync_maintenance)
+    await asyncio.get_running_loop().run_in_executor(None, _sync_maintenance)
     return results
 
 
@@ -2178,7 +2180,7 @@ from email.mime.multipart import MIMEMultipart
 # Or swap host/port for any other SMTP provider (Outlook, Yahoo, etc.)
 
 SMTP_HOST    = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT    = int(os.getenv("SMTP_PORT", "465"))
+SMTP_PORT    = int(os.getenv("SMTP_PORT", "465") or "465")
 SMTP_USER    = os.getenv("SMTP_USER", "")        # your Gmail: you@gmail.com
 SMTP_PASS    = os.getenv("SMTP_PASS", "")        # Gmail App Password
 NOTIFY_TO    = os.getenv("NOTIFY_TO", OWNER_EMAIL)   # dev@2easymarketing.net
@@ -2214,8 +2216,7 @@ def _send_email_sync(subject: str, html_body: str, text_body: str = ""):
 
 async def send_lead_notification(subject: str, html_body: str, text_body: str = ""):
     """Non-blocking async wrapper — runs SMTP in a thread executor."""
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, _send_email_sync, subject, html_body, text_body)
+    await asyncio.get_running_loop().run_in_executor(None, _send_email_sync, subject, html_body, text_body)
 
 
 def _lead_email_html(lead_type: str, fields: dict) -> str:
