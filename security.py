@@ -807,16 +807,27 @@ class FortressMiddleware(BaseHTTPMiddleware):
                 return self._block_response("Request blocked")
 
         # Inspect request body (only for non-GET/HEAD, within size limit)
-        # CRITICAL: After reading the body we MUST replay it back into the
-        # request's receive channel, otherwise FastAPI handlers get empty body.
+        # CRITICAL: Starlette's body stream can only be read ONCE.
+        # We must store the bytes and set request.state._body so that
+        # request.body() called again by FastAPI handlers returns the same bytes.
         if method not in ("GET", "HEAD", "OPTIONS"):
+            body = b""
             try:
                 body = await request.body()
 
-                # ── Replay body so downstream handlers can read it ────────
+                # ── Store body in both state and _body cache so downstream can re-read it
+                request.state._body = body
+                # Patch the internal _receive so request.body() works again downstream
+                received = False
+
                 async def _replay_receive():
-                    return {"type": "http.request", "body": body, "more_body": False}
-                request._receive = _replay_receive  # patch the receive callable
+                    nonlocal received
+                    if not received:
+                        received = True
+                        return {"type": "http.request", "body": body, "more_body": False}
+                    return {"type": "http.disconnect"}
+
+                request._receive = _replay_receive
 
                 if len(body) > MAX_BODY_SIZE:
                     log_threat(ip, "oversized_body", "medium", path, method, f"{len(body)} bytes", ua, "blocked")
