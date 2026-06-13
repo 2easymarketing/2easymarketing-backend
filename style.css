@@ -774,6 +774,20 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 /* ===== TOOLS — two-column layout ===== */
+.tools-image-col {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.tools-image-col::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,196,180,0.18);
+  mix-blend-mode: color;
+  pointer-events: none;
+  border-radius: 16px;
+}
 .tools-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -784,7 +798,7 @@ h1,h2,h3,h4,h5,h6 {
   width: 100%;
   height: auto;
   display: block;
-  filter: hue-rotate(155deg) saturate(0.7) brightness(0.85);
+  filter: hue-rotate(180deg) saturate(0.65) brightness(0.8);
 }
 .tools-list-col {
   display: flex;
