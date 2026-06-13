@@ -1062,13 +1062,24 @@ async function runMaintenance() {
   const btn = document.getElementById('run-maintenance-btn');
   const status = document.getElementById('maintenance-status');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Running...';
+  if (status) status.textContent = 'Running maintenance...';
   try {
-    await apiFetch('/api/owner/run-maintenance', 'POST');
-    if (status) status.textContent = 'Maintenance triggered! Check Update Log in ~30s.';
-    setTimeout(() => { if (status) status.textContent = ''; }, 6000);
+    const res = await apiFetch('/api/owner/run-maintenance', 'POST');
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error('Server error ' + res.status + ': ' + errText.slice(0, 120));
+    }
+    const data = await res.json();
+    if (status) {
+      status.style.color = '#00c4b4';
+      status.textContent = data.message || 'Maintenance complete! Check Update Log.';
+      setTimeout(() => { if (status) { status.textContent = ''; status.style.color = ''; } }, 8000);
+    }
   } catch (e) {
-    if (status) status.textContent = 'Error: ' + e.message;
+    if (status) {
+      status.style.color = '#ff6b6b';
+      status.textContent = 'Error: ' + e.message;
+    }
   }
   if (btn) btn.disabled = false;
 }

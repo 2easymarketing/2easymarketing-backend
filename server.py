@@ -2167,8 +2167,20 @@ async def system_health(session: dict = Depends(require_owner)):
 @app.post("/api/owner/run-maintenance")
 async def run_maintenance_now(session: dict = Depends(require_owner)):
     """Trigger an immediate maintenance cycle."""
-    asyncio.create_task(_run_maintenance_cycle())
-    return {"status": "triggered", "message": "Maintenance cycle started in background"}
+    try:
+        report = await _run_maintenance_cycle()
+        return {
+            "status": "ok",
+            "message": "Maintenance cycle completed successfully.",
+            "report": report or {}
+        }
+    except Exception as e:
+        import traceback as _tb
+        print(f"[Maintenance] Endpoint error: {e}\n{_tb.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)}
+        )
 
 
 @app.get("/api/version")
