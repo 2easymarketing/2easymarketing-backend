@@ -21,7 +21,7 @@
   --text-xl:   clamp(1.5rem,   1.2rem + 1.2vw,   2.25rem);
   --text-2xl:  clamp(2rem,     1.2rem + 2.5vw,   3.5rem);
   --text-3xl:  clamp(2.5rem,   1rem + 4vw,       5rem);
-  --text-hero: clamp(3.5rem,   1rem + 6vw,       7rem);
+  --text-hero: clamp(3rem,     0.5rem + 5.5vw,    6.5rem);
 
   /* Spacing */
   --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;
@@ -341,10 +341,10 @@ h1,h2,h3,h4,h5,h6 {
 .hero-content {
   position: relative;
   z-index: 5;
-  padding-bottom: var(--space-24);
-  padding-top: 0;
-  max-width: 680px;
-  margin-left: 0;   /* flush left within container */
+  padding-bottom: var(--space-16);
+  padding-top: var(--space-20);      /* push down from nav bar */
+  max-width: 620px;
+  margin-left: 40px;   /* clear the dot nav dots on the left */
 }
 
 /* Visage has no badge pill — but keep ours subtle */
@@ -373,11 +373,11 @@ h1,h2,h3,h4,h5,h6 {
   font-family: var(--font-display);
   font-size: var(--text-hero);
   font-weight: 800;
-  line-height: 0.95;
+  line-height: 0.92;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-6);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-5);
 }
 .hero-title .gradient-text {
   background: linear-gradient(135deg, var(--accent) 0%, #00e8d8 60%, #00b8a9 100%);
@@ -437,7 +437,7 @@ h1,h2,h3,h4,h5,h6 {
 /* === VERTICAL DOT NAV (Visage left-edge dots) === */
 .hero-dot-nav {
   position: absolute;
-  left: var(--space-8);
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
