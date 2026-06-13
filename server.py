@@ -13,13 +13,26 @@ from datetime import datetime, timedelta
 from typing import Optional
 import re
 
+# ─── FORTRESS SECURITY ENGINE ────────────────────────────────────────────────
+from security import (
+    FortressMiddleware, init_security_db,
+    get_security_stats, get_blocked_ips_list,
+    block_ip, unblock_ip_manual, log_threat,
+    BLOCK_TTL, HONEYPOT_BLOCK_TTL
+)
+
 app = FastAPI()
+
+# CORS must come BEFORE Fortress so preflight OPTIONS bypass security
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# FORTRESS — add after CORS (middleware runs in reverse order, Fortress runs first on requests)
+app.add_middleware(FortressMiddleware)
 
 # ─── RESPONSE HELPERS ────────────────────────────────────────────────────────
 from fastapi.responses import Response as FastAPIResponse
@@ -2090,6 +2103,54 @@ async def start_maintenance_engine():
     await _init_maintenance_tables()
     asyncio.create_task(_maintenance_scheduler_loop())
     print("🔧 [Maintenance] Self-maintenance engine started — 6h cycle")
+
+
+@app.on_event("startup")
+async def start_fortress():
+    """Initialize FORTRESS security DB and engine."""
+    init_security_db()
+    print("🛡️  [FORTRESS] Security engine online — 7-layer defense active")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  FORTRESS SECURITY API ENDPOINTS (Owner-only)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/owner/security/stats")
+async def security_stats(hours: int = 24, session: dict = Depends(require_owner)):
+    """Real-time security dashboard data — threat counts, top attackers, recent events."""
+    return get_security_stats(hours=min(hours, 168))  # max 7 days
+
+
+@app.get("/api/owner/security/blocked")
+async def security_blocked_ips(session: dict = Depends(require_owner)):
+    """List all currently blocked IPs."""
+    return {"blocked": get_blocked_ips_list()}
+
+
+@app.post("/api/owner/security/block")
+async def security_block_ip(request: Request, session: dict = Depends(require_owner)):
+    """Manually block an IP address."""
+    body = await request.json()
+    ip = body.get("ip", "").strip()
+    reason = body.get("reason", "manual_block")
+    permanent = body.get("permanent", False)
+    if not ip:
+        return JSONResponse({"error": "ip required"}, status_code=400)
+    block_ip(ip, reason, permanent=permanent)
+    log_threat(ip, "manual_block", "high", "", "", "", "", "blocked", f"Manually blocked by owner: {reason}")
+    return {"status": "blocked", "ip": ip, "permanent": permanent}
+
+
+@app.post("/api/owner/security/unblock")
+async def security_unblock_ip(request: Request, session: dict = Depends(require_owner)):
+    """Manually unblock an IP address."""
+    body = await request.json()
+    ip = body.get("ip", "").strip()
+    if not ip:
+        return JSONResponse({"error": "ip required"}, status_code=400)
+    success = unblock_ip_manual(ip)
+    return {"status": "unblocked" if success else "not_found", "ip": ip}
 
 
 # ─── MAINTENANCE & VERSION API ENDPOINTS ─────────────────────────────────────

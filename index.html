@@ -1163,6 +1163,62 @@
           <div id="update-log-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
         </div>
 
+        <!-- FORTRESS SECURITY DASHBOARD -->
+        <div id="view-security" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128737;&#65039; FORTRESS Security</h1>
+            <div style="display:flex;gap:.75rem;align-items:center">
+              <select id="security-hours" onchange="loadSecurityDashboard()" style="background:#1a2535;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem .8rem;font-size:.85rem">
+                <option value="24">Last 24 Hours</option>
+                <option value="48">Last 48 Hours</option>
+                <option value="168">Last 7 Days</option>
+              </select>
+              <button onclick="loadSecurityDashboard()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem">&#8635; Refresh</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem" id="security-kpis">
+            <div class="stat-card" style="border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08)">
+              <div class="stat-number" id="sec-total" style="color:#f87171">--</div><div class="stat-label">Total Threats</div>
+            </div>
+            <div class="stat-card" style="border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08)">
+              <div class="stat-number" id="sec-blocked" style="color:#fbbf24">--</div><div class="stat-label">IPs Blocked</div>
+            </div>
+            <div class="stat-card" style="border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.08)">
+              <div class="stat-number" id="sec-honeypot" style="color:#c084fc">--</div><div class="stat-label">Honeypot Traps Hit</div>
+            </div>
+            <div class="stat-card" style="border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08)">
+              <div class="stat-number" id="sec-critical" style="color:#4ade80">--</div><div class="stat-label">Critical Events</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+            <div style="background:#0f1923;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.25rem">
+              <h3 style="color:#e2e8f0;font-size:.9rem;font-weight:700;margin:0 0 1rem">&#9889; Threats by Type</h3>
+              <div id="sec-by-type"></div>
+            </div>
+            <div style="background:#0f1923;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.25rem">
+              <h3 style="color:#e2e8f0;font-size:.9rem;font-weight:700;margin:0 0 1rem">&#128293; Top Attacking IPs</h3>
+              <div id="sec-top-ips"></div>
+            </div>
+          </div>
+          <div style="background:#0f1923;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
+            <h3 style="color:#e2e8f0;font-size:.9rem;font-weight:700;margin:0 0 1rem">&#128274; IP Management</h3>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
+              <input id="block-ip-input" placeholder="IP address..." style="flex:1;min-width:160px;background:#1a2535;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.5rem .9rem;font-size:.85rem" />
+              <select id="block-ip-type" style="background:#1a2535;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.5rem .9rem;font-size:.85rem">
+                <option value="false">Temp Ban (24h)</option>
+                <option value="true">Permanent Ban</option>
+              </select>
+              <button onclick="manualBlockIP()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;padding:.5rem 1.1rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem">&#128683; Block</button>
+              <button onclick="manualUnblockIP()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;padding:.5rem 1.1rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem">&#10004; Unblock</button>
+            </div>
+            <div id="blocked-ip-list" style="display:flex;flex-direction:column;gap:.4rem;max-height:220px;overflow-y:auto"></div>
+          </div>
+          <div style="background:#0f1923;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.25rem">
+            <h3 style="color:#e2e8f0;font-size:.9rem;font-weight:700;margin:0 0 1rem">&#128396; Live Threat Feed</h3>
+            <div id="sec-recent" style="display:flex;flex-direction:column;gap:.5rem;max-height:420px;overflow-y:auto"></div>
+          </div>
+        </div>
+
         <!-- CHANNEL HUB -->
         <div id="view-channel-hub" class="portal-view" style="display:none">
           <div class="view-header">

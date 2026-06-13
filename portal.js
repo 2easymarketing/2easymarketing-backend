@@ -306,6 +306,7 @@ function apiFetch(path, method = 'GET', body = null) {
     if (view === 'clients')         loadClients();
     if (view === 'system-health')   loadSystemHealth();
     if (view === 'update-log')      loadUpdateLog();
+    if (view === 'security')        loadSecurityDashboard();
     if (view === 'channel-hub')     loadChannelHub();
     if (view === 'content-calendar') loadContentCalendar();
     if (view === 'competitor-spy')  loadCompetitorSpy();
@@ -1474,3 +1475,202 @@ window.generateClientReport = function() {
 // All section loaders (loadChannelHub, loadContentCalendar, loadCompetitorSpy,
 // loadRevenueDashboard, loadClientReports) are already wired inside the IIFE
 // via the navigateTo() function (lines 309-313). No external override needed.
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  FORTRESS SECURITY DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SEVERITY_COLORS = {
+  critical: '#ef4444',
+  high:     '#f97316',
+  medium:   '#f59e0b',
+  low:      '#22c55e',
+};
+
+const THREAT_LABELS = {
+  sqli:                'SQL Injection',
+  xss:                 'XSS Attack',
+  traversal:           'Path Traversal',
+  cmdi:                'Command Injection',
+  ssrf:                'SSRF Attack',
+  honeypot:            'Honeypot Triggered',
+  rate_limit:          'Rate Limit Exceeded',
+  rate_limit_auth:     'Auth Brute Force',
+  rate_limit_api:      'API Flood',
+  scanner:             'Scanner Detected',
+  behavioral_anomaly:  'Behavioral Anomaly',
+  malicious_cidr:      'Malicious CIDR',
+  blocked_ip:          'Blocked IP Access Attempt',
+  manual_block:        'Manual Block',
+  lang_probe:          'Language Probe',
+  cms_probe:           'CMS/Admin Probe',
+  admin_probe:         'Admin Panel Probe',
+  webshell:            'Webshell Attempt',
+  oversized_body:      'Oversized Payload',
+  suspicious_request:  'Suspicious Request',
+};
+
+window.loadSecurityDashboard = async function() {
+  const hours = document.getElementById('security-hours')?.value || 24;
+
+  // Set KPIs to loading
+  ['sec-total','sec-blocked','sec-honeypot','sec-critical'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '…';
+  });
+
+  try {
+    const [statsRes, blockedRes] = await Promise.all([
+      apiFetch(`/api/owner/security/stats?hours=${hours}`),
+      apiFetch('/api/owner/security/blocked'),
+    ]);
+
+    const d = statsRes;
+    const blockedData = blockedRes;
+
+    // KPI cards
+    const critCount = (d.by_severity || []).find(s => s.severity === 'critical')?.c || 0;
+    setText('sec-total',    d.total_threats ?? 0);
+    setText('sec-blocked',  d.blocked_ips ?? 0);
+    setText('sec-honeypot', d.honeypot_hits ?? 0);
+    setText('sec-critical', critCount);
+
+    // Threats by type
+    const byTypeEl = document.getElementById('sec-by-type');
+    if (byTypeEl) {
+      const maxC = Math.max(...(d.by_type || []).map(t => t.c), 1);
+      byTypeEl.innerHTML = (d.by_type || []).slice(0, 10).map(t => {
+        const pct = Math.round((t.c / maxC) * 100);
+        const label = THREAT_LABELS[t.threat_type] || t.threat_type;
+        return `
+          <div style="margin-bottom:.6rem">
+            <div style="display:flex;justify-content:space-between;margin-bottom:.25rem">
+              <span style="color:#e2e8f0;font-size:.78rem">${label}</span>
+              <span style="color:#94a3b8;font-size:.78rem;font-weight:700">${t.c}</span>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px">
+              <div style="height:5px;width:${pct}%;background:linear-gradient(90deg,#ef4444,#f97316);border-radius:3px;transition:width .4s"></div>
+            </div>
+          </div>`;
+      }).join('') || '<div style="color:rgba(180,200,220,.4);font-size:.82rem">No threats recorded. System is clean.</div>';
+    }
+
+    // Top attacking IPs
+    const topIPsEl = document.getElementById('sec-top-ips');
+    if (topIPsEl) {
+      topIPsEl.innerHTML = (d.top_ips || []).slice(0, 8).map((item, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .6rem;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.12);border-radius:6px;margin-bottom:.35rem">
+          <div>
+            <span style="color:#f87171;font-size:.78rem;font-weight:700;font-family:monospace">${item.ip}</span>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span style="color:#94a3b8;font-size:.75rem">${item.c} hits</span>
+            <button onclick="quickBlock('${item.ip}')" title="Block this IP"
+              style="background:#ef444422;border:1px solid #ef444444;color:#f87171;font-size:.7rem;padding:2px 7px;border-radius:4px;cursor:pointer">Block</button>
+          </div>
+        </div>`).join('') || '<div style="color:rgba(180,200,220,.4);font-size:.82rem">No attack sources detected.</div>';
+    }
+
+    // Blocked IP list
+    renderBlockedIPs(blockedData.blocked || []);
+
+    // Recent threat feed
+    const recentEl = document.getElementById('sec-recent');
+    if (recentEl) {
+      recentEl.innerHTML = (d.recent_threats || []).map(t => {
+        const color = SEVERITY_COLORS[t.severity] || '#94a3b8';
+        const label = THREAT_LABELS[t.threat_type] || t.threat_type;
+        const time  = new Date(t.ts).toLocaleTimeString();
+        return `
+          <div style="display:flex;gap:.75rem;align-items:flex-start;padding:.6rem .8rem;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-left:3px solid ${color};border-radius:6px">
+            <div style="min-width:72px;color:#64748b;font-size:.72rem;font-family:monospace;padding-top:1px">${time}</div>
+            <div style="flex:1">
+              <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.2rem">
+                <span style="color:${color};font-size:.75rem;font-weight:700;text-transform:uppercase">${label}</span>
+                <span style="color:rgba(180,200,220,.35);font-size:.7rem">·</span>
+                <span style="color:#94a3b8;font-size:.72rem;font-family:monospace">${t.ip}</span>
+              </div>
+              ${t.path ? `<div style="color:rgba(180,200,220,.5);font-size:.72rem;font-family:monospace">${t.path}</div>` : ''}
+              ${t.details ? `<div style="color:rgba(180,200,220,.4);font-size:.7rem;margin-top:.2rem">${t.details}</div>` : ''}
+            </div>
+            <div style="background:${color}22;border:1px solid ${color}44;color:${color};font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap">${t.action}</div>
+          </div>`;
+      }).join('') || '<div style="color:rgba(180,200,220,.4);font-size:.82rem;text-align:center;padding:2rem">No threat activity in this time range. ✅</div>';
+    }
+
+  } catch (e) {
+    console.error('[FORTRESS] Dashboard load failed:', e);
+  }
+};
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = Number(val).toLocaleString();
+}
+
+function renderBlockedIPs(list) {
+  const el = document.getElementById('blocked-ip-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="color:rgba(180,200,220,.4);font-size:.8rem">No IPs currently blocked.</div>';
+    return;
+  }
+  el.innerHTML = list.slice(0, 50).map(b => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px">
+      <div>
+        <span style="color:#f87171;font-size:.8rem;font-weight:700;font-family:monospace">${b.ip}</span>
+        <span style="color:#64748b;font-size:.72rem;margin-left:.5rem">${b.reason}</span>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <span style="color:${b.unblock_at === 'permanent' ? '#ef4444' : '#f59e0b'};font-size:.7rem;font-weight:700">
+          ${b.unblock_at === 'permanent' ? 'PERMANENT' : 'TEMP'}
+        </span>
+        <button onclick="quickUnblock('${b.ip}')"
+          style="background:#22c55e22;border:1px solid #22c55e44;color:#4ade80;font-size:.7rem;padding:2px 7px;border-radius:4px;cursor:pointer">Unblock</button>
+      </div>
+    </div>`).join('');
+}
+
+window.manualBlockIP = async function() {
+  const ip = document.getElementById('block-ip-input')?.value?.trim();
+  const permanent = document.getElementById('block-ip-type')?.value === 'true';
+  if (!ip) { alert('Enter an IP address.'); return; }
+  try {
+    await apiFetch('/api/owner/security/block', {
+      method: 'POST',
+      body: JSON.stringify({ ip, reason: 'manual_block', permanent }),
+    });
+    document.getElementById('block-ip-input').value = '';
+    await window.loadSecurityDashboard();
+  } catch (e) {
+    alert('Failed to block IP: ' + e.message);
+  }
+};
+
+window.manualUnblockIP = async function() {
+  const ip = document.getElementById('block-ip-input')?.value?.trim();
+  if (!ip) { alert('Enter an IP address to unblock.'); return; }
+  await quickUnblock(ip);
+  document.getElementById('block-ip-input').value = '';
+};
+
+window.quickBlock = async function(ip) {
+  if (!confirm(`Block ${ip} for 24 hours?`)) return;
+  try {
+    await apiFetch('/api/owner/security/block', {
+      method: 'POST',
+      body: JSON.stringify({ ip, reason: 'manual_block_ui', permanent: false }),
+    });
+    await window.loadSecurityDashboard();
+  } catch (e) { alert('Failed: ' + e.message); }
+};
+
+window.quickUnblock = async function(ip) {
+  try {
+    await apiFetch('/api/owner/security/unblock', {
+      method: 'POST',
+      body: JSON.stringify({ ip }),
+    });
+    await window.loadSecurityDashboard();
+  } catch (e) { alert('Failed: ' + e.message); }
+};
