@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API = '__PORT_8000__';  // deployed as: port/8000
+  const API = 'https://web-production-f0dfa2.up.railway.app';
   let authToken = localStorage.getItem('2em_token') || null;
   let currentUser = null;
   let currentTaskType = null;

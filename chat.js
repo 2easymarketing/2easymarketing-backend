@@ -7,7 +7,7 @@
   'use strict';
 
   // ---- CONFIG ----
-  const API_URL = '__PORT_8000__/api/chat';
+  const API_URL = 'https://web-production-f0dfa2.up.railway.app/api/chat';
   const WELCOME = "Hey! 👋 I'm **Maya**, 2EasyMarketing's AI assistant. I have live competitor pricing data loaded — so if you're shopping around, I can show you exactly why we're the best deal in the market. What can I help you with?";
   const SUGGESTED = [
     "How do you compare to other agencies?",

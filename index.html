@@ -760,7 +760,7 @@
             message:  (document.getElementById('cf-message')||document.getElementById('message')||{value:''}).value.trim(),
           };
           try {
-            const API = (typeof __PORT_8000__ !== 'undefined') ? __PORT_8000__ : '';
+            const API = 'https://web-production-f0dfa2.up.railway.app';
             const res = await fetch(API + '/api/contact', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
             const data = await res.json();
             if (res.ok) {
