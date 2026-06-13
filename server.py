@@ -396,7 +396,7 @@ Be specific, creative, and results-oriented. Format output cleanly with clear se
 Never add disclaimers or say "as an AI" — just deliver the work."""
 
     response = await client.messages.create(
-        model="claude-haiku-4-5",
+        model="claude-haiku-4-5-20251001",
         max_tokens=2000,
         system=system,
         messages=[{"role": "user", "content": prompt}],
@@ -827,7 +827,7 @@ async def chat(request: Request):
             return JSONResponse({"reply": "Ask me anything about digital marketing!"})
         system = await get_system_prompt()
         response = await client.messages.create(
-            model="claude-haiku-4-5",
+            model="claude-haiku-4-5-20251001",
             max_tokens=450,
             system=system,
             messages=cleaned[-14:],
@@ -931,7 +931,7 @@ Be specific to their business type. Use their plan level to calibrate recommenda
 Format cleanly with headers. No fluff — only actionable intelligence."""
 
             resp = await client.messages.create(
-                model="claude-haiku-4-5",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=2000,
                 system="You are 2EasyMarketing's autonomous AI strategist. Produce razor-sharp, specific, actionable marketing strategies. Never be generic.",
                 messages=[{"role": "user", "content": prompt}],
@@ -986,7 +986,7 @@ For each: Subject Line | Preview Text | Best send day/time
 Tailor everything to their specific business type. Make it ready to publish immediately."""
 
             resp = await client.messages.create(
-                model="claude-haiku-4-5",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=3000,
                 system="You are 2EasyMarketing's content engine. Produce complete, publish-ready content batches. Be creative, specific, brand-aware.",
                 messages=[{"role": "user", "content": prompt}],
@@ -1081,7 +1081,7 @@ async def run_competitor_monitor():
     old_data = last["data"] if last else "(no previous data)"
     try:
         analysis_resp = await client.messages.create(
-            model="claude-haiku-4-5",
+            model="claude-haiku-4-5-20251001",
             max_tokens=800,
             system="You are 2EasyMarketing's competitive intelligence analyst. Be direct, specific, and strategic.",
             messages=[{"role": "user", "content": f"""Analyze these two competitor snapshots and identify what changed:
@@ -1149,7 +1149,7 @@ async def run_opportunity_spotter():
     combined = "\n\n".join(trend_data)
     try:
         opp_resp = await client.messages.create(
-            model="claude-haiku-4-5",
+            model="claude-haiku-4-5-20251001",
             max_tokens=1200,
             system="You are 2EasyMarketing's opportunity detection AI. Spot marketing goldmines for small businesses.",
             messages=[{"role": "user", "content": f"""Based on this market intelligence, identify the TOP 5 MARKETING OPPORTUNITIES right now for 2EasyMarketing clients (small businesses in Rhode Island and beyond):
@@ -1837,7 +1837,7 @@ def check_dependencies() -> dict:
 
 # ─── AI MODEL REGISTRY ───────────────────────────────────────────────────────
 REGISTERED_AI_MODELS = {
-    "chat_primary": "claude-haiku-4-5",
+    "chat_primary": "claude-haiku-4-5-20251001",
     "image_generation": "gpt_image_2 (via asi-generate-image)",
     "video_generation": "veo_3_1 (via asi-generate-video)",
     "tts": "gemini_2_5_pro_tts (via asi-text-to-speech)",
