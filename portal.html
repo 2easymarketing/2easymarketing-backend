@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Portal — 2EasyMedia</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="premium.css" />
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body class="portal-body">
+
+  <!-- AUTH SCREENS -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <a href="index.html" class="auth-logo">
+        <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="10" fill="url(#lg1)"/><path d="M8 14.5C8 11 10.5 9 13.5 9C16.5 9 19 11 19 14C19 16.5 17 18.5 14 21L8 25.5L8 28L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 9L23 28M23 9L31 9M23 18.5L29 18.5M23 28L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/><defs><linearGradient id="lg1" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+        <span>2Easy<span style="background:linear-gradient(135deg,#00d4ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Media</span></span>
+      </a>
+
+      <!-- Login Form -->
+      <div id="login-form">
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-sub">Log in to your client portal</p>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="login-error" class="form-error"></div>
+        <button class="btn-auth" id="login-btn">Log In</button>
+        <p class="auth-switch">Don't have an account? <a href="#" id="go-signup">Sign up free</a></p>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="signup-form" style="display:none">
+        <h2 class="auth-title">Create your account</h2>
+        <p class="auth-sub">Start getting AI-powered marketing work done</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="signup-name" placeholder="First Last" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="signup-email" placeholder="you@example.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Business Name</label>
+            <input type="text" id="signup-business" placeholder="Your Company LLC" />
+          </div>
+          <div class="form-group">
+            <label>Website (optional)</label>
+            <input type="text" id="signup-website" placeholder="yoursite.com" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" placeholder="Min. 6 characters" />
+        </div>
+        <div class="form-group">
+          <label>Plan</label>
+          <select id="signup-plan">
+            <option value="starter">Starter — $497/mo</option>
+            <option value="growth" selected>Growth — $1,497/mo</option>
+            <option value="agency">Agency — $3,497/mo</option>
+          </select>
+        </div>
+        <div id="signup-error" class="form-error"></div>
+        <button class="btn-auth" id="signup-btn">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="#" id="go-login">Log in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTAL APP (shown after login) -->
+  <div id="portal-app" style="display:none">
+
+    <!-- Sidebar -->
+    <aside class="portal-sidebar" id="portal-sidebar">
+      <div class="sidebar-brand">
+        <svg width="28" height="28" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="10" fill="url(#lgs)"/><path d="M8 14.5C8 11 10.5 9 13.5 9C16.5 9 19 11 19 14C19 16.5 17 18.5 14 21L8 25.5L8 28L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 9L23 28M23 9L31 9M23 18.5L29 18.5M23 28L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/><defs><linearGradient id="lgs" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+        <span id="sidebar-brand-name">2EasyMedia</span>
+      </div>
+
+      <div class="sidebar-user" id="sidebar-user-info">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div>
+          <div class="user-name" id="user-name-display">Loading...</div>
+          <div class="user-plan" id="user-plan-display">...</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="sidebar-link active" data-view="dashboard">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="sidebar-link" data-view="new-task">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          New Task
+        </a>
+        <a href="#" class="sidebar-link" data-view="my-tasks">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          My Tasks
+        </a>
+        <!-- Owner only -->
+        <a href="#" class="sidebar-link owner-only" data-view="owner-dashboard" style="display:none">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Owner Panel
+        </a>
+        <a href="#" class="sidebar-link owner-only" data-view="clients" style="display:none">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Clients
+        </a>
+      </nav>
+
+      <button class="sidebar-logout" id="logout-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log Out
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="portal-main" id="portal-main">
+
+      <!-- ── DASHBOARD VIEW ── -->
+      <div id="view-dashboard" class="portal-view">
+        <div class="view-header">
+          <h1 class="view-title">Dashboard</h1>
+          <button class="btn-new-task" data-view="new-task">+ New Task</button>
+        </div>
+        <div class="stats-row" id="client-stats">
+          <div class="stat-pill">
+            <span class="pill-num" id="stat-total">0</span>
+            <span class="pill-label">Total Tasks</span>
+          </div>
+          <div class="stat-pill">
+            <span class="pill-num" id="stat-processing">0</span>
+            <span class="pill-label">Processing</span>
+          </div>
+          <div class="stat-pill">
+            <span class="pill-num" id="stat-review">0</span>
+            <span class="pill-label">In Review</span>
+          </div>
+          <div class="stat-pill highlight">
+            <span class="pill-num" id="stat-delivered">0</span>
+            <span class="pill-label">Delivered</span>
+          </div>
+        </div>
+        <div class="section-label">Recent Tasks</div>
+        <div id="recent-tasks-list" class="tasks-list">
+          <div class="empty-state">No tasks yet. Submit your first task to get started!</div>
+        </div>
+      </div>
+
+      <!-- ── NEW TASK VIEW ── -->
+      <div id="view-new-task" class="portal-view" style="display:none">
+        <div class="view-header">
+          <h1 class="view-title">Submit a New Task</h1>
+        </div>
+        <p class="view-sub">Choose what you need and our AI will start working on it immediately.</p>
+
+        <!-- Task Type Selector -->
+        <div class="task-type-grid" id="task-type-grid">
+          <button class="task-type-card" data-type="social_post">
+            <div class="task-type-icon">📱</div>
+            <div class="task-type-name">Social Media Posts</div>
+            <div class="task-type-desc">Instagram, Facebook, LinkedIn, TikTok</div>
+          </button>
+          <button class="task-type-card" data-type="seo_audit">
+            <div class="task-type-icon">🔍</div>
+            <div class="task-type-name">SEO Audit & Report</div>
+            <div class="task-type-desc">Rankings, keywords, technical audit</div>
+          </button>
+          <button class="task-type-card" data-type="ad_copy">
+            <div class="task-type-icon">📢</div>
+            <div class="task-type-name">Ad Copy & Campaign</div>
+            <div class="task-type-desc">Google Ads, Meta Ads, headlines</div>
+          </button>
+          <button class="task-type-card" data-type="blog_content">
+            <div class="task-type-icon">✍️</div>
+            <div class="task-type-name">Blog & Content</div>
+            <div class="task-type-desc">Blog posts, website copy, landing pages</div>
+          </button>
+          <button class="task-type-card" data-type="email_campaign">
+            <div class="task-type-icon">📧</div>
+            <div class="task-type-name">Email Campaign</div>
+            <div class="task-type-desc">Sequences, newsletters, drip campaigns</div>
+          </button>
+        </div>
+
+        <!-- Dynamic Task Form -->
+        <div id="task-form-container" style="display:none">
+          <div class="task-form-header">
+            <button class="back-btn" id="back-to-types">← Back</button>
+            <h2 class="task-form-title" id="task-form-title"></h2>
+          </div>
+          <form id="task-form" class="task-form">
+            <!-- Dynamically injected -->
+          </form>
+          <div id="task-submit-error" class="form-error"></div>
+          <button class="btn-submit-task" id="submit-task-btn">Submit Task — AI Starts Now →</button>
+        </div>
+      </div>
+
+      <!-- ── MY TASKS VIEW ── -->
+      <div id="view-my-tasks" class="portal-view" style="display:none">
+        <div class="view-header">
+          <h1 class="view-title">My Tasks</h1>
+          <div class="filter-tabs" id="task-filter">
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="processing">Processing</button>
+            <button class="filter-tab" data-filter="review">In Review</button>
+            <button class="filter-tab" data-filter="delivered">Delivered</button>
+          </div>
+        </div>
+        <div id="all-tasks-list" class="tasks-list"></div>
+      </div>
+
+      <!-- ── OWNER DASHBOARD VIEW ── -->
+      <div id="view-owner-dashboard" class="portal-view" style="display:none">
+        <div class="view-header">
+          <h1 class="view-title">Owner Panel</h1>
+          <span class="owner-badge">🔑 Dev's View</span>
+        </div>
+        <div class="stats-row" id="owner-stats-row">
+          <!-- injected by JS -->
+        </div>
+        <div class="section-label">Tasks Awaiting Review</div>
+        <div id="owner-review-list" class="tasks-list"></div>
+        <div class="section-label" style="margin-top:2rem">All Recent Tasks</div>
+        <div id="owner-all-tasks-list" class="tasks-list"></div>
+      </div>
+
+      <!-- ── CLIENTS VIEW ── -->
+      <div id="view-clients" class="portal-view" style="display:none">
+        <div class="view-header">
+          <h1 class="view-title">Clients</h1>
+        </div>
+        <div id="clients-table-wrap" class="table-wrap"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- TASK DETAIL MODAL -->
+  <div id="task-modal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-task-title">Task Detail</h3>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div id="modal-body">
+        <!-- injected -->
+      </div>
+    </div>
+  </div>
+
+  <script src="portal.js"></script>
+</body>
+</html>

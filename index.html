@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="canonical" href="https://2easymarketing.net" />
+  <meta name="description" content="2EasyMedia — AI-powered digital marketing agency in Pawtucket, Rhode Island. No setup fees. No contracts. AI handles the work, you approve the results." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://2easymarketing.net" />
+  <meta property="og:title" content="2EasyMedia — AI-Powered Digital Marketing" />
+  <meta property="og:description" content="AI-powered digital marketing starting at $497/mo. No setup fees. No contracts. Sign up and AI starts working instantly." />
+  <meta property="og:image" content="https://2easymarketing.net/hero-bg.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="2EasyMedia — AI-Powered Digital Marketing" />
+  <meta name="twitter:description" content="AI handles the marketing. You approve the results. Starting at $497/mo." />
+  <!-- Performance: preconnect to external origins -->
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link rel="dns-prefetch" href="https://api.fontshare.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>2EasyMedia — Digital Marketing Made Easy</title>
+  <meta name="description" content="2EasyMedia makes digital marketing simple, affordable, and effective. Step-by-step strategy, proven tools, and services that get results." />
+  <meta property="og:title" content="2EasyMedia — Digital Marketing Made Easy" />
+  <meta property="og:description" content="Everything you need to launch, grow, and scale — without the complexity." />
+
+  <!-- Fonts -->
+    <link rel="preload" href="hero-bg.png" as="image" fetchpriority="high" />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Ensure custom fonts use swap to prevent FOIT */
+    @font-face { font-display: swap; }
+    /* Critical: prevent layout shift on hero image */
+    .hero-bg-img { content-visibility: auto; }
+    /* Skeleton loader animation */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+  </style>
+  <link rel="stylesheet" href="premium.css" />
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header" id="header">
+    <div class="container header-inner">
+      <a href="#" class="logo" aria-label="2EasyMedia Home">
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-hidden="true">
+          <rect width="38" height="38" rx="10" fill="url(#logo-grad-h)"/>
+          <!-- "2" numeral -->
+          <path d="M8 14.5 C8 11 10.5 9 13.5 9 C16.5 9 19 11 19 14 C19 16.5 17 18.5 14 21 L8 25.5 L8 28 L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- "E" letterform -->
+          <path d="M23 9 L23 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M23 9 L31 9" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M23 18.5 L29 18.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M23 28 L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logo-grad-h" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0EA5E9"/>
+              <stop offset="1" stop-color="#6366F1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="logo-text">2Easy<span class="logo-accent">Media</span></span>
+      </a>
+
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#services" class="nav-link">Services</a>
+        <a href="#roadmap" class="nav-link">Roadmap</a>
+        <a href="#tools" class="nav-link">Tools</a>
+        <a href="#pricing" class="nav-link">Pricing</a>
+        <a href="#" class="nav-link" id="open-portal-btn" style="color:var(--neon-blue, #00d4ff) !important;font-weight:600">Client Portal</a>
+        <a href="#contact" class="nav-cta">Get Started</a>
+      </nav>
+
+      <button class="hamburger" aria-label="Open menu" id="hamburger">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">✕</button>
+    <nav>
+      <a href="#services" class="mobile-nav-link">Services</a>
+      <a href="#roadmap" class="mobile-nav-link">Roadmap</a>
+      <a href="#tools" class="mobile-nav-link">Tools</a>
+      <a href="#pricing" class="mobile-nav-link">Pricing</a>
+      <a href="#" class="mobile-nav-link" id="open-portal-mobile">Client Portal</a>
+      <a href="#contact" class="mobile-nav-link mobile-nav-cta">Get Started</a>
+    </nav>
+  </div>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <img src="hero-bg.png" alt="Digital marketing data visualization" class="hero-bg-img" />
+      <canvas id="particles-canvas" aria-hidden="true"></canvas>
+      <div class="hero-overlay"></div>
+    </div>
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        2EasyMedia — Marketing Without the Headache
+      </div>
+      <h1 class="hero-title">
+        Dominate the<br/>
+        <span class="gradient-text">Digital Space.</span>
+      </h1>
+      <p class="hero-subtitle">
+        We make digital marketing simple, clear, and profitable. Whether you're a business owner or launching your own agency — 2EasyMedia has your roadmap.
+      </p>
+      <div class="hero-actions">
+        <a href="#roadmap" class="btn btn-primary">Start Your Journey →</a>
+        <a href="#services" class="btn btn-ghost">Our Services</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number" data-target="500" data-suffix="+">500+</span>
+          <span class="stat-label">Clients Served</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" data-prefix="$" data-target="12" data-suffix="M+">$12M+</span>
+          <span class="stat-label">Revenue Generated</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" data-target="340" data-suffix="%">340%</span>
+          <span class="stat-label">Avg. ROI for Clients</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Scroll to explore</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- ===== SERVICES ===== -->
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">What We Offer</span>
+        <h2 class="section-title">Our Core <span class="gradient-text">Services</span></h2>
+        <p class="section-desc">Everything your brand needs to grow online — from search visibility to paid conversions.</p>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card featured">
+          <div class="service-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="14" cy="14" r="8" stroke="currentColor" stroke-width="2"/><path d="M20 20l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M11 14h6M14 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="service-title">SEO & Content Marketing</h3>
+          <p class="service-desc">Rank higher in search results with strategic keyword targeting, technical SEO audits, and content that converts visitors into customers.</p>
+          <ul class="service-list">
+            <li>On-page & off-page SEO</li>
+            <li>Keyword research & strategy</li>
+            <li>Blog & content creation</li>
+            <li>Backlink building</li>
+          </ul>
+          <div class="service-result">Avg. +287% organic traffic in 6 months</div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="8" width="24" height="16" rx="3" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 12h4M24 12h4M4 20h4M24 20h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="service-title">Paid Advertising (PPC)</h3>
+          <p class="service-desc">Google Ads and Meta campaigns engineered to maximize ROI. Every dollar tracked, every conversion optimized.</p>
+          <ul class="service-list">
+            <li>Google & Bing Ads</li>
+            <li>Facebook & Instagram Ads</li>
+            <li>Retargeting campaigns</li>
+            <li>A/B testing & optimization</li>
+          </ul>
+          <div class="service-result">Avg. 4.2x ROAS across campaigns</div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4z" stroke="currentColor" stroke-width="2"/><path d="M4 16h24M16 4c-3.33 4-5.33 8-5.33 12 0 4 2 8 5.33 12M16 4c3.33 4 5.33 8 5.33 12 0 4-2 8-5.33 12" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <h3 class="service-title">Social Media Management</h3>
+          <p class="service-desc">Build a loyal following across Instagram, TikTok, LinkedIn, and X. Consistent branding, engaging content, measurable growth.</p>
+          <ul class="service-list">
+            <li>Content calendar planning</li>
+            <li>Short-form video creation</li>
+            <li>Community engagement</li>
+            <li>Analytics & reporting</li>
+          </ul>
+          <div class="service-result">Avg. +180% follower growth in 90 days</div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 10l12-6 12 6v2L16 18 4 12v-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 12v8l12 6 12-6v-8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="service-title">Email Marketing & Automation</h3>
+          <p class="service-desc">Build sequences that nurture leads on autopilot. From welcome flows to abandoned cart recovery — email that earns.</p>
+          <ul class="service-list">
+            <li>List growth & segmentation</li>
+            <li>Drip campaign design</li>
+            <li>Newsletter management</li>
+            <li>Automation & triggers</li>
+          </ul>
+          <div class="service-result">Avg. 32% open rate, 7.8% CTR</div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="18" rx="3" stroke="currentColor" stroke-width="2"/><path d="M10 28h12M16 22v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 13l4 4 4-6 4 4 4-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="service-title">Analytics & Reporting</h3>
+          <p class="service-desc">Data-driven decisions powered by Google Analytics, Search Console, and custom KPI dashboards. Know what's working and why.</p>
+          <ul class="service-list">
+            <li>GA4 setup & configuration</li>
+            <li>Custom KPI dashboards</li>
+            <li>Monthly performance reports</li>
+            <li>Conversion tracking</li>
+          </ul>
+          <div class="service-result">Full visibility, every campaign</div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 28V14l10-10 10 10v14H20v-8h-8v8H6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="service-title">Website & Landing Page Design</h3>
+          <p class="service-desc">Conversion-optimized websites and landing pages that turn visitors into leads. Fast, mobile-first, built to rank and convert.</p>
+          <ul class="service-list">
+            <li>CRO-focused design</li>
+            <li>WordPress & Webflow builds</li>
+            <li>A/B tested landing pages</li>
+            <li>Speed & SEO optimization</li>
+          </ul>
+          <div class="service-result">Avg. +45% conversion rate lift</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SERVICES IMAGE BANNER ===== -->
+  <div class="full-bleed-banner">
+    <img src="services-bg.png" alt="AI-powered digital marketing intelligence" loading="lazy" style="border-radius:16px;box-shadow:0 0 60px rgba(0,212,255,0.2);" />
+    <div class="banner-overlay">
+      <p class="banner-caption">All services. One integrated strategy. Measurable results.</p>
+    </div>
+  </div>
+
+  <!-- ===== ROADMAP ===== -->
+  <section class="section section-alt" id="roadmap">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">How to Get Started</span>
+        <h2 class="section-title">Your <span class="gradient-text">Step-by-Step</span> Roadmap</h2>
+        <p class="section-desc">Follow this exact path to go from zero experience to a profitable digital marketing business in 12 months.</p>
+      </div>
+
+      <div class="roadmap-visual">
+        <img src="roadmap.png" alt="Digital marketing journey roadmap" loading="lazy" class="roadmap-img" />
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card" data-step="01">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3 class="step-title">Pick Your Niche</h3>
+            <p class="step-desc">Don't try to serve everyone. Pick one industry you understand — local restaurants, real estate, fitness, e-commerce. Being specific makes you more credible and easier to hire.</p>
+            <div class="step-tips">
+              <strong>Start with:</strong>
+              <ul>
+                <li>Local service businesses (dentists, lawyers, contractors)</li>
+                <li>E-commerce stores needing more traffic</li>
+                <li>Coaches and consultants building their brand</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="02">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3 class="step-title">Learn 2 Core Services</h3>
+            <p class="step-desc">Master two services that work well together before adding more. The best beginner combos: SEO + Content, or Paid Ads + Social Media. Depth beats breadth early on.</p>
+            <div class="step-tips">
+              <strong>Best starter pairings:</strong>
+              <ul>
+                <li>SEO + Content writing</li>
+                <li>Facebook/Instagram Ads + Social Media</li>
+                <li>Email Marketing + CRM setup</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="03">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3 class="step-title">Get Certified & Build Skills</h3>
+            <p class="step-desc">Free certifications give you credibility and structure your learning. Complete these before approaching clients — they're free and recognized by employers.</p>
+            <div class="step-tips">
+              <strong>Free certifications to get:</strong>
+              <ul>
+                <li>Google Digital Marketing Certificate</li>
+                <li>Meta Blueprint (Facebook/Instagram Ads)</li>
+                <li>HubSpot Content Marketing Certification</li>
+                <li>Google Analytics 4 Certificate</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="04">
+          <div class="step-number">04</div>
+          <div class="step-content">
+            <h3 class="step-title">Build Your Brand & Website</h3>
+            <p class="step-desc">Your marketing presence IS your portfolio. Set up a clean website with your services, a contact form, and 2–3 case studies (even if they're for yourself or done as practice work).</p>
+            <div class="step-tips">
+              <strong>Must-haves:</strong>
+              <ul>
+                <li>Professional website with services listed</li>
+                <li>LinkedIn profile optimized</li>
+                <li>Business email (yourname@yourdomain.com)</li>
+                <li>Portfolio with 2–3 sample projects</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="05">
+          <div class="step-number">05</div>
+          <div class="step-content">
+            <h3 class="step-title">Set Up Your Tool Stack</h3>
+            <p class="step-desc">You don't need to pay for everything on day one. Start with free tiers, then upgrade as you earn. These tools handle 80% of client work.</p>
+            <div class="step-tips">
+              <strong>Free tools to start with:</strong>
+              <ul>
+                <li>Google Search Console + GA4 (analytics)</li>
+                <li>Canva (design)</li>
+                <li>Mailchimp free tier (email)</li>
+                <li>Ubersuggest free (SEO research)</li>
+                <li>Buffer free (social scheduling)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="06">
+          <div class="step-number">06</div>
+          <div class="step-content">
+            <h3 class="step-title">Land Your First 3 Clients</h3>
+            <p class="step-desc">Your first clients come from your network — not cold ads. Reach out to 50 people you know, offer a discounted first project, and collect a case study in return.</p>
+            <div class="step-tips">
+              <strong>How to approach it:</strong>
+              <ul>
+                <li>Message ex-colleagues and local business owners</li>
+                <li>Offer 25–40% discount for a 90-day commitment</li>
+                <li>Always request a written testimonial</li>
+                <li>Charge something — free work gets no respect</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="07">
+          <div class="step-number">07</div>
+          <div class="step-content">
+            <h3 class="step-title">Scale with Systems</h3>
+            <p class="step-desc">Once you have 3 paying clients, build repeatable systems: proposal templates, onboarding checklists, monthly report templates. Systems let you take on more clients without burning out.</p>
+            <div class="step-tips">
+              <strong>What to systematize:</strong>
+              <ul>
+                <li>Client onboarding flow</li>
+                <li>Monthly reporting templates</li>
+                <li>Content creation workflows</li>
+                <li>Campaign launch checklists</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="08">
+          <div class="step-number">08</div>
+          <div class="step-content">
+            <h3 class="step-title">Hire & Grow to Agency</h3>
+            <p class="step-desc">By month 6 (MRR $8K–$15K), hire your first contractor to handle execution while you focus on sales and strategy. This is how freelancers become agency owners.</p>
+            <div class="step-tips">
+              <strong>Year-one revenue targets:</strong>
+              <ul>
+                <li>Months 1–3: $5K–$15K total</li>
+                <li>Months 4–6: $8K–$15K MRR</li>
+                <li>Months 7–9: $15K–$25K MRR</li>
+                <li>Months 10–12: $25K–$40K MRR</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TOOLS ===== -->
+  <section class="section" id="tools">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Your Arsenal</span>
+        <h2 class="section-title">Essential <span class="gradient-text">Tools</span> to Start</h2>
+        <p class="section-desc">The exact software stack you need — mostly free to start, upgradeable as you grow.</p>
+      </div>
+
+      <div class="tools-layout">
+        <div class="tools-image-col">
+          <img src="tools-bg.png" alt="Human and AI collaboration" loading="lazy" class="tools-img" style="border-radius:16px;box-shadow:0 0 60px rgba(168,85,247,0.25);" />
+        </div>
+        <div class="tools-list-col">
+          <div class="tool-category">
+            <h3 class="tool-cat-title">
+              <span class="tool-cat-icon">📊</span> Analytics & SEO
+            </h3>
+            <div class="tool-row">
+              <div class="tool-pill">Google Analytics 4</div>
+              <div class="tool-pill">Google Search Console</div>
+              <div class="tool-pill free-badge">Free</div>
+            </div>
+            <div class="tool-row">
+              <div class="tool-pill">SEMrush</div>
+              <div class="tool-pill">Ahrefs</div>
+              <div class="tool-pill">Ubersuggest</div>
+            </div>
+          </div>
+
+          <div class="tool-category">
+            <h3 class="tool-cat-title">
+              <span class="tool-cat-icon">🎨</span> Design & Content
+            </h3>
+            <div class="tool-row">
+              <div class="tool-pill">Canva</div>
+              <div class="tool-pill free-badge">Free Tier</div>
+            </div>
+            <div class="tool-row">
+              <div class="tool-pill">Adobe Express</div>
+              <div class="tool-pill">CapCut</div>
+              <div class="tool-pill">Grammarly</div>
+            </div>
+          </div>
+
+          <div class="tool-category">
+            <h3 class="tool-cat-title">
+              <span class="tool-cat-icon">📧</span> Email Marketing
+            </h3>
+            <div class="tool-row">
+              <div class="tool-pill">Mailchimp</div>
+              <div class="tool-pill free-badge">Free up to 500</div>
+            </div>
+            <div class="tool-row">
+              <div class="tool-pill">Brevo (Sendinblue)</div>
+              <div class="tool-pill">ActiveCampaign</div>
+            </div>
+          </div>
+
+          <div class="tool-category">
+            <h3 class="tool-cat-title">
+              <span class="tool-cat-icon">📅</span> Social Media
+            </h3>
+            <div class="tool-row">
+              <div class="tool-pill">Buffer</div>
+              <div class="tool-pill">Hootsuite</div>
+              <div class="tool-pill free-badge">Free Tier</div>
+            </div>
+            <div class="tool-row">
+              <div class="tool-pill">Meta Business Suite</div>
+              <div class="tool-pill">Sprout Social</div>
+            </div>
+          </div>
+
+          <div class="tool-category">
+            <h3 class="tool-cat-title">
+              <span class="tool-cat-icon">⚙️</span> CRM & Automation
+            </h3>
+            <div class="tool-row">
+              <div class="tool-pill">HubSpot CRM</div>
+              <div class="tool-pill free-badge">Free Forever</div>
+            </div>
+            <div class="tool-row">
+              <div class="tool-pill">Zapier</div>
+              <div class="tool-pill">ClickFunnels</div>
+              <div class="tool-pill">Notion</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CERTIFICATIONS ===== -->
+  <section class="section section-alt" id="certs">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Earn Credibility</span>
+        <h2 class="section-title">Free <span class="gradient-text">Certifications</span> to Get First</h2>
+        <p class="section-desc">These are industry-recognized, completely free, and will make clients take you seriously before you have case studies.</p>
+      </div>
+
+      <div class="certs-grid">
+        <a href="https://skillshop.withgoogle.com/" target="_blank" class="cert-card">
+          <div class="cert-logo google">G</div>
+          <div class="cert-info">
+            <h4 class="cert-name">Google Digital Marketing Certificate</h4>
+            <p class="cert-provider">Google Skillshop — Free</p>
+            <p class="cert-note">Covers SEO, SEM, analytics, display ads. Recognized globally.</p>
+          </div>
+          <div class="cert-arrow">→</div>
+        </a>
+
+        <a href="https://www.facebook.com/business/learn/certification" target="_blank" class="cert-card">
+          <div class="cert-logo meta">M</div>
+          <div class="cert-info">
+            <h4 class="cert-name">Meta Blueprint Certification</h4>
+            <p class="cert-provider">Meta — Free courses, paid exam</p>
+            <p class="cert-note">Facebook & Instagram ads mastery. Most in-demand paid social cert.</p>
+          </div>
+          <div class="cert-arrow">→</div>
+        </a>
+
+        <a href="https://academy.hubspot.com/" target="_blank" class="cert-card">
+          <div class="cert-logo hubspot">H</div>
+          <div class="cert-info">
+            <h4 class="cert-name">HubSpot Content Marketing</h4>
+            <p class="cert-provider">HubSpot Academy — Free</p>
+            <p class="cert-note">Content strategy, blogging, SEO, email. Beginner-friendly and thorough.</p>
+          </div>
+          <div class="cert-arrow">→</div>
+        </a>
+
+        <a href="https://skillshop.withgoogle.com/googleanalytics" target="_blank" class="cert-card">
+          <div class="cert-logo google">G</div>
+          <div class="cert-info">
+            <h4 class="cert-name">Google Analytics 4 Certification</h4>
+            <p class="cert-provider">Google Skillshop — Free</p>
+            <p class="cert-note">Mandatory skill for every marketer. Clients expect you to track everything.</p>
+          </div>
+          <div class="cert-arrow">→</div>
+        </a>
+
+        <a href="https://www.semrush.com/academy/" target="_blank" class="cert-card">
+          <div class="cert-logo semrush">S</div>
+          <div class="cert-info">
+            <h4 class="cert-name">SEMrush SEO Fundamentals</h4>
+            <p class="cert-provider">SEMrush Academy — Free</p>
+            <p class="cert-note">Deep SEO training from the best SEO tool company. Very practical.</p>
+          </div>
+          <div class="cert-arrow">→</div>
+        </a>
+
+        <a href="https://ads.google.com/home/resources/certification/" target="_blank" class="cert-card">
+          <div class="cert-logo google">G</div>
+          <div class="cert-info">
+            <h4 class="cert-name">Google Ads Certification</h4>
+            <p class="cert-provider">Google Skillshop — Free</p>
+            <p class="cert-note">Required if you run paid search. Multiple tracks: Search, Display, Video, Shopping.</p>
+          </div>
+          <div class="cert-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRICING ===== -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Simple Pricing</span>
+        <h2 class="section-title">Transparent <span class="gradient-text">Packages</span></h2>
+        <p class="section-desc">No hidden fees. No long-term lock-in. Pick the package that matches where you are right now.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-tier">Starter</div>
+          <div class="pricing-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount">497</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="pricing-tagline">For solo entrepreneurs just getting started</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> SEO audit + optimization</li>
+            <li><span class="check">✓</span> 8 social posts/month</li>
+            <li><span class="check">✓</span> Monthly analytics report</li>
+            <li><span class="check">✓</span> Google Business Profile setup</li>
+            <li><span class="check">✓</span> 2 email campaigns/month</li>
+            <li class="muted"><span>–</span> Paid ad management</li>
+            <li class="muted"><span>–</span> Content writing</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline">Get Started</a>
+        </div>
+
+        <div class="pricing-card featured">
+          <div class="pricing-badge">Most Popular</div>
+          <div class="pricing-tier">Growth</div>
+          <div class="pricing-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount">1,497</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="pricing-tagline">For businesses ready to scale consistently</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Full SEO management</li>
+            <li><span class="check">✓</span> 20 social posts/month</li>
+            <li><span class="check">✓</span> Google + Meta Ads (up to $5K spend)</li>
+            <li><span class="check">✓</span> 4 blog articles/month</li>
+            <li><span class="check">✓</span> Weekly analytics reporting</li>
+            <li><span class="check">✓</span> Email automation setup</li>
+            <li><span class="check">✓</span> Monthly strategy call</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary">Get Started</a>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-tier">Agency</div>
+          <div class="pricing-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount">3,497</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="pricing-tagline">Full-service for growing brands</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Everything in Growth</li>
+            <li><span class="check">✓</span> Dedicated account manager</li>
+            <li><span class="check">✓</span> Unlimited ad spend management</li>
+            <li><span class="check">✓</span> 8 blog articles + 4 videos</li>
+            <li><span class="check">✓</span> Landing page design & A/B testing</li>
+            <li><span class="check">✓</span> Full CRM setup & automation</li>
+            <li><span class="check">✓</span> Weekly strategy calls</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline">Get Started</a>
+        </div>
+      </div>
+
+      <p class="pricing-note">All plans include a free 30-minute strategy consultation. No contract required for the first 90 days.</p>
+    </div>
+  </section>
+
+  <!-- ===== TESTIMONIALS ===== -->
+  <section class="section section-alt" id="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Client Results</span>
+        <h2 class="section-title">Real <span class="gradient-text">Wins</span> for Real Clients</h2>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">Within 4 months we went from page 5 on Google to page 1 for our three most competitive keywords. The organic leads started flooding in and we had to hire two new staff members to handle demand.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar av1">JM</div>
+            <div>
+              <div class="author-name">James M.</div>
+              <div class="author-role">Owner, Providence Plumbing Co.</div>
+            </div>
+            <div class="testimonial-result">+312% leads</div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">Our e-commerce ROAS went from 1.8x to 5.1x in 60 days. They rebuilt our entire Meta ads funnel and the results were immediate. Best marketing investment we've made.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar av2">SR</div>
+            <div>
+              <div class="author-name">Sarah R.</div>
+              <div class="author-role">Founder, Coastal Apparel</div>
+            </div>
+            <div class="testimonial-result">5.1x ROAS</div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">I was spending $4K/month on ads with terrible results before hiring them. Now I spend $2,500 and generate 4x the leads. They didn't just fix our campaigns — they taught us why things work.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar av3">DK</div>
+            <div>
+              <div class="author-name">Derek K.</div>
+              <div class="author-role">CEO, Northeast Real Estate Group</div>
+            </div>
+            <div class="testimonial-result">4x leads, -37% cost</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT / CTA ===== -->
+  <section class="section cta-section" id="contact">
+    <div class="container">
+      <div class="cta-inner">
+        <span class="section-tag">Let's Work Together</span>
+        <h2 class="cta-title">Ready to <span class="gradient-text">Grow Your Brand?</span></h2>
+        <p class="cta-desc">Book a free 30-minute strategy call. We'll audit your current digital presence, identify your biggest growth opportunities, and build a custom roadmap for your goals.</p>
+
+        <form class="contact-form" id="contactForm" onsubmit="submitContactForm(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Your Name</label>
+              <input type="text" id="name" name="name" placeholder="John Smith" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="john@yourbusiness.com" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="business">Business/Website</label>
+              <input type="text" id="business" name="business" placeholder="yourbusiness.com" />
+            </div>
+            <div class="form-group">
+              <label for="service">Service Interested In</label>
+              <select id="service" name="service">
+                <option value="">Select a service...</option>
+                <option>SEO & Content Marketing</option>
+                <option>Paid Advertising (PPC)</option>
+                <option>Social Media Management</option>
+                <option>Email Marketing</option>
+                <option>Full Growth Package</option>
+                <option>Just exploring</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label for="message">Tell Me About Your Goals</label>
+            <textarea id="message" name="message" rows="4" placeholder="What are you trying to achieve? What's your biggest marketing challenge right now?"></textarea>
+          </div>
+          <button type="submit" id="cf-submit-btn" class="btn btn-primary btn-large">Book My Free Strategy Call →</button>
+          <div id="cf-status" style="display:none;margin-top:1rem;padding:.9rem 1.2rem;border-radius:10px;font-size:.9rem;font-weight:600;text-align:center"></div>
+        </form>
+        <script>
+        async function submitContactForm(e) {
+          e.preventDefault();
+          const btn = document.getElementById('cf-submit-btn');
+          const status = document.getElementById('cf-status');
+          btn.disabled = true; btn.textContent = 'Sending...';
+          const payload = {
+            name:     document.getElementById('cf-name') ? document.getElementById('cf-name').value.trim() : document.getElementById('name').value.trim(),
+            email:    document.getElementById('cf-email') ? document.getElementById('cf-email').value.trim() : document.getElementById('email').value.trim(),
+            phone:    (document.getElementById('cf-phone')||{value:''}).value.trim(),
+            business: (document.getElementById('cf-business')||document.getElementById('business')||{value:''}).value.trim(),
+            plan:     (document.getElementById('cf-plan')||{value:''}).value,
+            message:  (document.getElementById('cf-message')||document.getElementById('message')||{value:''}).value.trim(),
+          };
+          try {
+            const API = (typeof __PORT_8000__ !== 'undefined') ? __PORT_8000__ : '';
+            const res = await fetch(API + '/api/contact', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            const data = await res.json();
+            if (res.ok) {
+              status.style.cssText = 'display:block;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25);margin-top:1rem;padding:.9rem 1.2rem;border-radius:10px;font-size:.9rem;font-weight:600;text-align:center';
+              status.textContent = '✅ ' + (data.message || "Got it! We'll be in touch within 24 hours.");
+              document.getElementById('contactForm').reset();
+            } else { throw new Error(data.error||'Failed'); }
+          } catch(err) {
+            status.style.cssText = 'display:block;background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.25);margin-top:1rem;padding:.9rem 1.2rem;border-radius:10px;font-size:.9rem;font-weight:600;text-align:center';
+            status.textContent = '❌ Something went wrong — email us at dev@2easymarketing.net';
+          }
+          btn.disabled = false; btn.textContent = 'Book My Free Strategy Call →';
+        }
+        </script
+        </form>
+
+        <div class="contact-alternatives">
+          <p>Prefer a quick chat?</p>
+          <div class="contact-links">
+            <a href="mailto:dev@2easymarketing.net" class="contact-link">📧 dev@2easymarketing.net</a>
+            <a href="tel:+14015550100" class="contact-link">📞 (401) 555-0100</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+    <!-- ─── RESULTS SOCIAL PROOF BAR ─────────────────────────────────────── -->
+  <section style="padding:3rem 0;background:linear-gradient(135deg,rgba(0,212,255,.05) 0%,rgba(168,85,247,.05) 100%);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)">
+    <div class="container" style="text-align:center">
+      <p style="color:rgba(180,200,220,.5);font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:2rem">What 2EasyMedia clients are achieving</p>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2.5rem">
+        <div class="result-stat">
+          <div class="result-num" data-count="312">0</div>
+          <div class="result-label">% avg increase in social reach</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-num" data-count="47">0</div>
+          <div class="result-label">% drop in cost-per-lead</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-num" data-count="9">0</div>
+          <div class="result-label">× faster content delivery vs traditional agencies</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-num" data-count="100">0</div>
+          <div class="result-label">% client retention rate</div>
+        </div>
+      </div>
+      <p style="margin-top:2.5rem;color:rgba(180,200,220,.45);font-size:.78rem">*Based on client performance data across Starter–Agency plans · No long-term contracts required</p>
+    </div>
+  </section>
+
+  <!-- ─── TRUST BADGES ROW ──────────────────────────────────────────────── -->
+  <section style="padding:2.5rem 0;background:rgba(0,0,0,.3)">
+    <div class="container">
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2rem 3.5rem">
+        <div class="trust-badge">
+          <span style="font-size:1.4rem">🔒</span>
+          <span>SOC 2 Compliant AI</span>
+        </div>
+        <div class="trust-badge">
+          <span style="font-size:1.4rem">⚡</span>
+          <span>AI Fulfillment in &lt;60 Seconds</span>
+        </div>
+        <div class="trust-badge">
+          <span style="font-size:1.4rem">🚫</span>
+          <span>Zero Setup Fees</span>
+        </div>
+        <div class="trust-badge">
+          <span style="font-size:1.4rem">📋</span>
+          <span>No Long-Term Contracts</span>
+        </div>
+        <div class="trust-badge">
+          <span style="font-size:1.4rem">🧠</span>
+          <span>Powered by Claude AI</span>
+        </div>
+        <div class="trust-badge">
+          <span style="font-size:1.4rem">📍</span>
+          <span>Pawtucket, Rhode Island</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="logo">
+          <svg width="36" height="36" viewBox="0 0 38 38" fill="none">
+            <rect width="38" height="38" rx="10" fill="url(#logo-grad-footer)"/>
+            <path d="M8 14.5 C8 11 10.5 9 13.5 9 C16.5 9 19 11 19 14 C19 16.5 17 18.5 14 21 L8 25.5 L8 28 L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 9 L23 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M23 9 L31 9" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M23 18.5 L29 18.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M23 28 L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="logo-grad-footer" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">2Easy<span class="logo-accent">Media</span></span>
+        </div>
+        <p class="footer-tagline">Bold digital marketing — made easy. Based in Pawtucket, Rhode Island.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Services</h4>
+          <a href="#services">SEO & Content</a>
+          <a href="#services">Paid Advertising</a>
+          <a href="#services">Social Media</a>
+          <a href="#services">Email Marketing</a>
+          <a href="#services">Analytics</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="#roadmap">Getting Started Guide</a>
+          <a href="#tools">Tool Stack</a>
+          <a href="#certs">Free Certifications</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#contact">Contact</a>
+          <a href="#testimonials">Results</a>
+          <a href="#hero">About</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>© 2026 2EasyMedia. All rights reserved. Built in Pawtucket, Rhode Island.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Instagram">ig</a>
+          <a href="#" aria-label="Twitter/X">X</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div id="cursor-glow" aria-hidden="true"></div>
+
+
+  <!-- ===== CLIENT PORTAL OVERLAY ===== -->
+  <div id="portal-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#02040a;overflow-y:auto;">
+
+    <button id="portal-close-btn" style="position:fixed;top:18px;right:22px;z-index:100001;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:.9rem;padding:7px 16px;border-radius:8px;cursor:pointer;font-family:Satoshi,sans-serif;transition:all .2s;">&#10005; Back to Site</button>
+
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen" class="auth-screen">
+      <div class="auth-card">
+        <div class="auth-logo" style="display:flex;align-items:center;gap:.6rem;font-family:'Clash Display',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:2rem;">
+          <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="10" fill="url(#plg1)"/><path d="M8 14.5C8 11 10.5 9 13.5 9C16.5 9 19 11 19 14C19 16.5 17 18.5 14 21L8 25.5L8 28L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 9L23 28M23 9L31 9M23 18.5L29 18.5M23 28L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/><defs><linearGradient id="plg1" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+          <span>2Easy<span style="background:linear-gradient(135deg,#00d4ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Media</span> Portal</span>
+        </div>
+
+        <div id="login-form">
+          <h2 class="auth-title">Welcome back</h2>
+          <p class="auth-sub">Log in to your client portal</p>
+          <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" /></div>
+          <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password" /></div>
+          <div id="login-error" class="form-error"></div>
+          <button class="btn-auth" id="login-btn">Log In</button>
+          <p class="auth-switch">Don&apos;t have an account? <a href="#" id="go-signup">Sign up free</a></p>
+
+        </div>
+
+        <div id="signup-form" style="display:none">
+          <h2 class="auth-title">Create your account</h2>
+          <p class="auth-sub">Start getting AI-powered marketing work done</p>
+          <div class="form-row">
+            <div class="form-group"><label>Your Name</label><input type="text" id="signup-name" placeholder="First Last" /></div>
+            <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Business Name</label><input type="text" id="signup-business" placeholder="Your Company LLC" /></div>
+            <div class="form-group"><label>Website (optional)</label><input type="text" id="signup-website" placeholder="yoursite.com" /></div>
+          </div>
+          <div class="form-group"><label>Password</label><input type="password" id="signup-password" placeholder="Min. 6 characters" /></div>
+          <div class="form-group">
+            <label>Plan</label>
+            <select id="signup-plan">
+              <option value="starter">Starter &#8212; $497/mo</option>
+              <option value="growth" selected>Growth &#8212; $1,497/mo</option>
+              <option value="agency">Agency &#8212; $3,497/mo</option>
+            </select>
+          </div>
+          <div id="signup-error" class="form-error"></div>
+          <button class="btn-auth" id="signup-btn">Create Account</button>
+          <p class="auth-switch">Already have an account? <a href="#" id="go-login">Log in</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTAL APP -->
+    <div id="portal-app" style="display:none">
+      <aside class="portal-sidebar">
+        <div class="sidebar-brand">
+          <svg width="26" height="26" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="10" fill="url(#slg2)"/><path d="M8 14.5C8 11 10.5 9 13.5 9C16.5 9 19 11 19 14C19 16.5 17 18.5 14 21L8 25.5L8 28L20 28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 9L23 28M23 9L31 9M23 18.5L29 18.5M23 28L31 28" stroke="white" stroke-width="2.2" stroke-linecap="round"/><defs><linearGradient id="slg2" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+          <span>2EasyMedia</span>
+        </div>
+        <div class="sidebar-user">
+          <div class="user-avatar" id="user-avatar">?</div>
+          <div>
+            <div class="user-name" id="user-name-display">Loading...</div>
+            <div class="user-plan" id="user-plan-display">...</div>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="sidebar-link active" data-view="dashboard">&#9632;&#9632; Dashboard</a>
+          <a href="#" class="sidebar-link" data-view="new-task">&#43; New Task</a>
+          <a href="#" class="sidebar-link" data-view="my-tasks">&#10003; My Tasks</a>
+          <a href="#" class="sidebar-link owner-only" data-view="owner-dashboard" style="display:none">&#9670; Owner Panel</a>
+          <a href="#" class="sidebar-link owner-only" data-view="clients" style="display:none">&#128101; Clients</a>
+          <a href="#" class="sidebar-link" data-view="media-factory">&#127910; Media Factory</a>
+          <a href="#" class="sidebar-link owner-only" data-view="autonomous" style="display:none">&#129504; Autonomous <span id="auto-alert-badge" style="display:none;background:#f59e0b;color:#000;font-size:.65rem;font-weight:700;border-radius:9999px;padding:1px 6px;margin-left:4px;vertical-align:middle">0</span></a>
+          <a href="#" class="sidebar-link owner-only" data-view="system-health" style="display:none">&#128268; System Health</a>
+          <a href="#" class="sidebar-link owner-only" data-view="update-log" style="display:none">&#128203; Update Log</a>
+        </nav>
+        <button class="sidebar-logout" id="logout-btn">&#8594; Log Out</button>
+      </aside>
+
+      <main class="portal-main">
+        <div id="view-dashboard" class="portal-view">
+          <div class="view-header">
+            <h1 class="view-title">Dashboard</h1>
+            <button class="btn-new-task" data-view="new-task">+ New Task</button>
+          </div>
+          <div class="stats-row">
+            <div class="stat-pill"><span class="pill-num" id="stat-total">0</span><span class="pill-label">Total Tasks</span></div>
+            <div class="stat-pill"><span class="pill-num" id="stat-processing">0</span><span class="pill-label">Processing</span></div>
+            <div class="stat-pill"><span class="pill-num" id="stat-review">0</span><span class="pill-label">In Review</span></div>
+            <div class="stat-pill highlight"><span class="pill-num" id="stat-delivered">0</span><span class="pill-label">Delivered</span></div>
+          </div>
+          <div class="section-label">Recent Tasks</div>
+          <div id="recent-tasks-list" class="tasks-list"><div class="empty-state">No tasks yet. Submit your first task!</div></div>
+        </div>
+
+        <div id="view-new-task" class="portal-view" style="display:none">
+          <div class="view-header"><h1 class="view-title">Submit a New Task</h1></div>
+          <p class="view-sub">Choose what you need &#8212; our AI starts working immediately.</p>
+          <div class="task-type-grid" id="task-type-grid">
+            <button class="task-type-card" data-type="social_post"><div class="task-type-icon">&#128241;</div><div class="task-type-name">Social Media Posts</div><div class="task-type-desc">Instagram, Facebook, LinkedIn, TikTok</div></button>
+            <button class="task-type-card" data-type="seo_audit"><div class="task-type-icon">&#128269;</div><div class="task-type-name">SEO Audit &amp; Report</div><div class="task-type-desc">Rankings, keywords, technical audit</div></button>
+            <button class="task-type-card" data-type="ad_copy"><div class="task-type-icon">&#128226;</div><div class="task-type-name">Ad Copy &amp; Campaign</div><div class="task-type-desc">Google Ads, Meta Ads, headlines</div></button>
+            <button class="task-type-card" data-type="blog_content"><div class="task-type-icon">&#9997;</div><div class="task-type-name">Blog &amp; Content</div><div class="task-type-desc">Blog posts, website copy, landing pages</div></button>
+            <button class="task-type-card" data-type="email_campaign"><div class="task-type-icon">&#128231;</div><div class="task-type-name">Email Campaign</div><div class="task-type-desc">Sequences, newsletters, drip campaigns</div></button>
+          </div>
+          <div id="task-form-container" style="display:none">
+            <div class="task-form-header">
+              <button class="back-btn" id="back-to-types">&#8592; Back</button>
+              <h2 class="task-form-title" id="task-form-title"></h2>
+            </div>
+            <form id="task-form" class="task-form"></form>
+            <div id="task-submit-error" class="form-error"></div>
+            <button class="btn-submit-task" id="submit-task-btn">Submit Task &#8212; AI Starts Now &#8594;</button>
+          </div>
+        </div>
+
+        <div id="view-my-tasks" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">My Tasks</h1>
+            <div class="filter-tabs">
+              <button class="filter-tab active" data-filter="all">All</button>
+              <button class="filter-tab" data-filter="processing">Processing</button>
+              <button class="filter-tab" data-filter="review">In Review</button>
+              <button class="filter-tab" data-filter="delivered">Delivered</button>
+            </div>
+          </div>
+          <div id="all-tasks-list" class="tasks-list"></div>
+        </div>
+
+        <div id="view-owner-dashboard" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">Owner Panel</h1>
+            <span class="owner-badge">&#128273; Dev&apos;s View</span>
+          </div>
+          <div class="stats-row" id="owner-stats-row"></div>
+          <!-- Lead Notification Status -->
+          <div id="smtp-status-card" style="margin-bottom:1.5rem"></div>
+          <div class="section-label">Tasks Awaiting Review</div>
+          <div id="owner-review-list" class="tasks-list"></div>
+          <div class="section-label" style="margin-top:2rem">All Recent Tasks</div>
+          <div id="owner-all-tasks-list" class="tasks-list"></div>
+        </div>
+
+        <div id="view-clients" class="portal-view" style="display:none">
+          <div class="view-header"><h1 class="view-title">Clients</h1></div>
+          <div id="clients-table-wrap" class="table-wrap"></div>
+        </div>
+
+        <!-- MEDIA FACTORY VIEW -->
+        <div id="view-media-factory" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#127910; AI Media Factory</h1>
+            <p style="color:rgba(180,200,220,.55);font-size:.85rem;margin:0">Generate AI video ads, image ads &amp; voiceovers — delivered in minutes, not weeks.</p>
+          </div>
+
+          <!-- Media type cards -->
+          <div id="media-type-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-bottom:2rem">
+            <div class="media-type-card" data-media-type="image_ad" style="background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(0,212,255,.02));border:1px solid rgba(0,212,255,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+              <div style="font-size:2.5rem;margin-bottom:.75rem">🖼️</div>
+              <div style="font-weight:700;color:#00d4ff;font-size:1rem;margin-bottom:.4rem">AI Image Ad</div>
+              <div style="color:rgba(180,200,220,.6);font-size:.82rem">Facebook, Instagram, Google Display — cinematic ad images in &lt;60 seconds</div>
+              <div style="margin-top:.75rem;font-size:.75rem;color:#00d4ff;opacity:.7">→ Click to request</div>
+            </div>
+            <div class="media-type-card" data-media-type="video_ad" style="background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(168,85,247,.02));border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+              <div style="font-size:2.5rem;margin-bottom:.75rem">🎬</div>
+              <div style="font-weight:700;color:#a855f7;font-size:1rem;margin-bottom:.4rem">AI Video Ad</div>
+              <div style="color:rgba(180,200,220,.6);font-size:.82rem">4–8 second cinematic video ads with native audio — Reels, TikTok, YouTube</div>
+              <div style="margin-top:.75rem;font-size:.75rem;color:#a855f7;opacity:.7">→ Click to request</div>
+            </div>
+            <div class="media-type-card" data-media-type="voiceover" style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+              <div style="font-size:2.5rem;margin-bottom:.75rem">🎙️</div>
+              <div style="font-weight:700;color:#22c55e;font-size:1rem;margin-bottom:.4rem">AI Voiceover</div>
+              <div style="color:rgba(180,200,220,.6);font-size:.82rem">Professional AI voiceover for ads, explainers, social content — multiple voices</div>
+              <div style="margin-top:.75rem;font-size:.75rem;color:#22c55e;opacity:.7">→ Click to request</div>
+            </div>
+          </div>
+
+          <!-- Media request form (hidden until card clicked) -->
+          <div id="media-form-container" style="display:none">
+            <button id="back-to-media-types" style="background:none;border:none;color:#00d4ff;cursor:pointer;font-size:.85rem;margin-bottom:1rem;padding:0">← Back</button>
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.75rem">
+              <h2 id="media-form-title" style="font-size:1.1rem;font-weight:700;color:#fff;margin:0 0 1.25rem"></h2>
+              <div id="media-form"></div>
+              <div id="media-submit-error" style="color:#ef4444;font-size:.82rem;margin-top:.5rem;min-height:1.2em"></div>
+              <button id="submit-media-btn" style="margin-top:1.25rem;background:linear-gradient(135deg,#a855f7,#00d4ff);border:none;color:#fff;padding:.7rem 2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.9rem;width:100%">⚡ Generate with AI — Starts Now →</button>
+            </div>
+          </div>
+
+          <!-- Delivered media gallery -->
+          <div style="margin-top:2rem">
+            <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 .75rem">Your Media Library</h2>
+            <div id="media-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+          </div>
+        </div>
+
+        <!-- AUTONOMOUS VIEW -->
+        <div id="view-autonomous" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#129504; Autonomous Engine</h1>
+            <button id="run-engine-btn" style="background:linear-gradient(135deg,#a855f7,#00d4ff);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="manualRunEngine()">&#9654; Run All Engines Now</button>
+          </div>
+
+          <!-- Stats -->
+          <div id="auto-stats-row" class="stats-row" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem"></div>
+
+          <!-- Alerts Section -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+            <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0">&#128276; Alert Feed</h2>
+            <button style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(200,220,240,.7);padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.8rem" onclick="markAllRead()">Mark All Read</button>
+          </div>
+          <div id="auto-alerts-list" style="margin-bottom:2rem;display:flex;flex-direction:column;gap:.75rem"></div>
+
+          <!-- Autonomous Task Queue -->
+          <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 .75rem">&#9889; AI-Generated Content Queue</h2>
+          <div id="auto-queue-list" style="display:flex;flex-direction:column;gap:1rem"></div>
+        </div>
+
+        <!-- ── SYSTEM HEALTH VIEW ── -->
+        <div id="view-system-health" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128268; System Health</h1>
+            <button style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="loadSystemHealth()">&#8635; Refresh</button>
+          </div>
+          <div id="system-health-content" style="display:flex;flex-direction:column;gap:1.25rem">
+            <p style="color:rgba(200,220,240,.5);text-align:center;padding:3rem">Loading system health...</p>
+          </div>
+          <div style="margin-top:2rem;padding:1.25rem;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:12px">
+            <h2 style="font-size:.95rem;font-weight:700;color:#a855f7;margin:0 0 .75rem">&#128295; Run Maintenance Now</h2>
+            <p style="color:rgba(200,220,240,.65);font-size:.85rem;margin:0 0 1rem">Triggers DB vacuum, WAL checkpoint, stale task cleanup, error analysis, and dependency scan. Results appear in Update Log.</p>
+            <button id="run-maintenance-btn" onclick="runMaintenance()" style="background:linear-gradient(135deg,#a855f7,#00d4ff);border:none;color:#fff;padding:.55rem 1.4rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem">&#9889; Run Maintenance</button>
+            <span id="maintenance-status" style="margin-left:1rem;color:rgba(200,220,240,.5);font-size:.85rem"></span>
+          </div>
+        </div>
+
+        <!-- ── UPDATE LOG VIEW ── -->
+        <div id="view-update-log" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#128203; Update Log</h1>
+            <button style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="loadUpdateLog()">&#8635; Refresh</button>
+          </div>
+          <!-- Version Badge -->
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem" id="version-badges"></div>
+          <!-- Changelog -->
+          <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 .75rem">&#128196; Platform Changelog</h2>
+          <div id="changelog-list" style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem"></div>
+          <!-- Live DB Log -->
+          <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 .75rem">&#128336; Live Activity Log</h2>
+          <div id="update-log-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- TASK MODAL -->
+  <div id="task-modal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-task-title">Task Detail</h3>
+        <button class="modal-close" id="modal-close">&#10005;</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+  <script src="script.js" defer></script>
+  <script src="chat.js" defer></script>
+  <script src="premium-effects.js" defer></script>
+  <link rel="stylesheet" href="portal.css" />
+  <script src="portal.js" defer></script>
+  <!-- JSON-LD: Local Business + Service Schema (SEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "2EasyMedia",
+    "description": "AI-powered digital marketing agency. Strategy, SEO, social media, ads and content — all handled by AI, reviewed by humans.",
+    "url": "https://2easymarketing.net",
+    "telephone": "+1-401-555-0100",
+    "email": "dev@2easymarketing.net",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Pawtucket",
+      "addressLocality": "Pawtucket",
+      "addressRegion": "RI",
+      "postalCode": "02860",
+      "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 41.8789,
+      "longitude": -71.3828
+    },
+    "areaServed": ["Rhode Island", "Providence", "Pawtucket", "United States"],
+    "priceRange": "$497–$3,497/month",
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Digital Marketing Plans",
+      "itemListElement": [
+        {"@type": "Offer", "name": "Starter Plan", "price": "497", "priceCurrency": "USD", "billingIncrement": "monthly"},
+        {"@type": "Offer", "name": "Growth Plan", "price": "1497", "priceCurrency": "USD", "billingIncrement": "monthly"},
+        {"@type": "Offer", "name": "Agency Plan", "price": "3497", "priceCurrency": "USD", "billingIncrement": "monthly"}
+      ]
+    },
+    "sameAs": ["https://2easymarketing.net"]
+  }
+  </script>
+</body>
+</html>
