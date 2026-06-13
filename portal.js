@@ -417,7 +417,7 @@ function apiFetch(path, method = 'GET', body = null) {
       if (task.status === 'processing') {
         html += `<div style="text-align:center;padding:2.5rem"><div style="font-size:2.5rem">⚡</div><div style="color:#f59e0b;font-weight:700;font-size:1rem;margin-top:.5rem">AI is working on your task...</div><div style="color:rgba(180,200,220,.65);font-size:.85rem;margin-top:.4rem">Usually takes 30–60 seconds. Check back shortly.</div></div>`;
       } else if (['review','approved'].includes(task.status)) {
-        html += `<div style="text-align:center;padding:2rem"><div style="font-size:2.5rem">👀</div><div style="color:#c084fc;font-weight:700;margin-top:.5rem">In Review with Dev</div><div style="color:rgba(180,200,220,.65);font-size:.85rem;margin-top:.4rem">Your deliverable is ready and being reviewed before delivery.</div></div>`;
+        html += `<div style="text-align:center;padding:2rem"><div style="font-size:2.5rem">👀</div><div style="color:#00c4b4;font-weight:700;margin-top:.5rem">In Review with Dev</div><div style="color:rgba(180,200,220,.65);font-size:.85rem;margin-top:.4rem">Your deliverable is ready and being reviewed before delivery.</div></div>`;
       } else if (task.status === 'delivered' && task.ai_result) {
         const result = task.ai_result;
         if (result.startsWith('IMAGE_AD_READY:')) {
@@ -991,7 +991,7 @@ async function loadSystemHealth() {
   el.innerHTML = '<p style="color:rgba(200,220,240,.5);text-align:center;padding:3rem">Fetching system health...</p>';
   try {
     const data = await apiFetch('/api/owner/system-health').then(r => r.json());
-    const statusColor = data.db_ok !== false ? '#22d3ee' : '#f87171';
+    const statusColor = data.db_ok !== false ? '#5eeee6' : '#f87171';
     const errColor = (data.errors_last_hour || 0) === 0 ? '#4ade80' : '#f59e0b';
 
     el.innerHTML = `
@@ -999,8 +999,8 @@ async function loadSystemHealth() {
       <div style="display:flex;gap:.75rem;flex-wrap:wrap">
         ${healthKpi('Platform Version', `v${data.platform_version}`, '#00c4b4')}
         ${healthKpi('Python', data.python_version, '#00c4b4')}
-        ${healthKpi('Memory (RSS)', `${data.memory_rss_mb} MB`, '#06b6d4')}
-        ${healthKpi('DB Size', `${data.db_size_kb} KB`, '#22d3ee')}
+        ${healthKpi('Memory (RSS)', `${data.memory_rss_mb} MB`, '#00c4b4')}
+        ${healthKpi('DB Size', `${data.db_size_kb} KB`, '#5eeee6')}
         ${healthKpi('DB Clients', data.db_clients, '#4ade80')}
         ${healthKpi('DB Tasks', data.db_tasks, '#4ade80')}
         ${healthKpi('Errors (1h)', data.errors_last_hour || 0, errColor)}
@@ -1082,7 +1082,7 @@ async function loadUpdateLog() {
       vb.innerHTML = `
         ${vBadge('Version', `v${vd.version}`, '#00c4b4')}
         ${vBadge('Codename', vd.codename, '#00c4b4')}
-        ${vBadge('Build Date', vd.build_date, '#06b6d4')}
+        ${vBadge('Build Date', vd.build_date, '#00c4b4')}
         ${vBadge('Domain', vd.domain, '#4ade80')}
       `;
     }
@@ -1449,7 +1449,7 @@ function loadClientReports() {
         { name:'Competitor Analysis Report', desc:'What competitors are doing vs. what you\'re doing better', icon:'🕵️', color:'#f59e0b' },
         { name:'AI Activity Report', desc:'Everything Maya did autonomously this month on your behalf', icon:'🤖', color:'#4ade80' },
         { name:'ROI Summary', desc:'Every dollar spent vs. every dollar earned — clear and simple', icon:'💰', color:'#fbbf24' },
-        { name:'Custom Report', desc:'Ask Maya to build any report you need for any client', icon:'✨', color:'#e879f9' },
+        { name:'Custom Report', desc:'Ask Maya to build any report you need for any client', icon:'✨', color:'#00c4b4' },
       ].map(r => `
         <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;cursor:pointer;transition:border-color .2s"
              onmouseover="this.style.borderColor='${r.color}44'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'"
