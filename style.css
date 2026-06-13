@@ -784,6 +784,7 @@ h1,h2,h3,h4,h5,h6 {
   width: 100%;
   height: auto;
   display: block;
+  filter: hue-rotate(155deg) saturate(0.7) brightness(0.85);
 }
 .tools-list-col {
   display: flex;
@@ -893,9 +894,9 @@ h1,h2,h3,h4,h5,h6 {
   flex-shrink: 0;
 }
 .cert-info { flex: 1; }
-.cert-name { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700; color: var(--text); margin-bottom: var(--space-1); }
-.cert-issuer { font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-2); }
-.cert-time { font-size: var(--text-xs); color: var(--text-dim); }
+.cert-name { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700; color: #ffffff; margin-bottom: var(--space-1); }
+.cert-issuer { font-size: var(--text-xs); color: rgba(255,255,255,0.75); margin-bottom: var(--space-2); }
+.cert-time { font-size: var(--text-xs); color: rgba(255,255,255,0.6); }
 .cert-badge {
   display: inline-block;
   font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
@@ -912,8 +913,8 @@ h1,h2,h3,h4,h5,h6 {
 .cert-logo.semrush  { background: #FF6B2C; }
 .cert-logo.linkedin { background: #0A66C2; }
 /* Cert HTML class variants used in markup */
-.cert-provider { font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-1); }
-.cert-note     { font-size: var(--text-xs); color: var(--text-dim); line-height: 1.5; }
+.cert-provider { font-size: var(--text-xs); color: rgba(255,255,255,0.75); margin-bottom: var(--space-1); }
+.cert-note     { font-size: var(--text-xs); color: rgba(255,255,255,0.65); line-height: 1.5; }
 .cert-arrow    { font-size: 1.2rem; color: var(--accent); flex-shrink: 0; opacity: 0.6; transition: opacity var(--transition); }
 .cert-card:hover .cert-arrow { opacity: 1; }
 
@@ -1371,16 +1372,19 @@ h1,h2,h3,h4,h5,h6 {
 .roadmap-visual {
   margin-bottom: var(--space-12);
   border-radius: var(--radius-2xl);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-glass);
-  max-height: 420px;
+  overflow: visible;
+  border: 1px solid rgba(0,196,180,0.2);
+  box-shadow: 0 0 40px rgba(0,196,180,0.1), var(--shadow-glass);
+  /* NO max-height — show full image from step 1 to finish line */
 }
 .roadmap-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;            /* natural aspect ratio — no cropping */
+  object-fit: unset;
   display: block;
+  border-radius: var(--radius-2xl);
+  /* Shift the blue-heavy roadmap toward teal to match site palette */
+  filter: hue-rotate(160deg) saturate(0.85) brightness(0.9);
 }
 
 /* ===== CONTACT ALTERNATIVES ===== */
