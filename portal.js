@@ -422,12 +422,12 @@ function apiFetch(path, method = 'GET', body = null) {
         const result = task.ai_result;
         if (result.startsWith('IMAGE_AD_READY:')) {
           const fname = result.split(':')[1].split('\n')[0].trim();
-          html += `<div style="font-weight:700;color:#00d4ff;font-size:.85rem;margin-bottom:.75rem">🖼️ Your AI Image Ad:</div>
+          html += `<div style="font-weight:700;color:#00c4b4;font-size:.85rem;margin-bottom:.75rem">🖼️ Your AI Image Ad:</div>
             <img src="/media/${fname}" style="width:100%;border-radius:10px;margin-bottom:.75rem;max-height:360px;object-fit:contain;background:rgba(0,0,0,.3)" />
             <a href="/media/${fname}" download="${fname}" class="copy-btn" style="text-decoration:none;display:inline-block">⬇ Download Image Ad</a>`;
         } else if (result.startsWith('VIDEO_AD_READY:')) {
           const fname = result.split(':')[1].split('\n')[0].trim();
-          html += `<div style="font-weight:700;color:#a855f7;font-size:.85rem;margin-bottom:.75rem">🎬 Your AI Video Ad:</div>
+          html += `<div style="font-weight:700;color:#00c4b4;font-size:.85rem;margin-bottom:.75rem">🎬 Your AI Video Ad:</div>
             <video src="/media/${fname}" controls style="width:100%;border-radius:10px;margin-bottom:.75rem;max-height:360px;background:#000"></video>
             <a href="/media/${fname}" download="${fname}" class="copy-btn" style="text-decoration:none;display:inline-block">⬇ Download Video Ad</a>`;
         } else if (result.startsWith('VOICEOVER_READY:')) {
@@ -436,7 +436,7 @@ function apiFetch(path, method = 'GET', body = null) {
             <audio src="/media/${fname}" controls style="width:100%;margin-bottom:.75rem"></audio>
             <a href="/media/${fname}" download="${fname}" class="copy-btn" style="text-decoration:none;display:inline-block">⬇ Download Audio</a>`;
         } else {
-          html += `<div style="font-weight:700;color:#00d4ff;font-size:.85rem;margin-bottom:.5rem">Your Deliverable:</div>
+          html += `<div style="font-weight:700;color:#00c4b4;font-size:.85rem;margin-bottom:.5rem">Your Deliverable:</div>
             <div class="modal-result-box">${esc(result)}</div>
             <button class="copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(result)}).then(()=>{this.textContent='✓ Copied!'})">📋 Copy to Clipboard</button>`;
         }
@@ -674,7 +674,7 @@ function apiFetch(path, method = 'GET', body = null) {
           alertsEl.innerHTML = '<div class="empty-state">No alerts yet — engines are spinning up.</div>';
         } else {
           alertsEl.innerHTML = alerts.slice(0, 20).map(a => {
-            const sev = { warning:'#f59e0b', success:'#22c55e', info:'#00d4ff' }[a.severity] || '#a855f7';
+            const sev = { warning:'#f59e0b', success:'#22c55e', info:'#00c4b4' }[a.severity] || '#00c4b4';
             const icon = { competitor:'🔎', opportunity:'💡', strategy:'🧠', content:'🏭' }[a.type] || '📣';
             const date = new Date(a.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
             return `<div class="alert-card ${a.is_read ? 'read' : 'unread'}" data-alert-id="${a.id}" style="border-left:3px solid ${sev}">
@@ -717,7 +717,7 @@ function apiFetch(path, method = 'GET', body = null) {
 
   function renderAutoCard(task) {
     const engineLabel = { strategy:'🧠 Strategy', content:'🏭 Content', competitor:'🔎 Competitor', opportunity:'💡 Opportunity' }[task.engine] || task.engine;
-    const statusColor = { pending_review:'#f59e0b', approved:'#22c55e', delivered:'#00d4ff', dismissed:'#6b7280' }[task.status] || '#a855f7';
+    const statusColor = { pending_review:'#f59e0b', approved:'#22c55e', delivered:'#00c4b4', dismissed:'#6b7280' }[task.status] || '#00c4b4';
     const statusText  = { pending_review:'⏳ Awaiting Approval', approved:'✅ Approved', delivered:'🚀 Delivered', dismissed:'❌ Dismissed' }[task.status] || task.status;
     const date = new Date(task.generated_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     const preview = task.content ? esc(task.content.slice(0, 400)) + (task.content.length > 400 ? '...' : '') : '<em>Generating...</em>';
@@ -795,7 +795,7 @@ function apiFetch(path, method = 'GET', body = null) {
   const MEDIA_FORMS = {
     image_ad: {
       label: '🖼️ AI Image Ad',
-      color: '#00d4ff',
+      color: '#00c4b4',
       fields: [
         { name:'title',        label:'Project Title',        type:'text',     placeholder:'e.g. Summer sale Facebook ad', required:true },
         { name:'platform',     label:'Ad Platform',          type:'select',   options:['Facebook/Instagram Feed','Instagram Story (9:16)','Google Display','LinkedIn','Twitter/X','All Platforms'] },
@@ -808,7 +808,7 @@ function apiFetch(path, method = 'GET', body = null) {
     },
     video_ad: {
       label: '🎬 AI Video Ad',
-      color: '#a855f7',
+      color: '#00c4b4',
       fields: [
         { name:'title',        label:'Project Title',         type:'text',     placeholder:'e.g. 8-second Instagram Reel ad', required:true },
         { name:'platform',     label:'Platform',              type:'select',   options:['Instagram Reels','TikTok','YouTube Pre-Roll','Facebook Video','LinkedIn Video'] },
@@ -871,7 +871,7 @@ function apiFetch(path, method = 'GET', body = null) {
     // Style submit button to match type color
     const btn = document.getElementById('submit-media-btn');
     if (btn) {
-      const colorMap = { image_ad:'linear-gradient(135deg,#00d4ff,#0ea5e9)', video_ad:'linear-gradient(135deg,#a855f7,#7c3aed)', voiceover:'linear-gradient(135deg,#22c55e,#16a34a)' };
+      const colorMap = { image_ad:'linear-gradient(135deg,#00c4b4,#008c80)', video_ad:'linear-gradient(135deg,#00c4b4,#005a52)', voiceover:'linear-gradient(135deg,#22c55e,#16a34a)' };
       btn.style.background = colorMap[type] || btn.style.background;
     }
   }
@@ -909,7 +909,7 @@ function apiFetch(path, method = 'GET', body = null) {
 
       // Show timing note
       const timingNote = { image_ad:'Image takes ~60 seconds', video_ad:'Video takes 2–4 minutes', voiceover:'Audio takes ~30 seconds' }[currentMediaType];
-      errEl.style.color = '#00d4ff';
+      errEl.style.color = '#00c4b4';
       errEl.textContent = timingNote + ' — check My Tasks for updates.';
 
       setTimeout(() => {
@@ -997,8 +997,8 @@ async function loadSystemHealth() {
     el.innerHTML = `
       <!-- KPI Row -->
       <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-        ${healthKpi('Platform Version', `v${data.platform_version}`, '#a855f7')}
-        ${healthKpi('Python', data.python_version, '#00d4ff')}
+        ${healthKpi('Platform Version', `v${data.platform_version}`, '#00c4b4')}
+        ${healthKpi('Python', data.python_version, '#00c4b4')}
         ${healthKpi('Memory (RSS)', `${data.memory_rss_mb} MB`, '#06b6d4')}
         ${healthKpi('DB Size', `${data.db_size_kb} KB`, '#22d3ee')}
         ${healthKpi('DB Clients', data.db_clients, '#4ade80')}
@@ -1009,7 +1009,7 @@ async function loadSystemHealth() {
 
       <!-- Dependencies -->
       <div style="padding:1.25rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px">
-        <h3 style="font-size:.9rem;font-weight:700;color:#00d4ff;margin:0 0 .75rem">&#128230; Critical Dependencies</h3>
+        <h3 style="font-size:.9rem;font-weight:700;color:#00c4b4;margin:0 0 .75rem">&#128230; Critical Dependencies</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.5rem">
           ${Object.entries(data.dependencies || {}).map(([pkg, ver]) => `
             <div style="display:flex;justify-content:space-between;padding:.4rem .75rem;background:rgba(255,255,255,.03);border-radius:6px;font-size:.82rem">
@@ -1021,12 +1021,12 @@ async function loadSystemHealth() {
 
       <!-- AI Models -->
       <div style="padding:1.25rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px">
-        <h3 style="font-size:.9rem;font-weight:700;color:#a855f7;margin:0 0 .75rem">&#129504; Registered AI Models</h3>
+        <h3 style="font-size:.9rem;font-weight:700;color:#00c4b4;margin:0 0 .75rem">&#129504; Registered AI Models</h3>
         <div style="display:flex;flex-direction:column;gap:.4rem">
           ${Object.entries(data.ai_models || {}).map(([role, model]) => `
             <div style="display:flex;justify-content:space-between;padding:.4rem .75rem;background:rgba(255,255,255,.03);border-radius:6px;font-size:.82rem">
               <span style="color:rgba(200,220,240,.65);text-transform:uppercase;letter-spacing:.04em">${role.replace(/_/g,' ')}</span>
-              <span style="color:#00d4ff;font-weight:600">${model}</span>
+              <span style="color:#00c4b4;font-weight:600">${model}</span>
             </div>`).join('')}
         </div>
       </div>
@@ -1080,8 +1080,8 @@ async function loadUpdateLog() {
     const vb = document.getElementById('version-badges');
     if (vb) {
       vb.innerHTML = `
-        ${vBadge('Version', `v${vd.version}`, '#a855f7')}
-        ${vBadge('Codename', vd.codename, '#00d4ff')}
+        ${vBadge('Version', `v${vd.version}`, '#00c4b4')}
+        ${vBadge('Codename', vd.codename, '#00c4b4')}
         ${vBadge('Build Date', vd.build_date, '#06b6d4')}
         ${vBadge('Domain', vd.domain, '#4ade80')}
       `;
@@ -1091,11 +1091,11 @@ async function loadUpdateLog() {
     const cl = document.getElementById('changelog-list');
     if (cl && vd.changelog) {
       cl.innerHTML = vd.changelog.map((entry, i) => `
-        <div style="padding:1rem 1.25rem;background:rgba(255,255,255,.03);border:1px solid ${i===0?'rgba(168,85,247,.3)':'rgba(255,255,255,.07)'};border-radius:10px">
+        <div style="padding:1rem 1.25rem;background:rgba(255,255,255,.03);border:1px solid ${i===0?'rgba(0,196,180,.3)':'rgba(255,255,255,.07)'};border-radius:10px">
           <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
-            <span style="font-size:.85rem;font-weight:800;color:${i===0?'#a855f7':'#00d4ff'}">v${entry.version}</span>
+            <span style="font-size:.85rem;font-weight:800;color:${i===0?'#00c4b4':'#00c4b4'}">v${entry.version}</span>
             <span style="font-size:.75rem;color:rgba(200,220,240,.4)">${entry.date}</span>
-            ${i===0?'<span style="font-size:.7rem;background:rgba(168,85,247,.2);color:#a855f7;padding:1px 8px;border-radius:9999px;font-weight:700">CURRENT</span>':''}
+            ${i===0?'<span style="font-size:.7rem;background:rgba(0,196,180,.2);color:#00c4b4;padding:1px 8px;border-radius:9999px;font-weight:700">CURRENT</span>':''}
           </div>
           <ul style="margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:.25rem">
             ${entry.changes.map(c=>`<li style="font-size:.82rem;color:rgba(200,220,240,.7)">${c}</li>`).join('')}
@@ -1116,7 +1116,7 @@ async function loadUpdateLog() {
       ll.innerHTML = '<p style="color:rgba(200,220,240,.4);font-size:.82rem">No log entries yet.</p>';
       return;
     }
-    const typeColors = { boot: '#4ade80', maintenance: '#00d4ff', error: '#f87171', info: '#a855f7' };
+    const typeColors = { boot: '#4ade80', maintenance: '#00c4b4', error: '#f87171', info: '#00c4b4' };
     ll.innerHTML = data.log.map(entry => {
       const c = typeColors[entry.event_type] || '#94a3b8';
       return `
@@ -1159,15 +1159,15 @@ async function loadSmtpStatus() {
         </div>
         <p style="color:rgba(200,220,240,.65);font-size:.83rem;margin:0 0 .75rem">
           ${configured
-            ? `Sending to <strong style="color:#fff">${d.notify_to}</strong> via <strong style="color:#00d4ff">${d.smtp_user}</strong>`
+            ? `Sending to <strong style="color:#fff">${d.notify_to}</strong> via <strong style="color:#00c4b4">${d.smtp_user}</strong>`
             : 'Set up Gmail SMTP to get instant alerts every time a lead submits the contact form, Maya captures a lead, or a client signs up.'}
         </p>
         ${!configured ? `
         <div style="background:rgba(0,0,0,.25);border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:rgba(200,220,240,.7);line-height:1.8">
           <strong style="color:#fbbf24">3-step setup:</strong><br>
-          1. Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#00d4ff">myaccount.google.com/apppasswords</a> → create App Password for "Mail"<br>
+          1. Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#00c4b4">myaccount.google.com/apppasswords</a> → create App Password for "Mail"<br>
           2. Set environment variables on your server:<br>
-          <code style="color:#a855f7;background:rgba(168,85,247,.1);padding:2px 6px;border-radius:4px;display:block;margin:.4rem 0">SMTP_USER=you@gmail.com<br>SMTP_PASS=xxxx-xxxx-xxxx-xxxx</code>
+          <code style="color:#00c4b4;background:rgba(0,196,180,.1);padding:2px 6px;border-radius:4px;display:block;margin:.4rem 0">SMTP_USER=you@gmail.com<br>SMTP_PASS=xxxx-xxxx-xxxx-xxxx</code>
           3. Restart the server — you'll get instant email alerts for every lead
         </div>` : ''}
         <span id="smtp-test-result" style="font-size:.8rem;color:#4ade80;margin-top:.5rem;display:block"></span>
@@ -1211,14 +1211,14 @@ function loadChannelHub() {
     { name: 'Discord', icon: '⬡', color: '#5865F2', desc: 'Community building, server marketing', stat: 'Members', val: '—', status: 'Connect' },
     { name: 'Podcast', icon: '🎙', color: '#8B5CF6', desc: 'Audio ads, sponsor spots, host reads', stat: 'Episodes', val: '—', status: 'Connect' },
     { name: 'Google Ads', icon: 'G', color: '#4285F4', desc: 'Search, Display, Shopping campaigns', stat: 'Campaigns', val: '—', status: 'Connect' },
-    { name: 'Email', icon: '✉', color: '#00D4FF', desc: 'Newsletters, drip campaigns, sequences', stat: 'Subscribers', val: '—', status: 'Active' },
+    { name: 'Email', icon: '✉', color: '#00c4b4', desc: 'Newsletters, drip campaigns, sequences', stat: 'Subscribers', val: '—', status: 'Active' },
     { name: 'SMS/Text', icon: '💬', color: '#22D3EE', desc: 'Text marketing, promotions, alerts', stat: 'Contacts', val: '—', status: 'Connect' },
   ];
 
   el.innerHTML = `
-    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+    <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
       <p style="margin:0;color:rgba(200,220,240,.8);font-size:.9rem">
-        🚀 <strong style="color:#00d4ff">2EasyMarketing's Channel Hub</strong> is the only agency portal managing 14+ platforms in one place. 
+        🚀 <strong style="color:#00c4b4">2EasyMarketing's Channel Hub</strong> is the only agency portal managing 14+ platforms in one place. 
         Competitors manage 3–4 at most. Connect your channels to unlock AI scheduling, cross-platform analytics, and one-click content distribution.
       </p>
     </div>
@@ -1232,13 +1232,13 @@ function loadChannelHub() {
             <div style="color:rgba(180,200,220,.5);font-size:.75rem;margin-top:2px">${c.desc}</div>
           </div>
           <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${c.status==='Active'?'rgba(34,197,94,.15)':'rgba(0,212,255,.1)'};color:${c.status==='Active'?'#4ade80':'#00d4ff'};border:1px solid ${c.status==='Active'?'rgba(34,197,94,.25)':'rgba(0,212,255,.2)'}">${c.status}</div>
+            <div style="font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${c.status==='Active'?'rgba(34,197,94,.15)':'rgba(0,196,180,.1)'};color:${c.status==='Active'?'#4ade80':'#00c4b4'};border:1px solid ${c.status==='Active'?'rgba(34,197,94,.25)':'rgba(0,196,180,.2)'}">${c.status}</div>
           </div>
         </div>
       `).join('')}
     </div>
-    <div style="margin-top:2rem;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:1.25rem">
-      <h3 style="margin:0 0 .75rem;color:#a855f7;font-size:.95rem">🤖 What Maya Does With These Channels</h3>
+    <div style="margin-top:2rem;background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.25rem">
+      <h3 style="margin:0 0 .75rem;color:#00c4b4;font-size:.95rem">🤖 What Maya Does With These Channels</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem">
         ${[
           ['Auto-Schedule Posts','Publishes content at peak engagement times across all channels'],
@@ -1286,20 +1286,20 @@ function loadContentCalendar() {
     const isToday = d === today.getDate();
     const posts = scheduledPosts.filter(p => p.day === d);
     calCells += `
-      <div style="background:${isToday?'rgba(0,212,255,.1)':'rgba(255,255,255,.03)'};border:1px solid ${isToday?'rgba(0,212,255,.3)':'rgba(255,255,255,.06)'};border-radius:8px;padding:.5rem;min-height:70px">
-        <div style="font-size:.75rem;font-weight:${isToday?'800':'500'};color:${isToday?'#00d4ff':'rgba(200,220,240,.6)'};margin-bottom:4px">${d}</div>
+      <div style="background:${isToday?'rgba(0,196,180,.1)':'rgba(255,255,255,.03)'};border:1px solid ${isToday?'rgba(0,196,180,.3)':'rgba(255,255,255,.06)'};border-radius:8px;padding:.5rem;min-height:70px">
+        <div style="font-size:.75rem;font-weight:${isToday?'800':'500'};color:${isToday?'#00c4b4':'rgba(200,220,240,.6)'};margin-bottom:4px">${d}</div>
         ${posts.map(p => `<div style="background:${p.color}22;border-left:2px solid ${p.color};border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:.65rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.platform} · ${p.type}</div>`).join('')}
       </div>`;
   }
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-      <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:1.8rem;font-weight:800;color:#00d4ff">${scheduledPosts.length}</div>
+      <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#00c4b4">${scheduledPosts.length}</div>
         <div style="color:rgba(180,200,220,.6);font-size:.8rem">Posts Scheduled This Month</div>
       </div>
-      <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:1.8rem;font-weight:800;color:#a855f7">6</div>
+      <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.2);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#00c4b4">6</div>
         <div style="color:rgba(180,200,220,.6);font-size:.8rem">Platforms Active</div>
       </div>
     </div>
@@ -1319,8 +1319,8 @@ function loadContentCalendar() {
           <div style="color:rgba(180,200,220,.5);font-size:.75rem">Day ${p.day} at ${p.time}</div>
         </div>
       `).join('')}
-      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,212,255,.06);border-radius:8px;text-align:center">
-        <span style="color:#00d4ff;font-size:.82rem;font-weight:600">🤖 Maya auto-schedules posts at peak engagement times for each platform</span>
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,196,180,.06);border-radius:8px;text-align:center">
+        <span style="color:#00c4b4;font-size:.82rem;font-weight:600">🤖 Maya auto-schedules posts at peak engagement times for each platform</span>
       </div>
     </div>
   `;
@@ -1332,9 +1332,9 @@ function loadCompetitorSpy() {
   if (!el) return;
 
   el.innerHTML = `
-    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+    <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
       <p style="margin:0;color:rgba(200,220,240,.8);font-size:.9rem">
-        🕵️ <strong style="color:#00d4ff">Competitor Spy</strong> — Add your competitors and Maya will monitor their pricing, content strategy, ad spend, and reviews in real-time. 
+        🕵️ <strong style="color:#00c4b4">Competitor Spy</strong> — Add your competitors and Maya will monitor their pricing, content strategy, ad spend, and reviews in real-time. 
         You'll always know what they're doing before your clients do.
       </p>
     </div>
@@ -1362,11 +1362,11 @@ function loadCompetitorSpy() {
       <div style="display:flex;gap:.75rem;flex-wrap:wrap">
         <input id="comp-name" placeholder="Company name" style="flex:1;min-width:160px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.85rem;outline:none">
         <input id="comp-url" placeholder="Website URL" style="flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.6rem .9rem;color:#fff;font-size:.85rem;outline:none">
-        <button onclick="addCompetitor()" style="background:linear-gradient(135deg,#00d4ff,#a855f7);border:none;color:#fff;padding:.6rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem;white-space:nowrap">+ Track</button>
+        <button onclick="addCompetitor()" style="background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#fff;padding:.6rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem;white-space:nowrap">+ Track</button>
       </div>
     </div>
-    <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:1rem;text-align:center">
-      <div style="color:#a855f7;font-size:.85rem;font-weight:600">🤖 Maya runs competitor checks every 24 hours and alerts you to pricing changes, new services, and viral content</div>
+    <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.2);border-radius:12px;padding:1rem;text-align:center">
+      <div style="color:#00c4b4;font-size:.85rem;font-weight:600">🤖 Maya runs competitor checks every 24 hours and alerts you to pricing changes, new services, and viral content</div>
     </div>
   `;
 }
@@ -1386,8 +1386,8 @@ function loadRevenueDashboard() {
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem">
       ${[
-        { label:'MRR', val:'$0', sub:'Monthly Recurring Revenue', color:'#00d4ff' },
-        { label:'Leads This Month', val:'0', sub:'From all channels combined', color:'#a855f7' },
+        { label:'MRR', val:'$0', sub:'Monthly Recurring Revenue', color:'#00c4b4' },
+        { label:'Leads This Month', val:'0', sub:'From all channels combined', color:'#00c4b4' },
         { label:'Avg Client Value', val:'$0', sub:'Revenue per active client', color:'#4ade80' },
         { label:'Pipeline Value', val:'$0', sub:'Prospects × avg deal size', color:'#fbbf24' },
       ].map(k => `
@@ -1410,12 +1410,12 @@ function loadRevenueDashboard() {
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.75rem">
           <div style="width:130px;color:rgba(200,220,240,.7);font-size:.8rem;flex-shrink:0">${r.ch}</div>
           <div style="flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:8px;overflow:hidden">
-            <div style="height:100%;width:${r.bar}%;background:linear-gradient(90deg,#00d4ff,#a855f7);border-radius:4px"></div>
+            <div style="height:100%;width:${r.bar}%;background:linear-gradient(90deg,#00c4b4,#008c80);border-radius:4px"></div>
           </div>
           <div style="width:50px;text-align:right;color:#4ade80;font-size:.8rem;font-weight:700">${r.revenue}</div>
         </div>
       `).join('')}
-      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,212,255,.06);border-radius:8px;text-align:center;color:rgba(180,200,220,.6);font-size:.8rem">
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,196,180,.06);border-radius:8px;text-align:center;color:rgba(180,200,220,.6);font-size:.8rem">
         Revenue tracking activates once you connect your channels and add clients. Maya fills this automatically.
       </div>
     </div>
@@ -1424,7 +1424,7 @@ function loadRevenueDashboard() {
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;text-align:center">
         <div><div style="font-size:1.2rem;font-weight:800;color:#4ade80">$497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Starter/mo</div></div>
         <div><div style="font-size:1.2rem;font-weight:800;color:#fbbf24">$1,497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Growth/mo</div></div>
-        <div><div style="font-size:1.2rem;font-weight:800;color:#a855f7">$3,497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Agency/mo</div></div>
+        <div><div style="font-size:1.2rem;font-weight:800;color:#00c4b4">$3,497</div><div style="color:rgba(180,200,220,.5);font-size:.72rem">Agency/mo</div></div>
       </div>
     </div>
   `;
@@ -1436,16 +1436,16 @@ function loadClientReports() {
   if (!el) return;
 
   el.innerHTML = `
-    <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+    <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
       <p style="margin:0;color:rgba(200,220,240,.8);font-size:.9rem">
-        📊 <strong style="color:#00d4ff">One-click client reports</strong> — Generate beautiful, branded PDF reports showing your clients exactly what you've done for them. 
+        📊 <strong style="color:#00c4b4">One-click client reports</strong> — Generate beautiful, branded PDF reports showing your clients exactly what you've done for them. 
         No other local agency does this automatically.
       </p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem">
       ${[
-        { name:'Monthly Performance Report', desc:'Full breakdown of all campaigns, leads, and ROI for the month', icon:'📊', color:'#00d4ff' },
-        { name:'Social Media Report', desc:'Engagement, reach, follower growth across all platforms', icon:'📱', color:'#a855f7' },
+        { name:'Monthly Performance Report', desc:'Full breakdown of all campaigns, leads, and ROI for the month', icon:'📊', color:'#00c4b4' },
+        { name:'Social Media Report', desc:'Engagement, reach, follower growth across all platforms', icon:'📱', color:'#00c4b4' },
         { name:'Competitor Analysis Report', desc:'What competitors are doing vs. what you\'re doing better', icon:'🕵️', color:'#f59e0b' },
         { name:'AI Activity Report', desc:'Everything Maya did autonomously this month on your behalf', icon:'🤖', color:'#4ade80' },
         { name:'ROI Summary', desc:'Every dollar spent vs. every dollar earned — clear and simple', icon:'💰', color:'#fbbf24' },
@@ -1669,7 +1669,7 @@ window.quickUnblock = async function(ip) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const COUNCIL_MODELS = {
-  claude:  { name: 'Claude Sonnet', role: 'Creative Strategist', emoji: '🟣', color: '#a855f7' },
+  claude:  { name: 'Claude Sonnet', role: 'Creative Strategist', emoji: '🟣', color: '#00c4b4' },
   gpt4o:   { name: 'GPT-4o',        role: 'Data Analyst',        emoji: '🟢', color: '#22c55e' },
   gemini:  { name: 'Gemini Pro',    role: 'Growth Hacker',       emoji: '🔵', color: '#3b82f6' },
 };
@@ -1693,7 +1693,7 @@ function renderCouncilRoster() {
   // Fix color bug with proper approach
   el.querySelectorAll('[style]').forEach((node, i) => {
     const colors = ['168,85,247', '34,197,94', '59,130,246'];
-    const borders = ['#a855f744', '#22c55e44', '#3b82f644'];
+    const borders = ['#00c4b444', '#22c55e44', '#3b82f644'];
     node.style.background = `rgba(${colors[i]}, 0.08)`;
     node.style.border = `1px solid ${borders[i]}`;
   });
@@ -1706,13 +1706,13 @@ window.switchCouncilTab = function(tab) {
     if (panel) panel.style.display = t === tab ? '' : 'none';
     if (btn) {
       if (t === tab) {
-        btn.style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
+        btn.style.background = 'linear-gradient(135deg,#00c4b4,#005a52)';
         btn.style.color = '#fff';
         btn.style.border = 'none';
       } else {
-        btn.style.background = 'rgba(0,212,255,.1)';
-        btn.style.color = '#00d4ff';
-        btn.style.border = '1px solid rgba(0,212,255,.2)';
+        btn.style.background = 'rgba(0,196,180,.1)';
+        btn.style.color = '#00c4b4';
+        btn.style.border = '1px solid rgba(0,196,180,.2)';
       }
     }
   });
@@ -1794,22 +1794,22 @@ function renderCouncilResult(data, container, quick = false) {
 
   const keyActions = (verdict.key_actions || []).map(a =>
     `<div style="display:flex;gap:.75rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
-      <span style="color:#a855f7;font-weight:700;margin-top:.1rem">&#9656;</span>
+      <span style="color:#00c4b4;font-weight:700;margin-top:.1rem">&#9656;</span>
       <span style="color:#e2e8f0;font-size:.9rem">${escHtml(a)}</span>
     </div>`
   ).join('');
 
   container.innerHTML = `
     <!-- MAYA VERDICT -->
-    <div class="card" style="margin-bottom:1.5rem;border-color:rgba(168,85,247,.4)">
+    <div class="card" style="margin-bottom:1.5rem;border-color:rgba(0,196,180,.4)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-        <div class="card-title" style="color:#a855f7">&#9878; Council Verdict — Maya's Synthesis</div>
-        ${verdict.confidence ? `<div style="background:rgba(168,85,247,.2);color:#a855f7;border-radius:99px;padding:.3rem .8rem;font-size:.85rem;font-weight:700">Confidence: ${verdict.confidence}%</div>` : ''}
+        <div class="card-title" style="color:#00c4b4">&#9878; Council Verdict — Maya's Synthesis</div>
+        ${verdict.confidence ? `<div style="background:rgba(0,196,180,.2);color:#00c4b4;border-radius:99px;padding:.3rem .8rem;font-size:.85rem;font-weight:700">Confidence: ${verdict.confidence}%</div>` : ''}
       </div>
       <div style="font-size:.95rem;color:#e2e8f0;line-height:1.7;margin-bottom:1.25rem;white-space:pre-wrap">${escHtml(verdict.verdict || 'No verdict generated.')}</div>
       ${verdict.winning_insight ? `
-        <div style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);border-radius:10px;padding:1rem;margin-bottom:1rem">
-          <div style="font-size:.75rem;color:#00d4ff;font-weight:700;margin-bottom:.4rem">&#9889; WINNING INSIGHT</div>
+        <div style="background:rgba(0,196,180,.08);border:1px solid rgba(0,196,180,.25);border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <div style="font-size:.75rem;color:#00c4b4;font-weight:700;margin-bottom:.4rem">&#9889; WINNING INSIGHT</div>
           <div style="color:#e2e8f0;font-size:.9rem">${escHtml(verdict.winning_insight)}</div>
         </div>
       ` : ''}
@@ -1857,8 +1857,8 @@ async function loadCouncilHistory() {
             <div>
               <div style="font-weight:700;color:#e2e8f0;margin-bottom:.3rem">${escHtml(s.brief.substring(0,80))}${s.brief.length>80?'...':''}</div>
               <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                <span style="background:rgba(168,85,247,.2);color:#a855f7;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${s.task_type}</span>
-                <span style="background:rgba(0,212,255,.1);color:#00d4ff;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${s.mode}</span>
+                <span style="background:rgba(0,196,180,.2);color:#00c4b4;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${s.task_type}</span>
+                <span style="background:rgba(0,196,180,.1);color:#00c4b4;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${s.mode}</span>
                 ${v.confidence ? `<span style="background:rgba(34,197,94,.1);color:#22c55e;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${v.confidence}% confidence</span>` : ''}
               </div>
             </div>
