@@ -1,5 +1,5 @@
 /**
- * 2EasyMedia — Premium Effects Engine
+ * 2EasyMarketing — Premium Effects Engine
  * Particle canvas, cursor glow, typewriter, scroll reveal, counters, parallax
  */
 

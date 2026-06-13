@@ -1,5 +1,5 @@
 /* ============================================
-   2EASYMEDIA — Maya AI Chat Widget
+   2EASYMARKETING — Maya AI Chat Widget
    Floating chat assistant powered by Claude
    ============================================ */
 
@@ -8,7 +8,7 @@
 
   // ---- CONFIG ----
   const API_URL = '__PORT_8000__/api/chat';
-  const WELCOME = "Hey! 👋 I'm **Maya**, 2EasyMedia's AI assistant. I have live competitor pricing data loaded — so if you're shopping around, I can show you exactly why we're the best deal in the market. What can I help you with?";
+  const WELCOME = "Hey! 👋 I'm **Maya**, 2EasyMarketing's AI assistant. I have live competitor pricing data loaded — so if you're shopping around, I can show you exactly why we're the best deal in the market. What can I help you with?";
   const SUGGESTED = [
     "How do you compare to other agencies?",
     "What's your pricing?",
@@ -336,7 +336,7 @@
   // ---- LAUNCHER BUTTON ----
   const launcher = document.createElement('button');
   launcher.id = 'em-launcher';
-  launcher.setAttribute('aria-label', 'Chat with Maya, 2EasyMedia AI assistant');
+  launcher.setAttribute('aria-label', 'Chat with Maya, 2EasyMarketing AI assistant');
   launcher.innerHTML = `
     <svg class="chat-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -360,7 +360,7 @@
         <div id="em-header-name">Maya — AI Assistant</div>
         <div id="em-header-status">
           <span class="em-status-dot"></span>
-          Online now · 2EasyMedia
+          Online now · 2EasyMarketing
         </div>
       </div>
       <button id="em-close-btn" aria-label="Close chat">
@@ -554,7 +554,7 @@
 
     } catch (err) {
       showTyping(false);
-      const errorMsg = "I'm having trouble connecting right now. Reach us directly at **dev@2easymedia.net** or try again!";
+      const errorMsg = "I'm having trouble connecting right now. Reach us directly at **dev@2easymarketing.net** or try again!";
       messages.push({ role: 'assistant', content: errorMsg });
       addMessage('assistant', errorMsg);
     }

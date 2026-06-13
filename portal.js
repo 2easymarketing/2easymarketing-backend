@@ -1,5 +1,5 @@
 /**
- * 2EasyMedia — Client Portal (embedded overlay version)
+ * 2EasyMarketing — Client Portal (embedded overlay version)
  */
 (function () {
   'use strict';

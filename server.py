@@ -1,5 +1,5 @@
 """
-2EasyMedia — Full AI Task Management Backend
+2EasyMarketing — Full AI Task Management Backend
 Maya chat + Client Portal + AI Task Engine + Owner Dashboard API
 """
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -36,11 +36,11 @@ security = HTTPBearer(auto_error=False)
 
 # ─── OWNER CREDENTIALS ──────────────────────────────────────────────────────
 OWNER_EMAIL    = "dev@2easymarketing.net"
-OWNER_PASSWORD = "2easymedia2026!"   # hashed on first use
+OWNER_PASSWORD = "2easymarketing2026!"   # hashed on first use
 OWNER_SECRET   = "2em-owner-secret-key-2026"
 
 # ─── DATABASE SETUP ─────────────────────────────────────────────────────────
-DB_PATH = "/home/user/workspace/devmarketing/2easymedia.db"
+DB_PATH = "/home/user/workspace/devmarketing/2easymarketing.db"
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -390,7 +390,7 @@ async def generate_ai_task(task_type: str, brief_data: dict) -> str:
     except KeyError:
         prompt = f"Complete this {task_type} marketing task:\n\n{json.dumps(brief_data, indent=2)}"
 
-    system = """You are 2EasyMedia's AI task fulfillment engine — an expert digital marketer.
+    system = """You are 2EasyMarketing's AI task fulfillment engine — an expert digital marketer.
 Produce complete, professional, ready-to-use marketing deliverables.
 Be specific, creative, and results-oriented. Format output cleanly with clear sections.
 Never add disclaimers or say "as an AI" — just deliver the work."""
@@ -404,16 +404,16 @@ Never add disclaimers or say "as an AI" — just deliver the work."""
     return response.content[0].text
 
 # ─── MAYA SYSTEM PROMPT ──────────────────────────────────────────────────────
-SYSTEM_PROMPT_BASE = """You are Maya, the AI assistant for 2EasyMedia — a digital marketing agency in Pawtucket, Rhode Island. Website: 2easymarketing.net.
+SYSTEM_PROMPT_BASE = """You are Maya, the AI assistant for 2EasyMarketing — a digital marketing agency in Pawtucket, Rhode Island. Website: 2easymarketing.net.
 
 YOUR ROLE:
-- Answer questions about digital marketing and 2EasyMedia's services
+- Answer questions about digital marketing and 2EasyMarketing's services
 - Use live competitor data to show our value
 - Help prospects understand our pricing (always better than market)
 - When someone wants to START work, tell them to SIGN UP for a client account at 2easymarketing.net — they get access to the Client Portal where they can submit tasks and our AI handles them instantly
 - Collect leads: name, email, business, service interest
 
-2EASYMEDIA PRICING:
+2EASYMARKETING PRICING:
 - Starter ($497/mo): SEO audit, 8 social posts, analytics, Google Business Profile, 2 email campaigns. NO setup fee.
 - Growth ($1,497/mo): Full SEO, 20 social posts, Google+Meta Ads ($5K), 4 blogs, weekly reporting, email automation, monthly strategy call.
 - Agency ($3,497/mo): Everything + dedicated AM, unlimited ads, 8 blogs + 4 videos, landing pages, CRM, weekly calls.
@@ -430,9 +430,9 @@ When clients sign up, they get access to an AI-powered Client Portal where they 
 - No waiting days for an agency to respond — AI fulfillment starts in seconds
 
 AI MEDIA FACTORY (MASSIVE DIFFERENTIATOR):
-2EasyMedia is one of the ONLY agencies offering AI-generated video ads at this price point.
+2EasyMarketing is one of the ONLY agencies offering AI-generated video ads at this price point.
 Traditional video ad production: $5,000–$50,000 + 2-3 week turnaround.
-2EasyMedia AI video ads: included in Growth & Agency plans, or $200 add-on for Starter.
+2EasyMarketing AI video ads: included in Growth & Agency plans, or $200 add-on for Starter.
 AI image ads achieve 12% higher CTR than human-made ads (2026 benchmark data).
 AI video ads convert 27% higher than static image campaigns.
 We generate 5–10x more ad variations per campaign than any traditional agency.
@@ -516,7 +516,7 @@ async def login(request: Request):
             else:
                 cur = conn.execute(
                     "INSERT INTO clients (name, email, password, business, plan) VALUES (?,?,?,?,?)",
-                    ("Dev (Owner)", OWNER_EMAIL, hash_password(OWNER_PASSWORD), "2EasyMedia", "agency")
+                    ("Dev (Owner)", OWNER_EMAIL, hash_password(OWNER_PASSWORD), "2EasyMarketing", "agency")
                 )
                 conn.commit()
                 owner_id = cur.lastrowid
@@ -817,7 +817,7 @@ async def chat(request: Request):
         body = await request.json()
         messages = body.get("messages", [])
         if not messages:
-            return JSONResponse({"reply": "Hey! 👋 I'm Maya, 2EasyMedia's AI assistant. Ask me anything about digital marketing — or ask about our Client Portal where AI handles your tasks instantly!"})
+            return JSONResponse({"reply": "Hey! 👋 I'm Maya, 2EasyMarketing's AI assistant. Ask me anything about digital marketing — or ask about our Client Portal where AI handles your tasks instantly!"})
         cleaned = [
             {"role": m["role"], "content": str(m["content"])[:2000]}
             for m in messages
@@ -905,7 +905,7 @@ async def run_weekly_strategy():
 
     for c in clients_list:
         try:
-            prompt = f"""You are Maya, 2EasyMedia's AI strategy director.
+            prompt = f"""You are Maya, 2EasyMarketing's AI strategy director.
 
 Generate a complete WEEKLY MARKETING STRATEGY REPORT for this client:
 
@@ -933,7 +933,7 @@ Format cleanly with headers. No fluff — only actionable intelligence."""
             resp = await client.messages.create(
                 model="claude-haiku-4-5-20251014",
                 max_tokens=2000,
-                system="You are 2EasyMedia's autonomous AI strategist. Produce razor-sharp, specific, actionable marketing strategies. Never be generic.",
+                system="You are 2EasyMarketing's autonomous AI strategist. Produce razor-sharp, specific, actionable marketing strategies. Never be generic.",
                 messages=[{"role": "user", "content": prompt}],
             )
             content = resp.content[0].text
@@ -964,7 +964,7 @@ async def run_content_factory():
             blog_count  = 0  if plan == "starter" else (4  if plan == "growth" else 8)
             email_count = 2  if plan == "starter" else (4  if plan == "growth" else 8)
 
-            prompt = f"""You are 2EasyMedia's content factory AI.
+            prompt = f"""You are 2EasyMarketing's content factory AI.
 
 Generate a WEEKLY CONTENT BATCH for:
 Business: {c['business'] or 'a local business'}
@@ -988,7 +988,7 @@ Tailor everything to their specific business type. Make it ready to publish imme
             resp = await client.messages.create(
                 model="claude-haiku-4-5-20251014",
                 max_tokens=3000,
-                system="You are 2EasyMedia's content engine. Produce complete, publish-ready content batches. Be creative, specific, brand-aware.",
+                system="You are 2EasyMarketing's content engine. Produce complete, publish-ready content batches. Be creative, specific, brand-aware.",
                 messages=[{"role": "user", "content": prompt}],
             )
             content = resp.content[0].text
@@ -1075,7 +1075,7 @@ async def run_competitor_monitor():
     if last and last["hash"] == fresh_hash:
         print("  ✔️  Competitor data unchanged.")
         save_alert("competitor", "Competitor Check Complete — No Changes",
-                   "Market pricing is stable. 2EasyMedia's rates remain competitive.", severity="info")
+                   "Market pricing is stable. 2EasyMarketing's rates remain competitive.", severity="info")
         return
 
     old_data = last["data"] if last else "(no previous data)"
@@ -1083,7 +1083,7 @@ async def run_competitor_monitor():
         analysis_resp = await client.messages.create(
             model="claude-haiku-4-5-20251014",
             max_tokens=800,
-            system="You are 2EasyMedia's competitive intelligence analyst. Be direct, specific, and strategic.",
+            system="You are 2EasyMarketing's competitive intelligence analyst. Be direct, specific, and strategic.",
             messages=[{"role": "user", "content": f"""Analyze these two competitor snapshots and identify what changed:
 
 PREVIOUS:
@@ -1095,7 +1095,7 @@ CURRENT:
 Report:
 1. KEY CHANGES DETECTED (price shifts, new players, new offers)
 2. THREAT LEVEL (Low / Medium / High)
-3. RECOMMENDED ACTION for 2EasyMedia
+3. RECOMMENDED ACTION for 2EasyMarketing
 4. PRICING POSITION (are we still the best value?)
 
 Be concise and actionable."""}]
@@ -1151,8 +1151,8 @@ async def run_opportunity_spotter():
         opp_resp = await client.messages.create(
             model="claude-haiku-4-5-20251014",
             max_tokens=1200,
-            system="You are 2EasyMedia's opportunity detection AI. Spot marketing goldmines for small businesses.",
-            messages=[{"role": "user", "content": f"""Based on this market intelligence, identify the TOP 5 MARKETING OPPORTUNITIES right now for 2EasyMedia clients (small businesses in Rhode Island and beyond):
+            system="You are 2EasyMarketing's opportunity detection AI. Spot marketing goldmines for small businesses.",
+            messages=[{"role": "user", "content": f"""Based on this market intelligence, identify the TOP 5 MARKETING OPPORTUNITIES right now for 2EasyMarketing clients (small businesses in Rhode Island and beyond):
 
 INTELLIGENCE:
 {combined[:1500]}
@@ -1544,7 +1544,7 @@ async def generate_video_ad(task_id: int, brief: dict):
 async def generate_voiceover(task_id: int, brief: dict):
     """Generate AI voiceover using asi-text-to-speech CLI."""
     try:
-        script   = brief.get("script", brief.get("brief", "Welcome to 2EasyMedia."))
+        script   = brief.get("script", brief.get("brief", "Welcome to 2EasyMarketing."))
         voice    = brief.get("voice", "charon")
         fname    = f"vo_{task_id}_{uuid.uuid4().hex[:8]}.txt"
         txt_path = f"{MEDIA_DIR}/{fname}"
@@ -1759,7 +1759,7 @@ CHANGELOG = [
         "version": "2.0.0",
         "date": "2026-06-09",
         "changes": [
-            "Platform rebrand: DevMarketing → 2EasyMedia",
+            "Platform rebrand: DevMarketing → 2EasyMarketing",
             "Domain: 2easymarketing.net, 2E SVG logo",
             "Initial pricing tiers: Starter $497, Growth $1497, Agency $3497",
         ]
@@ -2077,7 +2077,7 @@ async def _init_maintenance_tables():
                 "dependencies": check_dependencies(),
             }
         })
-        print(f"🚀 [2EasyMedia] Platform v{PLATFORM_VERSION} '{PLATFORM_CODENAME}' — Boot logged")
+        print(f"🚀 [2EasyMarketing] Platform v{PLATFORM_VERSION} '{PLATFORM_CODENAME}' — Boot logged")
     except Exception as e:
         print(f"⚠️  [Maintenance] Init tables error: {e}")
 
@@ -2112,7 +2112,7 @@ async def platform_version():
         "version": PLATFORM_VERSION,
         "codename": PLATFORM_CODENAME,
         "build_date": PLATFORM_BUILD_DATE,
-        "brand": "2EasyMedia",
+        "brand": "2EasyMarketing",
         "domain": "2easymarketing.net",
         "changelog": CHANGELOG,
     }
@@ -2144,7 +2144,7 @@ async def health():
         "version": PLATFORM_VERSION,
         "codename": PLATFORM_CODENAME,
         "agent": "Maya + Task Engine + Autonomous + Maintenance",
-        "brand": "2EasyMedia",
+        "brand": "2EasyMarketing",
         "domain": "2easymarketing.net",
         "clients": clients,
         "tasks": tasks,
@@ -2192,7 +2192,7 @@ def _send_email_sync(subject: str, html_body: str, text_body: str = ""):
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"]    = f"2EasyMedia Leads <{SMTP_USER}>"
+        msg["From"]    = f"2EasyMarketing Leads <{SMTP_USER}>"
         msg["To"]      = NOTIFY_TO
         msg["Reply-To"] = SMTP_USER
 
@@ -2238,7 +2238,7 @@ def _lead_email_html(lead_type: str, fields: dict) -> str:
       <div style="display:flex;align-items:center;gap:12px">
         <span style="font-size:28px;font-weight:900;color:#00d4ff;letter-spacing:-1px">2E</span>
         <div>
-          <div style="color:#fff;font-size:16px;font-weight:700">2EasyMedia</div>
+          <div style="color:#fff;font-size:16px;font-weight:700">2EasyMarketing</div>
           <div style="color:#94a3b8;font-size:12px">2easymarketing.net</div>
         </div>
       </div>
@@ -2262,14 +2262,14 @@ def _lead_email_html(lead_type: str, fields: dict) -> str:
            style="display:inline-block;background:linear-gradient(135deg,#00d4ff,#a855f7);
                   color:#fff;font-weight:700;font-size:14px;padding:12px 28px;
                   border-radius:8px;text-decoration:none">
-          Open 2EasyMedia Dashboard →
+          Open 2EasyMarketing Dashboard →
         </a>
       </div>
     </div>
     <!-- Footer -->
     <div style="padding:16px 32px;background:#f8fafc;border-top:1px solid #e2e8f0">
       <p style="margin:0;color:#94a3b8;font-size:12px;text-align:center">
-        2EasyMedia · dev@2easymarketing.net · 2easymarketing.net
+        2EasyMarketing · dev@2easymarketing.net · 2easymarketing.net
       </p>
     </div>
   </div>
@@ -2436,15 +2436,15 @@ async def test_notification(session: dict = Depends(require_owner)):
         "Email":    "test@example.com",
         "Business": "Test Business LLC",
         "Plan":     "Growth — $1,497/mo",
-        "Message":  "This is a test notification from 2EasyMedia.",
+        "Message":  "This is a test notification from 2EasyMarketing.",
         "Source":   "Manual Test",
         "Time":     datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
     html = _lead_email_html("TEST Notification", fields)
     success = _send_email_sync(
-        "🧪 Test: 2EasyMedia Lead Notifications Working",
+        "🧪 Test: 2EasyMarketing Lead Notifications Working",
         html,
-        "This is a test notification from 2EasyMedia."
+        "This is a test notification from 2EasyMarketing."
     )
     return {
         "sent": success,
