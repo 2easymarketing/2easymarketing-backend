@@ -13,6 +13,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 import re
 
+# ─── LLM COUNCIL ENGINE ─────────────────────────────────────────────────────
+from council import run_council_session, quick_council, get_council_roster, COUNCIL_MODELS
+
 # ─── FORTRESS SECURITY ENGINE ────────────────────────────────────────────────
 from security import (
     FortressMiddleware, init_security_db,
@@ -2514,3 +2517,193 @@ async def test_notification(session: dict = Depends(require_owner)):
         "message": "Check your inbox!" if success else "SMTP not configured — set SMTP_USER and SMTP_PASS env vars."
     }
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  LLM COUNCIL API ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _init_council_db():
+    """Create council_sessions table."""
+    with db_conn() as conn:
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS council_sessions (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id  TEXT NOT NULL,
+                task_type   TEXT NOT NULL DEFAULT 'strategy',
+                brief       TEXT NOT NULL,
+                context     TEXT NOT NULL DEFAULT '{}',
+                responses   TEXT NOT NULL DEFAULT '{}',
+                verdict     TEXT NOT NULL DEFAULT '{}',
+                mode        TEXT NOT NULL DEFAULT 'full',
+                created_at  TEXT DEFAULT (datetime('now'))
+            );
+        """)
+        conn.commit()
+
+
+@app.on_event("startup")
+async def init_council():
+    _init_council_db()
+    print("⚖️  [Council] LLM Council engine online — Claude · GPT-4o · Gemini")
+
+
+# ── GET /api/council/roster — model info ─────────────────────────────────────
+@app.get("/api/council/roster")
+async def council_roster(session: dict = Depends(require_owner)):
+    """Return the council model roster and their roles."""
+    return {
+        "models": get_council_roster(),
+        "total": len(COUNCIL_MODELS),
+    }
+
+
+# ── GET /api/council/sessions — list past sessions ───────────────────────────
+@app.get("/api/council/sessions")
+async def council_sessions(
+    limit: int = 20,
+    session: dict = Depends(require_owner),
+):
+    """List past council sessions, most recent first."""
+    with db_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM council_sessions ORDER BY created_at DESC LIMIT ?",
+            (min(limit, 100),),
+        ).fetchall()
+    return {
+        "sessions": [
+            {
+                **dict(r),
+                "responses": json.loads(r["responses"]),
+                "verdict":   json.loads(r["verdict"]),
+                "context":   json.loads(r["context"]),
+            }
+            for r in rows
+        ]
+    }
+
+
+# ── POST /api/council/session — run a full council session ───────────────────
+@app.post("/api/council/session")
+async def council_session(request: Request, session: dict = Depends(require_owner)):
+    """
+    Run a full LLM Council session (3 models + Maya synthesis).
+    Body: { brief, task_type, context }
+    """
+    body      = await request.json()
+    brief     = body.get("brief", "").strip()
+    task_type = body.get("task_type", "strategy")
+    context   = body.get("context", {})
+
+    if not brief:
+        raise HTTPException(status_code=400, detail="brief is required")
+
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    openai_key    = os.environ.get("OPENAI_API_KEY", "")
+    gemini_key    = os.environ.get("GEMINI_API_KEY", "")
+
+    context["task_type"] = task_type
+
+    result = await run_council_session(
+        brief=brief,
+        context=context,
+        anthropic_key=anthropic_key,
+        openai_key=openai_key,
+        gemini_key=gemini_key,
+    )
+
+    # Persist session
+    with db_conn() as conn:
+        conn.execute(
+            """INSERT INTO council_sessions
+               (session_id, task_type, brief, context, responses, verdict, mode)
+               VALUES (?,?,?,?,?,?,?)""",
+            (
+                result["session_id"],
+                task_type,
+                brief,
+                json.dumps(context),
+                json.dumps(result["responses"]),
+                json.dumps(result["verdict"]),
+                "full",
+            ),
+        )
+        conn.commit()
+
+    return result
+
+
+# ── POST /api/council/quick — fast single-question council ───────────────────
+@app.post("/api/council/quick")
+async def council_quick(request: Request, session: dict = Depends(require_owner)):
+    """
+    Quick council: pose a single question, get fast 3-model + synthesis answer.
+    Body: { question }
+    """
+    body     = await request.json()
+    question = body.get("question", "").strip()
+
+    if not question:
+        raise HTTPException(status_code=400, detail="question is required")
+
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    openai_key    = os.environ.get("OPENAI_API_KEY", "")
+    gemini_key    = os.environ.get("GEMINI_API_KEY", "")
+
+    result = await quick_council(
+        question=question,
+        anthropic_key=anthropic_key,
+        openai_key=openai_key,
+        gemini_key=gemini_key,
+    )
+
+    # Persist as quick session
+    with db_conn() as conn:
+        conn.execute(
+            """INSERT INTO council_sessions
+               (session_id, task_type, brief, context, responses, verdict, mode)
+               VALUES (?,?,?,?,?,?,?)""",
+            (
+                result.get("session_id", hashlib.md5(question.encode()).hexdigest()[:12]),
+                "quick",
+                question,
+                "{}",
+                json.dumps(result["responses"]),
+                json.dumps(result["verdict"]),
+                "quick",
+            ),
+        )
+        conn.commit()
+
+    return result
+
+
+# ── DELETE /api/council/sessions/{id} — delete a session ────────────────────
+@app.delete("/api/council/sessions/{session_id}")
+async def delete_council_session(session_id: int, session: dict = Depends(require_owner)):
+    with db_conn() as conn:
+        conn.execute("DELETE FROM council_sessions WHERE id=?", (session_id,))
+        conn.commit()
+    return {"deleted": session_id}
+
+
+# ── GET /api/council/stats — council usage stats ─────────────────────────────
+@app.get("/api/council/stats")
+async def council_stats(session: dict = Depends(require_owner)):
+    with db_conn() as conn:
+        total    = conn.execute("SELECT COUNT(*) FROM council_sessions").fetchone()[0]
+        by_type  = conn.execute(
+            "SELECT task_type, COUNT(*) as n FROM council_sessions GROUP BY task_type ORDER BY n DESC"
+        ).fetchall()
+        recent   = conn.execute(
+            "SELECT * FROM council_sessions ORDER BY created_at DESC LIMIT 5"
+        ).fetchall()
+
+    return {
+        "total_sessions": total,
+        "by_type": [dict(r) for r in by_type],
+        "recent": [
+            {**dict(r), "verdict": json.loads(r["verdict"]), "responses": json.loads(r["responses"])}
+            for r in recent
+        ],
+        "models": get_council_roster(),
+    }

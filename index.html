@@ -989,6 +989,7 @@
           <a href="#" class="sidebar-link owner-only" data-view="client-reports" style="display:none">&#128196; Client Reports</a>
           <a href="#" class="sidebar-link owner-only" data-view="system-health" style="display:none">&#128268; System Health</a>
           <a href="#" class="sidebar-link owner-only" data-view="update-log" style="display:none">&#128203; Update Log</a>
+          <a href="#" class="sidebar-link owner-only" data-view="council" style="display:none">&#9878; LLM Council</a>
         </nav>
         <button class="sidebar-logout" id="logout-btn">&#8594; Log Out</button>
       </aside>
@@ -1217,6 +1218,75 @@
           <div style="background:#0f1923;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.25rem">
             <h3 style="color:#e2e8f0;font-size:.9rem;font-weight:700;margin:0 0 1rem">&#128396; Live Threat Feed</h3>
             <div id="sec-recent" style="display:flex;flex-direction:column;gap:.5rem;max-height:420px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <!-- LLM COUNCIL DASHBOARD -->
+        <div id="view-council" class="portal-view" style="display:none">
+          <div class="view-header">
+            <h1 class="view-title">&#9878; LLM Council</h1>
+            <span style="color:rgba(180,200,220,.5);font-size:.8rem">Claude &middot; GPT-4o &middot; Gemini &mdash; 3 minds, 1 verdict</span>
+          </div>
+
+          <!-- Council Model Roster -->
+          <div id="council-roster" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem"></div>
+
+          <!-- Mode Tabs -->
+          <div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
+            <button id="council-tab-full" onclick="switchCouncilTab('full')" style="background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem">&#127981; Full Session</button>
+            <button id="council-tab-quick" onclick="switchCouncilTab('quick')" style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#00d4ff;padding:.55rem 1.2rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem">&#9889; Quick Question</button>
+            <button id="council-tab-history" onclick="switchCouncilTab('history')" style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#00d4ff;padding:.55rem 1.2rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem">&#128203; History</button>
+          </div>
+
+          <!-- Full Session Panel -->
+          <div id="council-panel-full">
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-title" style="margin-bottom:1rem">&#127981; New Council Session</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+                <div>
+                  <label style="display:block;font-size:.8rem;color:rgba(180,200,220,.6);margin-bottom:.4rem">Task Type</label>
+                  <select id="council-task-type" style="width:100%;background:#0d1b2a;color:#e2e8f0;border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:.6rem .8rem;font-size:.9rem">
+                    <option value="strategy">Marketing Strategy</option>
+                    <option value="social_post">Social Media</option>
+                    <option value="ad_copy">Ad Copy</option>
+                    <option value="seo_audit">SEO Audit</option>
+                    <option value="content">Content Strategy</option>
+                    <option value="growth">Growth Hacking</option>
+                    <option value="pricing">Pricing &amp; Offers</option>
+                    <option value="competitive">Competitive Analysis</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block;font-size:.8rem;color:rgba(180,200,220,.6);margin-bottom:.4rem">Business Context</label>
+                  <input id="council-business" type="text" placeholder="e.g. 2EasyMarketing" value="2EasyMarketing - digital marketing agency" style="width:100%;background:#0d1b2a;color:#e2e8f0;border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:.6rem .8rem;font-size:.9rem;box-sizing:border-box">
+                </div>
+              </div>
+              <label style="display:block;font-size:.8rem;color:rgba(180,200,220,.6);margin-bottom:.4rem">Strategic Brief</label>
+              <textarea id="council-brief" rows="5" placeholder="Describe what you need the council to analyze. Be specific - include your goal, target audience, budget, constraints..." style="width:100%;background:#0d1b2a;color:#e2e8f0;border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:.8rem;font-size:.9rem;resize:vertical;box-sizing:border-box;margin-bottom:1rem"></textarea>
+              <button id="council-run-btn" onclick="runCouncilSession()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:700;cursor:pointer;font-size:.95rem;letter-spacing:.5px">&#9878; Convene the Council</button>
+              <span id="council-status" style="margin-left:1rem;color:rgba(180,200,220,.5);font-size:.85rem"></span>
+            </div>
+            <div id="council-full-result" style="display:none"></div>
+          </div>
+
+          <!-- Quick Question Panel -->
+          <div id="council-panel-quick" style="display:none">
+            <div class="card" style="margin-bottom:1rem">
+              <div class="card-title" style="margin-bottom:1rem">&#9889; Quick Council Question</div>
+              <input id="council-question" type="text" placeholder="Ask the council anything... e.g. Should we run Facebook or TikTok ads first?" style="width:100%;background:#0d1b2a;color:#e2e8f0;border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:.8rem;font-size:.9rem;box-sizing:border-box;margin-bottom:1rem">
+              <button onclick="runQuickCouncil()" style="background:linear-gradient(135deg,#00d4ff,#0891b2);border:none;color:#000;padding:.75rem 2rem;border-radius:10px;font-weight:700;cursor:pointer;font-size:.95rem">&#9889; Ask the Council</button>
+              <span id="quick-council-status" style="margin-left:1rem;color:rgba(180,200,220,.5);font-size:.85rem"></span>
+            </div>
+            <div id="council-quick-result" style="display:none"></div>
+          </div>
+
+          <!-- History Panel -->
+          <div id="council-panel-history" style="display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+              <div class="card-title">&#128203; Past Council Sessions</div>
+              <button onclick="loadCouncilHistory()" style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#00d4ff;padding:.4rem .9rem;border-radius:8px;cursor:pointer;font-size:.8rem">&#8635; Refresh</button>
+            </div>
+            <div id="council-history-list"></div>
           </div>
         </div>
 

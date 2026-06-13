@@ -307,6 +307,7 @@ function apiFetch(path, method = 'GET', body = null) {
     if (view === 'system-health')   loadSystemHealth();
     if (view === 'update-log')      loadUpdateLog();
     if (view === 'security')        loadSecurityDashboard();
+    if (view === 'council')         loadCouncil();
     if (view === 'channel-hub')     loadChannelHub();
     if (view === 'content-calendar') loadContentCalendar();
     if (view === 'competitor-spy')  loadCompetitorSpy();
@@ -1661,4 +1662,228 @@ window.quickUnblock = async function(ip) {
     await apiFetch('/api/owner/security/unblock', 'POST', { ip });
     await window.loadSecurityDashboard();
   } catch (e) { alert('Failed: ' + e.message); }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  LLM COUNCIL DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+
+const COUNCIL_MODELS = {
+  claude:  { name: 'Claude Sonnet', role: 'Creative Strategist', emoji: '🟣', color: '#a855f7' },
+  gpt4o:   { name: 'GPT-4o',        role: 'Data Analyst',        emoji: '🟢', color: '#22c55e' },
+  gemini:  { name: 'Gemini Pro',    role: 'Growth Hacker',       emoji: '🔵', color: '#3b82f6' },
+};
+
+async function loadCouncil() {
+  renderCouncilRoster();
+  switchCouncilTab('full');
+}
+
+function renderCouncilRoster() {
+  const el = document.getElementById('council-roster');
+  if (!el) return;
+  el.innerHTML = Object.entries(COUNCIL_MODELS).map(([id, m]) => `
+    <div style="background:rgba(${id==='claude'?'168,85,247':'id'==='gpt4o'?'34,197,94':'59,130,246'},0.08);border:1px solid ${m.color}44;border-radius:12px;padding:1.2rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">${m.emoji}</div>
+      <div style="font-weight:700;color:${m.color};font-size:.95rem;margin-bottom:.25rem">${m.name}</div>
+      <div style="font-size:.8rem;color:rgba(180,200,220,.6)">${m.role}</div>
+    </div>
+  `).join('');
+
+  // Fix color bug with proper approach
+  el.querySelectorAll('[style]').forEach((node, i) => {
+    const colors = ['168,85,247', '34,197,94', '59,130,246'];
+    const borders = ['#a855f744', '#22c55e44', '#3b82f644'];
+    node.style.background = `rgba(${colors[i]}, 0.08)`;
+    node.style.border = `1px solid ${borders[i]}`;
+  });
+}
+
+window.switchCouncilTab = function(tab) {
+  ['full','quick','history'].forEach(t => {
+    const panel = document.getElementById(`council-panel-${t}`);
+    const btn = document.getElementById(`council-tab-${t}`);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
+    if (btn) {
+      if (t === tab) {
+        btn.style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
+        btn.style.color = '#fff';
+        btn.style.border = 'none';
+      } else {
+        btn.style.background = 'rgba(0,212,255,.1)';
+        btn.style.color = '#00d4ff';
+        btn.style.border = '1px solid rgba(0,212,255,.2)';
+      }
+    }
+  });
+  if (tab === 'history') loadCouncilHistory();
+};
+
+window.runCouncilSession = async function() {
+  const brief    = document.getElementById('council-brief').value.trim();
+  const taskType = document.getElementById('council-task-type').value;
+  const business = document.getElementById('council-business').value.trim();
+  const statusEl = document.getElementById('council-status');
+  const resultEl = document.getElementById('council-full-result');
+  const btn      = document.getElementById('council-run-btn');
+
+  if (!brief) { alert('Please enter a strategic brief.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⚙ Convening...';
+  statusEl.textContent = 'Consulting Claude, GPT-4o, and Gemini in parallel... (30-60s)';
+  resultEl.style.display = 'none';
+
+  try {
+    const data = await apiFetch('/api/council/session', 'POST', {
+      brief,
+      task_type: taskType,
+      context: { business },
+    }).then(r => r.json());
+
+    renderCouncilResult(data, resultEl);
+    resultEl.style.display = '';
+    statusEl.textContent = `Session ${data.session_id} — completed`;
+  } catch (e) {
+    statusEl.textContent = `Error: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚖ Convene the Council';
+  }
+};
+
+window.runQuickCouncil = async function() {
+  const question = document.getElementById('council-question').value.trim();
+  const statusEl = document.getElementById('quick-council-status');
+  const resultEl = document.getElementById('council-quick-result');
+
+  if (!question) { alert('Please enter a question.'); return; }
+
+  statusEl.textContent = 'Asking all 3 models... (15-30s)';
+  resultEl.style.display = 'none';
+
+  try {
+    const data = await apiFetch('/api/council/quick', 'POST', { question }).then(r => r.json());
+    renderCouncilResult(data, resultEl, true);
+    resultEl.style.display = '';
+    statusEl.textContent = 'Council has spoken.';
+  } catch (e) {
+    statusEl.textContent = `Error: ${e.message}`;
+  }
+};
+
+function renderCouncilResult(data, container, quick = false) {
+  const verdict  = data.verdict || {};
+  const responses = data.responses || {};
+  const scores   = verdict.scores || {};
+
+  const modelCards = Object.entries(COUNCIL_MODELS).map(([id, m]) => {
+    const resp  = responses[id] || 'No response';
+    const score = scores[id];
+    return `
+      <div style="background:#0d1b2a;border:1px solid ${m.color}44;border-radius:12px;padding:1.2rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <div style="font-weight:700;color:${m.color}">${m.emoji} ${m.name}</div>
+          ${score ? `<div style="background:${m.color}22;color:${m.color};border-radius:99px;padding:.2rem .7rem;font-size:.8rem;font-weight:700">${score.score}/10</div>` : ''}
+        </div>
+        ${score ? `<div style="font-size:.75rem;color:rgba(180,200,220,.5);margin-bottom:.75rem;font-style:italic">${score.reason}</div>` : ''}
+        <div style="font-size:.85rem;color:#cbd5e1;line-height:1.6;max-height:200px;overflow-y:auto;white-space:pre-wrap">${escHtml(resp)}</div>
+      </div>
+    `;
+  }).join('');
+
+  const keyActions = (verdict.key_actions || []).map(a =>
+    `<div style="display:flex;gap:.75rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span style="color:#a855f7;font-weight:700;margin-top:.1rem">&#9656;</span>
+      <span style="color:#e2e8f0;font-size:.9rem">${escHtml(a)}</span>
+    </div>`
+  ).join('');
+
+  container.innerHTML = `
+    <!-- MAYA VERDICT -->
+    <div class="card" style="margin-bottom:1.5rem;border-color:rgba(168,85,247,.4)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div class="card-title" style="color:#a855f7">&#9878; Council Verdict — Maya's Synthesis</div>
+        ${verdict.confidence ? `<div style="background:rgba(168,85,247,.2);color:#a855f7;border-radius:99px;padding:.3rem .8rem;font-size:.85rem;font-weight:700">Confidence: ${verdict.confidence}%</div>` : ''}
+      </div>
+      <div style="font-size:.95rem;color:#e2e8f0;line-height:1.7;margin-bottom:1.25rem;white-space:pre-wrap">${escHtml(verdict.verdict || 'No verdict generated.')}</div>
+      ${verdict.winning_insight ? `
+        <div style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);border-radius:10px;padding:1rem;margin-bottom:1rem">
+          <div style="font-size:.75rem;color:#00d4ff;font-weight:700;margin-bottom:.4rem">&#9889; WINNING INSIGHT</div>
+          <div style="color:#e2e8f0;font-size:.9rem">${escHtml(verdict.winning_insight)}</div>
+        </div>
+      ` : ''}
+      ${keyActions ? `
+        <div style="font-size:.8rem;color:rgba(180,200,220,.6);font-weight:700;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">Key Actions</div>
+        ${keyActions}
+      ` : ''}
+    </div>
+
+    <!-- 3 MODEL RESPONSES -->
+    <div style="font-size:.8rem;color:rgba(180,200,220,.5);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Individual Model Responses</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+      ${modelCards}
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+async function loadCouncilHistory() {
+  const el = document.getElementById('council-history-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:rgba(180,200,220,.5);padding:1rem">Loading...</div>';
+
+  try {
+    const data = await apiFetch('/api/council/sessions?limit=20').then(r => r.json());
+    const sessions = data.sessions || [];
+
+    if (!sessions.length) {
+      el.innerHTML = '<div style="color:rgba(180,200,220,.4);padding:2rem;text-align:center">No council sessions yet. Run your first session!</div>';
+      return;
+    }
+
+    el.innerHTML = sessions.map(s => {
+      const v = s.verdict || {};
+      return `
+        <div class="card" style="margin-bottom:1rem;cursor:pointer" onclick="this.querySelector('.history-expand').style.display=this.querySelector('.history-expand').style.display==='none'?'':'none'">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-weight:700;color:#e2e8f0;margin-bottom:.3rem">${escHtml(s.brief.substring(0,80))}${s.brief.length>80?'...':''}</div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <span style="background:rgba(168,85,247,.2);color:#a855f7;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${s.task_type}</span>
+                <span style="background:rgba(0,212,255,.1);color:#00d4ff;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${s.mode}</span>
+                ${v.confidence ? `<span style="background:rgba(34,197,94,.1);color:#22c55e;border-radius:99px;padding:.15rem .6rem;font-size:.72rem">${v.confidence}% confidence</span>` : ''}
+              </div>
+            </div>
+            <div style="font-size:.75rem;color:rgba(180,200,220,.4);white-space:nowrap;margin-left:1rem">${s.created_at ? s.created_at.substring(0,16).replace('T',' ') : ''}</div>
+          </div>
+          <div class="history-expand" style="display:none;margin-top:1rem">
+            ${v.verdict ? `<div style="font-size:.85rem;color:#cbd5e1;line-height:1.6;border-top:1px solid rgba(255,255,255,.06);padding-top:.75rem;white-space:pre-wrap">${escHtml(v.verdict.substring(0,500))}${v.verdict.length>500?'...':''}</div>` : ''}
+            <div style="margin-top:.75rem">
+              <button onclick="event.stopPropagation();deleteCouncilSession(${s.id})" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.75rem">&#128465; Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div style="color:#f87171;padding:1rem">Error: ${e.message}</div>`;
+  }
+}
+
+window.deleteCouncilSession = async function(id) {
+  if (!confirm('Delete this council session?')) return;
+  try {
+    await apiFetch(`/api/council/sessions/${id}`, 'DELETE');
+    await loadCouncilHistory();
+  } catch (e) {
+    alert('Delete failed: ' + e.message);
+  }
 };
