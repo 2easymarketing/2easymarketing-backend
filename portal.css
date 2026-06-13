@@ -1443,3 +1443,89 @@ tr:hover td { background:rgba(0,196,180,0.025); }
   opacity: .6;
 }
 .ae-toggle-pw:hover { opacity: 1; }
+
+/* ── Ad Engine: Multi-Platform Grid ────────────────────────── */
+.ae-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin-top: .35rem;
+}
+@media (max-width: 700px) { .ae-platform-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.ae-plat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  padding: .55rem .4rem;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(180,200,220,.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: center;
+  min-height: 64px;
+}
+.ae-plat-btn:hover {
+  background: rgba(0,196,180,.08);
+  border-color: rgba(0,196,180,.3);
+}
+.ae-plat-btn.active {
+  background: rgba(0,196,180,.12);
+  border-color: rgba(0,196,180,.5);
+  box-shadow: 0 0 0 1px rgba(0,196,180,.2);
+}
+.ae-plat-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.ae-plat-name {
+  font-size: .64rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+  line-height: 1.2;
+}
+.ae-plat-name small {
+  display: block;
+  font-size: .58rem;
+  color: rgba(180,200,220,.5);
+  font-weight: 400;
+}
+
+/* ── Ad Engine: Platform Settings Cards ─────────────────────── */
+.ae-settings-plat-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid rgba(180,200,220,.08);
+}
+.ae-settings-plat-header h3 {
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 700;
+}
+.ae-settings-plat-header small {
+  font-size: .72rem;
+  color: rgba(180,200,220,.5);
+}
+.ae-plat-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(180,200,220,.25);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: background .3s;
+  cursor: default;
+}
+.ae-settings-margin-card {
+  grid-column: 1 / -1;
+}
+@media (max-width: 900px) { .ae-settings-margin-card { grid-column: auto; } }
+
+/* ── Launch modal ────────────────────────────────────────────── */
+#ae-launch-modal * { box-sizing: border-box; }

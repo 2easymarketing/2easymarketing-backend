@@ -1381,45 +1381,104 @@
         <div id="view-ad-engine" class="portal-view" style="display:none">
           <div class="view-header">
             <h1 class="view-title">&#9889; Ad Engine</h1>
-            <span class="owner-badge" style="background:linear-gradient(135deg,#00c4b4,#008c80);color:#fff">AI-POWERED</span>
+            <span class="owner-badge" style="background:linear-gradient(135deg,#00c4b4,#008c80);color:#fff">AI-POWERED &bull; 11 PLATFORMS</span>
           </div>
           <div class="ae-tabs">
             <button class="ae-tab active" data-ae-tab="create">&#9889; Create Campaign</button>
             <button class="ae-tab" data-ae-tab="campaigns">&#128202; Live Campaigns</button>
-            <button class="ae-tab" data-ae-tab="settings">&#9881; Meta API Settings</button>
+            <button class="ae-tab" data-ae-tab="settings">&#9881; Platform Settings</button>
           </div>
+
           <!-- TAB: CREATE -->
           <div id="ae-tab-create" class="ae-tab-content">
             <div class="ae-two-col">
               <div class="ae-form-panel">
                 <h3 class="ae-panel-title">Campaign Brief</h3>
-                <p class="ae-panel-sub">Fill in the details &mdash; AI builds your complete campaign.</p>
+                <p class="ae-panel-sub">Fill in the details &mdash; AI builds your complete campaign for any platform.</p>
                 <div class="ae-form">
-                  <div class="ae-field"><label>Client Name</label><input type="text" id="ae-client-name" placeholder="e.g. Mike's Plumbing LLC" /></div>
+                  <div class="ae-field"><label>Client Name</label><input type="text" id="ae-client-name" placeholder="e.g. Mike&apos;s Plumbing LLC" /></div>
                   <div class="ae-field"><label>Product / Service Being Advertised</label><input type="text" id="ae-product" placeholder="e.g. Emergency plumbing repair, 24/7" /></div>
-                  <div class="ae-field"><label>Campaign Goal</label><select id="ae-goal"><option value="LEAD_GENERATION">Lead Generation (calls &amp; inquiries)</option><option value="CONVERSIONS">Sales / Conversions</option><option value="TRAFFIC">Website Traffic</option><option value="BRAND_AWARENESS">Brand Awareness</option><option value="MESSAGES">Messages (Messenger leads)</option></select></div>
-                  <div class="ae-field-row">
-                    <div class="ae-field"><label>Platform</label><select id="ae-platform"><option value="facebook">Facebook Only</option><option value="instagram">Instagram Only</option><option value="both" selected>Facebook + Instagram</option></select></div>
-                    <div class="ae-field"><label>Ad Format</label><select id="ae-format"><option value="single_image">Single Image</option><option value="carousel">Carousel</option><option value="video">Video Ad</option></select></div>
+                  <div class="ae-field"><label>Campaign Goal</label><select id="ae-goal"><option value="LEAD_GENERATION">Lead Generation (calls &amp; inquiries)</option><option value="CONVERSIONS">Sales / Conversions</option><option value="TRAFFIC">Website Traffic</option><option value="BRAND_AWARENESS">Brand Awareness</option><option value="VIDEO_VIEWS">Video Views</option><option value="APP_INSTALLS">App Installs</option><option value="MESSAGES">Messages / DMs</option></select></div>
+
+                  <!-- PLATFORM SELECTOR -->
+                  <div class="ae-field">
+                    <label>Platform</label>
+                    <div class="ae-platform-grid" id="ae-platform-grid">
+                      <button type="button" class="ae-plat-btn active" data-platform="facebook_instagram" data-icon="&#128241;" style="--pc:#1877F2">
+                        <span class="ae-plat-icon">&#128241;</span><span class="ae-plat-name">Meta<br><small>FB + IG</small></span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="youtube" data-icon="&#9654;" style="--pc:#FF0000">
+                        <span class="ae-plat-icon" style="color:#FF0000">&#9654;</span><span class="ae-plat-name">YouTube</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="tiktok" data-icon="&#127926;" style="--pc:#69C9D0">
+                        <span class="ae-plat-icon" style="color:#69C9D0">&#127926;</span><span class="ae-plat-name">TikTok</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="google" data-icon="&#128269;" style="--pc:#4285F4">
+                        <span class="ae-plat-icon" style="color:#4285F4">&#128269;</span><span class="ae-plat-name">Google<br><small>Search+Display</small></span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="snapchat" data-icon="&#128273;" style="--pc:#FFFC00">
+                        <span class="ae-plat-icon" style="color:#FFFC00">&#128273;</span><span class="ae-plat-name">Snapchat</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="x_twitter" data-icon="&#10060;" style="--pc:#fff">
+                        <span class="ae-plat-icon" style="color:#fff">&#120143;</span><span class="ae-plat-name">X / Twitter</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="microsoft" data-icon="&#128187;" style="--pc:#00A4EF">
+                        <span class="ae-plat-icon" style="color:#00A4EF">&#128187;</span><span class="ae-plat-name">Microsoft<br><small>Bing Ads</small></span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="linkedin" data-icon="&#128101;" style="--pc:#0A66C2">
+                        <span class="ae-plat-icon" style="color:#0A66C2">&#128101;</span><span class="ae-plat-name">LinkedIn</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="pinterest" data-icon="&#128392;" style="--pc:#E60023">
+                        <span class="ae-plat-icon" style="color:#E60023">&#128392;</span><span class="ae-plat-name">Pinterest</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="reddit" data-icon="&#128126;" style="--pc:#FF4500">
+                        <span class="ae-plat-icon" style="color:#FF4500">&#128126;</span><span class="ae-plat-name">Reddit</span>
+                      </button>
+                      <button type="button" class="ae-plat-btn" data-platform="amazon" data-icon="&#128722;" style="--pc:#FF9900">
+                        <span class="ae-plat-icon" style="color:#FF9900">&#128722;</span><span class="ae-plat-name">Amazon<br><small>Sponsored</small></span>
+                      </button>
+                    </div>
+                    <input type="hidden" id="ae-platform" value="facebook_instagram" />
                   </div>
+
+                  <!-- Ad Format (changes per platform) -->
+                  <div class="ae-field-row">
+                    <div class="ae-field">
+                      <label>Ad Format</label>
+                      <select id="ae-format">
+                        <option value="single_image">Single Image</option>
+                        <option value="carousel">Carousel</option>
+                        <option value="video">Video Ad</option>
+                        <option value="story">Story / Reel</option>
+                        <option value="collection">Collection</option>
+                      </select>
+                    </div>
+                    <div class="ae-field">
+                      <label>Duration</label>
+                      <select id="ae-duration"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="ongoing">Ongoing</option></select>
+                    </div>
+                  </div>
+
                   <div class="ae-field-row">
                     <div class="ae-field"><label>Daily Budget (USD)</label><div class="ae-input-prefix"><span>$</span><input type="number" id="ae-daily-budget" placeholder="50" min="1" /></div></div>
-                    <div class="ae-field"><label>Duration</label><select id="ae-duration"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="ongoing">Ongoing</option></select></div>
+                    <div class="ae-field"><label>Landing Page URL</label><input type="text" id="ae-url" placeholder="https://example.com/offer" /></div>
                   </div>
+
                   <div class="ae-field"><label>Target Location</label><input type="text" id="ae-location" placeholder="e.g. Providence, RI - 25 mile radius" /></div>
                   <div class="ae-field-row">
-                    <div class="ae-field"><label>Min Age</label><select id="ae-age-min"><option value="18">18</option><option value="25" selected>25</option><option value="30">30</option><option value="35">35</option><option value="45">45</option></select></div>
-                    <div class="ae-field"><label>Max Age</label><select id="ae-age-max"><option value="35">35</option><option value="45">45</option><option value="55" selected>55</option><option value="65">65</option></select></div>
+                    <div class="ae-field"><label>Min Age</label><select id="ae-age-min"><option value="13">13</option><option value="18">18</option><option value="25" selected>25</option><option value="30">30</option><option value="35">35</option><option value="45">45</option></select></div>
+                    <div class="ae-field"><label>Max Age</label><select id="ae-age-max"><option value="25">25</option><option value="35">35</option><option value="45">45</option><option value="55" selected>55</option><option value="65">65</option><option value="65+">65+</option></select></div>
                   </div>
                   <div class="ae-field"><label>Target Interests / Keywords</label><input type="text" id="ae-interests" placeholder="e.g. Home improvement, homeowners, real estate" /></div>
-                  <div class="ae-field"><label>Key Offer (what makes this irresistible?)</label><textarea id="ae-offer" rows="3" placeholder="e.g. Free same-day estimate. Licensed & insured. 500+ 5-star reviews."></textarea></div>
-                  <div class="ae-field"><label>Landing Page URL</label><input type="text" id="ae-url" placeholder="https://example.com/offer" /></div>
+                  <div class="ae-field"><label>Key Offer (what makes this irresistible?)</label><textarea id="ae-offer" rows="3" placeholder="e.g. Free same-day estimate. Licensed &amp; insured. 500+ 5-star reviews."></textarea></div>
+
                   <button class="ae-generate-btn" id="ae-generate-btn">&#9889; Generate Campaign with AI</button>
                 </div>
               </div>
+
               <div class="ae-output-panel">
                 <h3 class="ae-panel-title">AI Campaign Output</h3>
-                <p class="ae-panel-sub" id="ae-output-sub">Fill in the brief and click Generate.</p>
+                <p class="ae-panel-sub" id="ae-output-sub">Select a platform, fill in the brief, and click Generate.</p>
                 <div id="ae-output-content" style="display:none">
                   <div class="ae-summary-card" id="ae-summary-card"></div>
                   <div class="ae-section-label">Ad Copy Variations</div>
@@ -1429,10 +1488,10 @@
                   <div class="ae-section-label">Budget &amp; Timeline</div>
                   <div class="ae-budget-box" id="ae-budget-box"></div>
                   <div class="ae-launch-bar">
-                    <div id="ae-api-warning" class="ae-api-warning" style="display:none">&#9888;&#65039; Meta API not connected. <a href="#" id="ae-goto-settings">Connect in Settings &rarr;</a></div>
+                    <div id="ae-api-warning" class="ae-api-warning" style="display:none">&#9888;&#65039; Platform API not connected. <a href="#" id="ae-goto-settings">Connect in Settings &rarr;</a></div>
                     <div class="ae-launch-btns">
                       <button class="ae-btn-save" id="ae-save-draft-btn">Save Draft</button>
-                      <button class="ae-btn-launch" id="ae-launch-btn">Launch on Meta &rarr;</button>
+                      <button class="ae-btn-launch" id="ae-launch-btn">Launch Campaign &rarr;</button>
                     </div>
                   </div>
                 </div>
@@ -1443,6 +1502,7 @@
               </div>
             </div>
           </div>
+
           <!-- TAB: LIVE CAMPAIGNS -->
           <div id="ae-tab-campaigns" class="ae-tab-content" style="display:none">
             <div class="ae-campaigns-header">
@@ -1457,38 +1517,181 @@
             </div>
             <div id="ae-campaigns-list" class="ae-campaigns-list"><div class="ae-empty-state"><div style="font-size:2rem;margin-bottom:.5rem">&#9889;</div><div>No campaigns yet. Create your first above.</div></div></div>
           </div>
-          <!-- TAB: SETTINGS -->
+
+          <!-- TAB: PLATFORM SETTINGS -->
           <div id="ae-tab-settings" class="ae-tab-content" style="display:none">
+            <!-- Agency Margin always on top -->
             <div class="ae-settings-grid">
-              <div class="ae-settings-card">
-                <div class="ae-settings-icon">&#128279;</div>
-                <h3>Meta API Connection</h3>
-                <p>Connect your Meta Ads account to launch campaigns automatically.</p>
-                <div class="ae-field"><label>Meta Access Token</label><div style="position:relative"><input type="password" id="ae-meta-token" placeholder="EAAxxxxxxxxxxxxxxx..." /><button class="ae-toggle-pw" onclick="var i=document.getElementById('ae-meta-token');i.type=i.type==='password'?'text':'password'">&#128065;</button></div><span class="ae-field-hint">developers.facebook.com &rarr; Your App &rarr; Tools &rarr; Graph API Explorer</span></div>
-                <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-ad-account-id" placeholder="act_1234567890" /><span class="ae-field-hint">Business Manager &rarr; Settings &rarr; Ad Accounts</span></div>
-                <div class="ae-field"><label>Facebook Page ID</label><input type="text" id="ae-page-id" placeholder="123456789012345" /><span class="ae-field-hint">Facebook Page &rarr; About &rarr; Page ID</span></div>
-                <div class="ae-field"><label>Instagram Account ID (optional)</label><input type="text" id="ae-ig-id" placeholder="17841400000000000" /></div>
-                <div id="ae-conn-status" class="ae-conn-status"></div>
-                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-test" id="ae-test-connection">Test Connection</button><button class="ae-btn-save-settings" id="ae-save-settings">Save Settings</button></div>
-              </div>
-              <div class="ae-settings-card">
+              <div class="ae-settings-card ae-settings-margin-card">
                 <div class="ae-settings-icon">&#128176;</div>
                 <h3>Agency Margin Settings</h3>
-                <p>Automatically apply your markup to every client campaign budget.</p>
-                <div class="ae-field"><label>Your Markup</label><div class="ae-input-prefix"><input type="number" id="ae-markup" value="25" min="0" max="100" /><span>%</span></div><span class="ae-field-hint">Client pays $1,000 &rarr; You spend $750 on Meta &rarr; You keep $250</span></div>
+                <p>Automatically apply your markup to every client campaign budget across all platforms.</p>
+                <div class="ae-field"><label>Your Markup</label><div class="ae-input-prefix"><input type="number" id="ae-markup" value="25" min="0" max="100" /><span>%</span></div><span class="ae-field-hint">Client pays $1,000 &rarr; You spend $750 on ads &rarr; You keep $250</span></div>
                 <div class="ae-field"><label>Approval Mode</label><select id="ae-approval-mode"><option value="manual" selected>Manual &mdash; You approve every launch</option><option value="auto">Auto-launch &mdash; AI launches immediately</option></select></div>
                 <div class="ae-field"><label>Daily Spend Alert (USD)</label><div class="ae-input-prefix"><span>$</span><input type="number" id="ae-alert-threshold" value="100" /></div><span class="ae-field-hint">Alert when any campaign spends above this per day</span></div>
                 <button class="ae-btn-save-settings" id="ae-save-margin" style="margin-top:1rem">Save Settings</button>
               </div>
+
+              <!-- META -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#1877F2">
+                  <span style="font-size:1.4rem">&#128241;</span>
+                  <div><h3 style="margin:0">Meta Ads</h3><small>Facebook &amp; Instagram</small></div>
+                  <span class="ae-plat-status-dot" id="dot-meta" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Access Token</label><div style="position:relative"><input type="password" id="ae-meta-token" placeholder="EAAxxxxxxxxxxxxxxx..." /><button class="ae-toggle-pw" onclick="var i=document.getElementById('ae-meta-token');i.type=i.type==='password'?'text':'password'">&#128065;</button></div><span class="ae-field-hint"><a href="https://developers.facebook.com/tools/explorer" target="_blank">Graph API Explorer</a> &rarr; Generate token (ads_management + ads_read)</span></div>
+                <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-ad-account-id" placeholder="act_1234567890" /><span class="ae-field-hint">Business Manager &rarr; Ad Accounts</span></div>
+                <div class="ae-field"><label>Facebook Page ID</label><input type="text" id="ae-page-id" placeholder="123456789012345" /></div>
+                <div class="ae-field"><label>Instagram Account ID <small style="opacity:.6">(optional)</small></label><input type="text" id="ae-ig-id" placeholder="17841400000000000" /></div>
+                <div id="ae-conn-status" class="ae-conn-status"></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-test" id="ae-test-connection">Test Connection</button><button class="ae-btn-save-settings" id="ae-save-settings">Save</button></div>
+              </div>
+
+              <!-- GOOGLE ADS -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#4285F4">
+                  <span style="font-size:1.4rem;color:#4285F4">&#128269;</span>
+                  <div><h3 style="margin:0">Google Ads</h3><small>Search, Display, YouTube</small></div>
+                  <span class="ae-plat-status-dot" id="dot-google" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Developer Token</label><input type="password" id="ae-google-dev-token" placeholder="ABcD_eFgHiJkLmNoPqRsT" /><span class="ae-field-hint"><a href="https://developers.google.com/google-ads/api/docs/get-started/dev-token" target="_blank">Get from Google Ads API Center</a></span></div>
+                <div class="ae-field"><label>Client ID</label><input type="text" id="ae-google-client-id" placeholder="123456789-abc.apps.googleusercontent.com" /></div>
+                <div class="ae-field"><label>Client Secret</label><input type="password" id="ae-google-client-secret" placeholder="GOCSPX-..." /></div>
+                <div class="ae-field"><label>Refresh Token</label><input type="password" id="ae-google-refresh-token" placeholder="1//0e..." /></div>
+                <div class="ae-field"><label>Customer ID</label><input type="text" id="ae-google-customer-id" placeholder="123-456-7890" /><span class="ae-field-hint">Your Google Ads account number</span></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('google')">Save Google Settings</button></div>
+              </div>
+
+              <!-- YOUTUBE -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#FF0000">
+                  <span style="font-size:1.4rem;color:#FF0000">&#9654;</span>
+                  <div><h3 style="margin:0">YouTube Ads</h3><small>via Google Ads API</small></div>
+                  <span class="ae-plat-status-dot" id="dot-youtube" title="Not connected"></span>
+                </div>
+                <p style="color:rgba(180,200,220,.6);font-size:.8rem;margin:0 0 .75rem">YouTube ads run through your Google Ads account. Enter your YouTube Channel ID below in addition to your Google Ads credentials above.</p>
+                <div class="ae-field"><label>YouTube Channel ID</label><input type="text" id="ae-youtube-channel-id" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxxx" /><span class="ae-field-hint">youtube.com &rarr; Your Channel &rarr; About &rarr; Share &rarr; Copy channel ID</span></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('youtube')">Save YouTube Settings</button></div>
+              </div>
+
+              <!-- TIKTOK -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#69C9D0">
+                  <span style="font-size:1.4rem;color:#69C9D0">&#127926;</span>
+                  <div><h3 style="margin:0">TikTok Ads</h3><small>TikTok for Business</small></div>
+                  <span class="ae-plat-status-dot" id="dot-tiktok" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-tiktok-token" placeholder="your_tiktok_access_token" /><span class="ae-field-hint"><a href="https://ads.tiktok.com/marketing_api/homepage" target="_blank">TikTok for Business</a> &rarr; API</span></div>
+                <div class="ae-field"><label>App ID</label><input type="text" id="ae-tiktok-app-id" placeholder="7000000000000" /></div>
+                <div class="ae-field"><label>Advertiser ID</label><input type="text" id="ae-tiktok-advertiser-id" placeholder="7000000000000" /></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('tiktok')">Save TikTok Settings</button></div>
+              </div>
+
+              <!-- SNAPCHAT -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#FFFC00">
+                  <span style="font-size:1.4rem;color:#FFFC00">&#128273;</span>
+                  <div><h3 style="margin:0">Snapchat Ads</h3><small>Snap Ads Manager</small></div>
+                  <span class="ae-plat-status-dot" id="dot-snapchat" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-snap-token" placeholder="snap_access_token" /><span class="ae-field-hint"><a href="https://adsapi.snapchat.com" target="_blank">Snap Ads API</a> &rarr; OAuth 2.0</span></div>
+                <div class="ae-field"><label>Organization ID</label><input type="text" id="ae-snap-org-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></div>
+                <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-snap-account-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('snapchat')">Save Snapchat Settings</button></div>
+              </div>
+
+              <!-- X / TWITTER -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#ffffff">
+                  <span style="font-size:1.4rem;color:#fff">&#120143;</span>
+                  <div><h3 style="margin:0">X / Twitter Ads</h3><small>X Ads API</small></div>
+                  <span class="ae-plat-status-dot" id="dot-x" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>API Key</label><input type="password" id="ae-x-api-key" placeholder="your_api_key" /><span class="ae-field-hint"><a href="https://developer.x.com/en/portal/projects-and-apps" target="_blank">X Developer Portal</a> &rarr; App &rarr; Keys</span></div>
+                <div class="ae-field"><label>API Key Secret</label><input type="password" id="ae-x-api-secret" placeholder="your_api_key_secret" /></div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-x-access-token" placeholder="your_access_token" /></div>
+                <div class="ae-field"><label>Access Token Secret</label><input type="password" id="ae-x-access-secret" placeholder="your_access_token_secret" /></div>
+                <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-x-account-id" placeholder="abc123" /></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('x')">Save X Settings</button></div>
+              </div>
+
+              <!-- MICROSOFT / BING -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#00A4EF">
+                  <span style="font-size:1.4rem;color:#00A4EF">&#128187;</span>
+                  <div><h3 style="margin:0">Microsoft Ads</h3><small>Bing Ads API</small></div>
+                  <span class="ae-plat-status-dot" id="dot-microsoft" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Client ID</label><input type="text" id="ae-msft-client-id" placeholder="your_client_id" /><span class="ae-field-hint"><a href="https://learn.microsoft.com/en-us/advertising/guides/authentication-oauth" target="_blank">Microsoft Ads OAuth</a></span></div>
+                <div class="ae-field"><label>Client Secret</label><input type="password" id="ae-msft-client-secret" placeholder="your_client_secret" /></div>
+                <div class="ae-field"><label>Refresh Token</label><input type="password" id="ae-msft-refresh-token" placeholder="your_refresh_token" /></div>
+                <div class="ae-field"><label>Developer Token</label><input type="password" id="ae-msft-dev-token" placeholder="BBD37VB98" /><span class="ae-field-hint">Microsoft Ads &rarr; Account Settings &rarr; Developer Token</span></div>
+                <div class="ae-field"><label>Customer ID</label><input type="text" id="ae-msft-customer-id" placeholder="12345678" /></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('microsoft')">Save Microsoft Settings</button></div>
+              </div>
+
+              <!-- LINKEDIN -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#0A66C2">
+                  <span style="font-size:1.4rem;color:#0A66C2">&#128101;</span>
+                  <div><h3 style="margin:0">LinkedIn Ads</h3><small>Campaign Manager API</small></div>
+                  <span class="ae-plat-status-dot" id="dot-linkedin" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-li-token" placeholder="AQV..." /><span class="ae-field-hint"><a href="https://www.linkedin.com/developers/apps" target="_blank">LinkedIn Developers</a> &rarr; App &rarr; Auth</span></div>
+                <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-li-account-id" placeholder="507123456" /><span class="ae-field-hint">Campaign Manager &rarr; Account Settings &rarr; Account ID</span></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('linkedin')">Save LinkedIn Settings</button></div>
+              </div>
+
+              <!-- PINTEREST -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#E60023">
+                  <span style="font-size:1.4rem;color:#E60023">&#128392;</span>
+                  <div><h3 style="margin:0">Pinterest Ads</h3><small>Pinterest Ads API</small></div>
+                  <span class="ae-plat-status-dot" id="dot-pinterest" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-pin-token" placeholder="pina_..." /><span class="ae-field-hint"><a href="https://developers.pinterest.com/apps/" target="_blank">Pinterest Developers</a> &rarr; Apps</span></div>
+                <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-pin-account-id" placeholder="549763126" /></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('pinterest')">Save Pinterest Settings</button></div>
+              </div>
+
+              <!-- REDDIT -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#FF4500">
+                  <span style="font-size:1.4rem;color:#FF4500">&#128126;</span>
+                  <div><h3 style="margin:0">Reddit Ads</h3><small>Reddit Ads API</small></div>
+                  <span class="ae-plat-status-dot" id="dot-reddit" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Client ID</label><input type="text" id="ae-reddit-client-id" placeholder="your_client_id" /><span class="ae-field-hint"><a href="https://ads.reddit.com/accounts/me/apps/" target="_blank">Reddit Ads</a> &rarr; Apps</span></div>
+                <div class="ae-field"><label>Client Secret</label><input type="password" id="ae-reddit-client-secret" placeholder="your_client_secret" /></div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-reddit-token" placeholder="your_access_token" /></div>
+                <div class="ae-field"><label>Account ID</label><input type="text" id="ae-reddit-account-id" placeholder="t2_xxxxxxxx" /></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('reddit')">Save Reddit Settings</button></div>
+              </div>
+
+              <!-- AMAZON -->
+              <div class="ae-settings-card">
+                <div class="ae-settings-plat-header" style="--plat-color:#FF9900">
+                  <span style="font-size:1.4rem;color:#FF9900">&#128722;</span>
+                  <div><h3 style="margin:0">Amazon Ads</h3><small>Sponsored Products / DSP</small></div>
+                  <span class="ae-plat-status-dot" id="dot-amazon" title="Not connected"></span>
+                </div>
+                <div class="ae-field"><label>Client ID</label><input type="text" id="ae-amz-client-id" placeholder="amzn1.application-oa2-client.xxx" /><span class="ae-field-hint"><a href="https://advertising.amazon.com/API/docs/en-us/get-started/generate-api-tokens" target="_blank">Amazon Ads API</a></span></div>
+                <div class="ae-field"><label>Client Secret</label><input type="password" id="ae-amz-client-secret" placeholder="your_client_secret" /></div>
+                <div class="ae-field"><label>Refresh Token</label><input type="password" id="ae-amz-refresh-token" placeholder="Atzr|..." /></div>
+                <div class="ae-field"><label>Profile ID</label><input type="text" id="ae-amz-profile-id" placeholder="1234567890" /><span class="ae-field-hint">Amazon Ads Console &rarr; Manage Profiles</span></div>
+                <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('amazon')">Save Amazon Settings</button></div>
+              </div>
+
+              <!-- SETUP GUIDE -->
               <div class="ae-settings-card ae-settings-guide">
                 <div class="ae-settings-icon">&#128203;</div>
-                <h3>Setup Guide</h3>
+                <h3>Quick-Start Guide</h3>
                 <div class="ae-steps">
-                  <div class="ae-step"><div class="ae-step-num">1</div><div><div class="ae-step-title">Create Facebook Business Portfolio</div><div class="ae-step-desc">Go to <a href="https://business.facebook.com" target="_blank">business.facebook.com</a> &rarr; Create Account</div></div></div>
-                  <div class="ae-step"><div class="ae-step-num">2</div><div><div class="ae-step-title">Create a Meta Developer App</div><div class="ae-step-desc">Go to <a href="https://developers.facebook.com/apps" target="_blank">developers.facebook.com/apps</a> &rarr; Create App &rarr; Business type</div></div></div>
-                  <div class="ae-step"><div class="ae-step-num">3</div><div><div class="ae-step-title">Generate Your Access Token</div><div class="ae-step-desc">Inside your App &rarr; Tools &rarr; Graph API Explorer &rarr; Generate token with ads_management &amp; ads_read</div></div></div>
-                  <div class="ae-step"><div class="ae-step-num">4</div><div><div class="ae-step-title">Add Payment to Ad Account</div><div class="ae-step-desc">Business Manager &rarr; Ad Accounts &rarr; Add a credit card</div></div></div>
-                  <div class="ae-step"><div class="ae-step-num">5</div><div><div class="ae-step-title">Paste Credentials Above &amp; Test</div><div class="ae-step-desc">Enter Token, Ad Account ID, Page ID &rarr; Test Connection &rarr; you're live</div></div></div>
+                  <div class="ae-step"><div class="ae-step-num">1</div><div><div class="ae-step-title">Create Business Accounts</div><div class="ae-step-desc">Set up ad accounts on each platform where you want to run campaigns (Meta Business, Google Ads, TikTok for Business, etc.)</div></div></div>
+                  <div class="ae-step"><div class="ae-step-num">2</div><div><div class="ae-step-title">Get API Credentials</div><div class="ae-step-desc">Each platform has a developer portal. Follow the links above to generate your access tokens and IDs.</div></div></div>
+                  <div class="ae-step"><div class="ae-step-num">3</div><div><div class="ae-step-title">Paste Credentials &amp; Save</div><div class="ae-step-desc">Enter your credentials for each platform above and click Save. Green dot = connected and ready to launch.</div></div></div>
+                  <div class="ae-step"><div class="ae-step-num">4</div><div><div class="ae-step-title">Create &amp; Launch Campaigns</div><div class="ae-step-desc">Go to Create Campaign, select your platform, fill in the brief, and hit Generate. AI builds your campaign instantly.</div></div></div>
+                  <div class="ae-step"><div class="ae-step-num">5</div><div><div class="ae-step-title">Monitor All Platforms</div><div class="ae-step-desc">Live Campaigns tab shows all campaigns across all platforms in one dashboard. Pause, resume, or delete from here.</div></div></div>
                 </div>
               </div>
             </div>
