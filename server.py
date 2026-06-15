@@ -14,8 +14,7 @@ from typing import Optional
 import re
 
 # ─── LLM COUNCIL ENGINE ─────────────────────────────────────────────────────
-from council import run_council_session, quick_council, get_council_roster, COUNCIL_MODELS
-from council_routes import router as council_router
+from council_engine import run_council_session, quick_council, get_council_roster, COUNCIL_MODELS
 from external_search_utils import json_bearer_headers
 
 # ─── FORTRESS SECURITY ENGINE ────────────────────────────────────────────────
@@ -28,7 +27,6 @@ from security import (
 
 app = FastAPI()
 
-app.include_router(council_router)
 
 # CORS must come BEFORE Fortress so preflight OPTIONS bypass security
 app.add_middleware(
@@ -55,9 +53,12 @@ client = AsyncAnthropic()
 security = HTTPBearer(auto_error=False)
 
 # ─── OWNER CREDENTIALS ──────────────────────────────────────────────────────
-OWNER_EMAIL    = "dev@2easymarketing.net"
-OWNER_PASSWORD_HASH = hashlib.sha256(("2easymarketing2026!" + "2em_salt_2026").encode()).hexdigest()
-OWNER_SECRET   = "2em-owner-secret-key-2026"
+OWNER_EMAIL = os.getenv("OWNER_EMAIL", "2easymarketing@gmail.com").strip().lower()
+OWNER_PASSWORD_HASH = os.getenv("OWNER_PASSWORD_HASH", "").strip()
+_OWNER_PASSWORD = os.getenv("OWNER_PASSWORD", "").strip()
+if not OWNER_PASSWORD_HASH and _OWNER_PASSWORD:
+    OWNER_PASSWORD_HASH = hashlib.sha256((_OWNER_PASSWORD + "2em_salt_2026").encode()).hexdigest()
+OWNER_SECRET = os.getenv("OWNER_SECRET", "")
 
 # ─── DATABASE SETUP ─────────────────────────────────────────────────────────
 DB_PATH = os.environ.get("DB_PATH", "/app/2easymarketing.db")
@@ -237,7 +238,7 @@ async def fetch_competitor_pricing() -> str:
     if _competitor_cache["data"] and (now - _competitor_cache["timestamp"]) < CACHE_TTL:
         return _competitor_cache["data"]
 
-    api_key = os.environ.get("PPLX_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+    api_key = os.environ.get("PPLX_API_KEY", "")
     headers = json_bearer_headers(api_key)
 
     fallback_data = """
@@ -247,7 +248,7 @@ RI local $500–$3,000/mo | Most charge $500–$2,000 setup fees + 6–12mo cont
 """
 
     if not headers:
-        print("Competitor search skipped: missing PPLX_API_KEY or OPENAI_API_KEY")
+        print("Competitor search skipped: missing PPLX_API_KEY")
         _competitor_cache["data"] = fallback_data
         _competitor_cache["timestamp"] = now
         return fallback_data
@@ -474,7 +475,7 @@ AI image ads achieve 12% higher CTR than human-made ads (2026 benchmark data).
 AI video ads convert 27% higher than static image campaigns.
 We generate 5–10x more ad variations per campaign than any traditional agency.
 
-CONTACT: dev@2easymarketing.net | (401) 555-0100
+CONTACT: 2easymarketing@gmail.com | (401) 555-0100
 
 TONE: Short, punchy, friendly. End with a question. Never bash competitors by name.
 
@@ -544,7 +545,7 @@ async def login(request: Request):
         password = body.get("password", "").strip()
 
         # Owner login
-        if email == OWNER_EMAIL.lower() and hash_password(password) == OWNER_PASSWORD_HASH:
+        if OWNER_PASSWORD_HASH and email == OWNER_EMAIL.lower() and hash_password(password) == OWNER_PASSWORD_HASH:
             # Create a virtual owner session
             conn = get_db()
             owner_row = conn.execute("SELECT id FROM clients WHERE email=?", (email,)).fetchone()
@@ -872,7 +873,7 @@ async def chat(request: Request):
         return JSONResponse({"reply": response.content[0].text})
     except Exception as e:
         print(f"Chat error: {e}")
-        return JSONResponse({"reply": "Quick snag — try again! Or email dev@2easymarketing.net"})
+        return JSONResponse({"reply": "Quick snag — try again! Or email 2easymarketing@gmail.com"})
 
 
 @app.get("/api/competitors")
@@ -1067,11 +1068,11 @@ Tailor everything to their specific business type. Make it ready to publish imme
 async def run_competitor_monitor():
     """Check competitor pricing, detect changes, and alert owner if significant shift."""
     print("🔎 [AUTONOMOUS] Running competitor monitor...")
-    api_key = os.environ.get("PPLX_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+    api_key = os.environ.get("PPLX_API_KEY", "")
     headers = json_bearer_headers(api_key)
 
     if not headers:
-        print("  ⚠️  Competitor monitor skipped: missing PPLX_API_KEY or OPENAI_API_KEY")
+        print("  ⚠️  Competitor monitor skipped: missing PPLX_API_KEY")
         return
 
     queries = [
@@ -1165,7 +1166,7 @@ Be concise and actionable."""}]
 async def run_opportunity_spotter():
     """Detect marketing trends, content gaps, and timing opportunities."""
     print("💡 [AUTONOMOUS] Running opportunity spotter...")
-    api_key = os.environ.get("PPLX_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+    api_key = os.environ.get("PPLX_API_KEY", "")
     headers = json_bearer_headers(api_key)
 
     queries = [
@@ -1176,7 +1177,7 @@ async def run_opportunity_spotter():
     trend_data = []
 
     if not headers:
-        print("  ⚠️  Trend queries skipped: missing PPLX_API_KEY or OPENAI_API_KEY")
+        print("  ⚠️  Trend queries skipped: missing PPLX_API_KEY")
     else:
         async with httpx.AsyncClient(timeout=20.0) as http:
             for q in queries:
@@ -1676,6 +1677,29 @@ async def generate_voiceover(task_id: int, brief: dict):
         )
         conn.commit()
         conn.close()
+
+
+@app.post("/api/ads/generate-campaign")
+async def generate_ad_campaign_ai(request: Request, session: dict = Depends(require_owner)):
+    """Generate ad campaign copy from the backend so API keys never appear in browser code."""
+    body = await request.json()
+    prompt = (body.get("prompt") or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+
+    model = os.getenv("ANTHROPIC_AD_MODEL", os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"))
+    max_tokens = int(body.get("max_tokens", 1200) or 1200)
+
+    try:
+        response = await client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return {"content": [{"text": response.content[0].text}]}
+    except Exception as e:
+        print(f"Ad campaign AI error: {e}")
+        raise HTTPException(status_code=500, detail="AI campaign generation failed")
 
 
 # ─── MEDIA TASK ROUTER — hook into _fulfill_task ─────────────────────────────
@@ -2272,7 +2296,7 @@ async def health():
 
 # ════════════════════════════════════════════════════════════════════════════
 # ─── LEAD NOTIFICATION SYSTEM ────────────────────────────────────────────────
-# Sends instant email alerts to dev@2easymarketing.net whenever:
+# Sends instant email alerts to 2easymarketing@gmail.com whenever:
 #   1. A visitor submits the website contact/lead form
 #   2. Maya chatbot captures a lead (name + email collected)
 #   3. A new client signs up through the portal
@@ -2296,7 +2320,7 @@ SMTP_HOST    = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT    = int(os.getenv("SMTP_PORT", "465") or "465")
 SMTP_USER    = os.getenv("SMTP_USER", "")        # your Gmail: you@gmail.com
 SMTP_PASS    = os.getenv("SMTP_PASS", "")        # Gmail App Password
-NOTIFY_TO    = os.getenv("NOTIFY_TO", OWNER_EMAIL)   # dev@2easymarketing.net
+NOTIFY_TO    = os.getenv("NOTIFY_TO", OWNER_EMAIL)   # 2easymarketing@gmail.com
 
 
 def _send_email_sync(subject: str, html_body: str, text_body: str = ""):
@@ -2383,7 +2407,7 @@ def _lead_email_html(lead_type: str, fields: dict) -> str:
     <!-- Footer -->
     <div style="padding:16px 32px;background:#f8fafc;border-top:1px solid #e2e8f0">
       <p style="margin:0;color:#94a3b8;font-size:12px;text-align:center">
-        2EasyMarketing · dev@2easymarketing.net · 2easymarketing.net
+        2EasyMarketing · 2easymarketing@gmail.com · 2easymarketing.net
       </p>
     </div>
   </div>
@@ -2674,6 +2698,49 @@ async def council_session(request: Request, session: dict = Depends(require_owne
                 json.dumps(result["responses"]),
                 json.dumps(result["verdict"]),
                 "full",
+            ),
+        )
+        conn.commit()
+
+    return result
+
+
+class QuickCouncilRequest(BaseModel):
+    question: str
+
+
+# ── POST /api/council/quick — fast single-question council ───────────────────
+@app.post("/api/council/quick")
+async def council_quick_endpoint(payload: QuickCouncilRequest, session: dict = Depends(require_owner)):
+    """Run a quick LLM Council answer safely without manually reading request bodies."""
+    question = (payload.question or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="question is required")
+
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    openai_key = os.environ.get("OPENAI_API_KEY", "")
+    gemini_key = os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_API_KEY", ""))
+
+    result = await quick_council(
+        question=question,
+        anthropic_key=anthropic_key,
+        openai_key=openai_key,
+        gemini_key=gemini_key,
+    )
+
+    with db_conn() as conn:
+        conn.execute(
+            """INSERT INTO council_sessions
+               (session_id, task_type, brief, context, responses, verdict, mode)
+               VALUES (?,?,?,?,?,?,?)""",
+            (
+                result.get("session_id", hashlib.md5(question.encode()).hexdigest()[:12]),
+                "quick",
+                question,
+                "{}",
+                json.dumps(result.get("responses", {})),
+                json.dumps(result.get("verdict", {})),
+                "quick",
             ),
         )
         conn.commit()

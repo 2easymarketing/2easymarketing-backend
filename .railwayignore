@@ -1,5 +1,12 @@
 vercel.json
 .vercel
+.env
+.env.*
+!.env.example
 *.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 __pycache__
-.env.railway
+*.pyc

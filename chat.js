@@ -7,7 +7,8 @@
   'use strict';
 
   // ---- CONFIG ----
-  const API_URL = 'https://web-production-f0dfa2.up.railway.app/api/chat';
+  const API_BASE = (window.__2EM_API_BASE__ || localStorage.getItem('2em_api_base') || '').replace(/\/$/, '');
+  const API_URL = API_BASE + '/api/chat';
   const WELCOME = "Hey! 👋 I'm **Maya**, 2EasyMarketing's AI assistant. I have live competitor pricing data loaded — so if you're shopping around, I can show you exactly why we're the best deal in the market. What can I help you with?";
   const SUGGESTED = [
     "How do you compare to other agencies?",
@@ -554,7 +555,7 @@
 
     } catch (err) {
       showTyping(false);
-      const errorMsg = "I'm having trouble connecting right now. Reach us directly at **dev@2easymarketing.net** or try again!";
+      const errorMsg = "I'm having trouble connecting right now. Reach us directly at **2easymarketing@gmail.com** or try again!";
       messages.push({ role: 'assistant', content: errorMsg });
       addMessage('assistant', errorMsg);
     }

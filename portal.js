@@ -3,7 +3,7 @@
  */
 
 // Global API helper — accessible everywhere
-const _BACKEND = 'https://web-production-f0dfa2.up.railway.app';
+const _BACKEND = (window.__2EM_API_BASE__ || localStorage.getItem('2em_api_base') || '').replace(/\/$/, '');
 function apiFetch(path, method = 'GET', body = null) {
   const token = window._authToken ? window._authToken() : (localStorage.getItem('2em_token') || null);
   const opts = {
@@ -17,7 +17,7 @@ function apiFetch(path, method = 'GET', body = null) {
 (function () {
   'use strict';
 
-  const API = 'https://web-production-f0dfa2.up.railway.app';
+  const API = _BACKEND;
   let authToken = localStorage.getItem('2em_token') || null;
   let currentUser = null;
   let currentTaskType = null;
@@ -1941,7 +1941,6 @@ window.deleteCouncilSession = async function(id) {
   let aeCurrentOutput = null;
 
   const META_GRAPH = 'https://graph.facebook.com/v19.0';
-  const CLAUDE_KEY = 'sk-ant-api03-oZYx56RjHe2DRm2ElAz8YblUjNkDCYWx1qfDpuABOJUDp-UhtIExkhg7QE0y3tKdEAP1eVkeozAOg4GTPZ2RWQ-ht4BYQAA';
   const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
 
   // ── Init ──────────────────────────────────────────────────
@@ -2192,15 +2191,10 @@ window.deleteCouncilSession = async function(id) {
         'Respond ONLY with valid JSON (no markdown, no code blocks):\n' +
         '{"campaignName":"string","summary":"2-3 sentence strategy","variations":[{"headline":"string max 40 chars","body":"string max 150 chars platform-optimized","cta":"one word action"},{"headline":"string","body":"string","cta":"string"},{"headline":"string","body":"string","cta":"string"}],"audience":{"targeting":"string","interests":["str","str","str","str","str"],"behaviors":"string","lookalike":"string"},"budget":{"dailySpend":"' + actualDailyBudget + '","totalEstimate":"' + totalBudget + '","splitRecommendation":"string","bestTimes":"string","expectedResults":"string"},"strategy":"string one key platform-specific optimization tip"}';
 
-      var response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CLAUDE_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-calls': 'true'
-        },
-        body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
+      var response = await apiFetch('/api/ads/generate-campaign', 'POST', {
+        prompt: prompt,
+        model: CLAUDE_MODEL,
+        max_tokens: 1200
       });
 
       if (!response.ok) throw new Error('AI request failed: ' + response.status);

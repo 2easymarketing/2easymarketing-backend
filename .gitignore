@@ -1,2 +1,25 @@
-.vercel
+# Local/environment files
+.env
+.env.*
+!.env.example
 .env.railway
+.vercel
+
+# Python/runtime
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local databases and generated state
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+media/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

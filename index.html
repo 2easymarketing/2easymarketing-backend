@@ -804,7 +804,7 @@
             message:  (document.getElementById('cf-message')||document.getElementById('message')||{value:''}).value.trim(),
           };
           try {
-            const API = 'https://web-production-f0dfa2.up.railway.app';
+            const API = (window.__2EM_API_BASE__ || localStorage.getItem('2em_api_base') || '').replace(/\/$/, '');
             const res = await fetch(API + '/api/contact', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
             const data = await res.json();
             if (res.ok) {
@@ -1712,6 +1712,7 @@
       <div id="modal-body"></div>
     </div>
   </div>
+  <script src="config.js" defer></script>
   <script src="script.js" defer></script>
   <script src="chat.js" defer></script>
   <script src="premium-effects.js" defer></script>
@@ -1726,7 +1727,7 @@
     "description": "AI-powered digital marketing agency. Strategy, SEO, social media, ads and content — all handled by AI, reviewed by humans.",
     "url": "https://2easymarketing.net",
     "telephone": "+1-401-555-0100",
-    "email": "dev@2easymarketing.net",
+    "email": "2easymarketing@gmail.com",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Pawtucket",

@@ -15,6 +15,8 @@ from typing import Any, Optional
 
 import httpx
 
+from external_search_utils import json_bearer_headers
+
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 
@@ -214,10 +216,7 @@ async def _call_openai(role_prompt: str, task_prompt: str, api_key: str) -> str:
     if not api_key:
         return "[OpenAI unavailable: no API key configured]"
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
+    headers = json_bearer_headers(api_key)
 
     try:
         async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_SECONDS) as http:

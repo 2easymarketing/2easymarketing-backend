@@ -42,7 +42,7 @@ RATE_LIMIT_AUTH   = 10                  # login attempts per window per IP
 RATE_LIMIT_API    = 300                 # API calls per window per IP
 RATE_LIMIT_GLOBAL = 5000               # global requests per window
 
-OWNER_SECRET_KEY  = os.getenv("OWNER_SECRET_KEY", "2em_fortress_2026")
+OWNER_SECRET_KEY  = os.getenv("OWNER_SECRET_KEY", "")
 
 # ─── Thread-safe in-memory stores ────────────────────────────────────────────
 
@@ -873,7 +873,7 @@ class FortressMiddleware(BaseHTTPMiddleware):
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: https:; "
-            "connect-src 'self' https://web-production-f0dfa2.up.railway.app; "
+            "connect-src 'self' https://*.up.railway.app https://*.railway.app; "
             "frame-ancestors 'none';"
         )
         # Remove server fingerprint headers
