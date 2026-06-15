@@ -2647,49 +2647,7 @@ async def council_session(request: Request, session: dict = Depends(require_owne
     return result
 
 
-# ── POST /api/council/quick — fast single-question council ───────────────────
-@app.post("/api/council/quick")
-async def council_quick(request: Request, session: dict = Depends(require_owner)):
-    """
-    Quick council: pose a single question, get fast 3-model + synthesis answer.
-    Body: { question }
-    """
-    body     = await request.json()
-    question = body.get("question", "").strip()
 
-    if not question:
-        raise HTTPException(status_code=400, detail="question is required")
-
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    openai_key    = os.environ.get("OPENAI_API_KEY", "")
-    gemini_key    = os.environ.get("GEMINI_API_KEY", "")
-
-    result = await quick_council(
-        question=question,
-        anthropic_key=anthropic_key,
-        openai_key=openai_key,
-        gemini_key=gemini_key,
-    )
-
-    # Persist as quick session
-    with db_conn() as conn:
-        conn.execute(
-            """INSERT INTO council_sessions
-               (session_id, task_type, brief, context, responses, verdict, mode)
-               VALUES (?,?,?,?,?,?,?)""",
-            (
-                result.get("session_id", hashlib.md5(question.encode()).hexdigest()[:12]),
-                "quick",
-                question,
-                "{}",
-                json.dumps(result["responses"]),
-                json.dumps(result["verdict"]),
-                "quick",
-            ),
-        )
-        conn.commit()
-
-    return result
 
 
 # ── DELETE /api/council/sessions/{id} — delete a session ────────────────────
