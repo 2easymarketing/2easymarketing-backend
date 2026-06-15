@@ -1235,7 +1235,7 @@ function loadChannelHub() {
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
       ${channels.map(c => `
-        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;display:flex;align-items:center;gap:1rem;transition:border-color .2s;cursor:pointer" 
+        <div data-channel="${c.name}" onclick="showChannelSetup(this.dataset.channel)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;display:flex;align-items:center;gap:1rem;transition:border-color .2s;cursor:pointer" 
              onmouseover="this.style.borderColor='${c.color}44'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
           <div style="width:44px;height:44px;border-radius:10px;background:${c.color}22;border:1px solid ${c.color}44;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:${c.color};flex-shrink:0">${c.icon}</div>
           <div style="flex:1;min-width:0">
@@ -1268,6 +1268,35 @@ function loadChannelHub() {
     </div>
   `;
 }
+
+
+function showChannelSetup(channel) {
+  const key = String(channel || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const setupMap = {
+    'youtube': 'Google Cloud Console: add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway.',
+    'youtube-shorts': 'Uses the same Google/YouTube OAuth setup as YouTube.',
+    'tiktok': 'TikTok for Developers: add TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET in Railway.',
+    'instagram': 'Meta for Developers: add META_APP_ID and META_APP_SECRET in Railway.',
+    'facebook': 'Meta for Developers: uses Facebook Login/Page permissions with META_APP_ID and META_APP_SECRET.',
+    'linkedin': 'LinkedIn Developers: add LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET in Railway.',
+    'twitter-x': 'X Developer Portal: add X_CLIENT_ID and X_CLIENT_SECRET in Railway.',
+    'pinterest': 'Pinterest Developers: add PINTEREST_APP_ID and PINTEREST_APP_SECRET in Railway.',
+    'google-ads': 'Google Cloud + Google Ads API: add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and Google Ads developer token.',
+    'twitch': 'Twitch Developer Console: add TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in Railway.',
+    'discord': 'Discord Developer Portal: add DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in Railway.',
+    'sms-text': 'Twilio: add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER in Railway.',
+    'email': 'Email is marked active. For production email sending, add SMTP/SENDGRID/MAILGUN settings in Railway.'
+  };
+
+  const message = setupMap[key] || 'This channel needs OAuth/API credentials configured in Railway before it can connect.';
+
+  alert(
+    channel + ' connection setup required.\n\n' +
+    message + '\n\n' +
+    'This button is now working as a setup guide. Live OAuth connection will activate after the platform developer credentials are added.'
+  );
+}
+
 
 // ─── CONTENT CALENDAR ────────────────────────────────────────────
 function loadContentCalendar() {

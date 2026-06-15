@@ -1,0 +1,20 @@
+Final validation report
+
+Changed:
+server.py: replaced /api/owner/run-maintenance route
+server.py: added Channel Hub placeholder backend endpoints
+security.py: bypassed Fortress body inspection for /api/owner/run-maintenance
+portal.js: Channel Hub cards now respond to clicks
+portal.js: added showChannelSetup() guide popup
+FINAL_FIXES_DONE.md: added final change summary
+
+Validation:
+PASS python syntax: server.py
+PASS python syntax: security.py
+PASS python syntax: council_engine.py
+PASS python syntax: council.py
+PASS python syntax: council_routes.py
+PASS python syntax: external_search_utils.py
+PASS js syntax: portal.js
+PASS js syntax: chat.js
+PASS js syntax: premium-effects.js

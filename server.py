@@ -893,6 +893,60 @@ async def refresh_competitors():
     return {"status": "refreshed", "data_length": len(data)}
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  CHANNEL HUB PLACEHOLDER ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+CHANNEL_SETUP_GUIDE = {
+    "youtube": "Create OAuth credentials in Google Cloud Console and add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway.",
+    "youtube-shorts": "Uses the same Google/YouTube OAuth connection as YouTube.",
+    "tiktok": "Create a TikTok developer app and add TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET in Railway.",
+    "instagram": "Create a Meta developer app and add META_APP_ID and META_APP_SECRET in Railway.",
+    "facebook": "Uses the same Meta developer app as Instagram/Facebook Pages.",
+    "linkedin": "Create a LinkedIn developer app and add LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET in Railway.",
+    "twitter-x": "Create an X developer app and add X_CLIENT_ID and X_CLIENT_SECRET in Railway.",
+    "pinterest": "Create a Pinterest developer app and add PINTEREST_APP_ID and PINTEREST_APP_SECRET in Railway.",
+    "google-ads": "Create Google Cloud OAuth credentials and add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and Google Ads developer token in Railway.",
+    "twitch": "Create a Twitch developer app and add TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in Railway.",
+    "discord": "Create a Discord developer app and add DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in Railway.",
+    "sms-text": "Create a Twilio account and add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER in Railway.",
+    "email": "Email is enabled for portal messages. For production sending, add SMTP/SENDGRID/MAILGUN settings in Railway."
+}
+
+def _channel_slug(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+@app.get("/api/channels/status")
+async def channel_status(session: dict = Depends(require_auth)):
+    """Return Channel Hub connection status. OAuth integrations are setup-required until credentials are added."""
+    return {
+        "status": "ok",
+        "channels": {
+            key: {
+                "connected": key == "email",
+                "status": "active" if key == "email" else "setup_required",
+                "setup": value
+            }
+            for key, value in CHANNEL_SETUP_GUIDE.items()
+        }
+    }
+
+@app.post("/api/channels/connect/{channel}")
+async def channel_connect(channel: str, session: dict = Depends(require_auth)):
+    """Safe placeholder for channel connect buttons until real OAuth apps are configured."""
+    slug = _channel_slug(channel)
+    setup = CHANNEL_SETUP_GUIDE.get(slug, "This channel needs OAuth/API credentials configured in Railway before it can connect.")
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "setup_required",
+            "channel": channel,
+            "message": f"{channel} connection setup is required before live OAuth can run.",
+            "setup": setup
+        }
+    )
+
+
 # /api/health is defined in the Self-Maintenance Engine section below
 
 
@@ -2226,21 +2280,44 @@ async def system_health(session: dict = Depends(require_owner)):
 
 
 @app.post("/api/owner/run-maintenance")
-async def run_maintenance_now(session: dict = Depends(require_owner)):
-    """Trigger an immediate maintenance cycle."""
+async def run_maintenance_now(request: Request, session: dict = Depends(require_owner)):
+    """
+    Trigger an immediate maintenance cycle.
+
+    Fix:
+    - The browser can send an empty POST body.
+    - Starlette/FastAPI can throw "Unexpected message received: http.request"
+      if middleware has inspected the body and this endpoint returns before
+      the request body is fully consumed.
+    - Consuming the body here plus bypassing Fortress body inspection for this
+      endpoint prevents the noisy ASGI exception while keeping owner auth.
+    """
     try:
+        try:
+            await request.body()
+        except Exception:
+            pass
+
         report = await _run_maintenance_cycle()
-        return {
-            "status": "ok",
-            "message": "Maintenance cycle completed successfully.",
-            "report": report or {}
-        }
+
+        return JSONResponse(
+            content={
+                "status": "ok",
+                "message": "Maintenance cycle completed successfully.",
+                "report": report or {}
+            }
+        )
+
     except Exception as e:
         import traceback as _tb
         print(f"[Maintenance] Endpoint error: {e}\n{_tb.format_exc()}")
+
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": str(e)}
+            content={
+                "status": "error",
+                "message": str(e)
+            }
         )
 
 

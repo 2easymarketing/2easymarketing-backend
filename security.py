@@ -724,7 +724,7 @@ class FortressMiddleware(BaseHTTPMiddleware):
     # Auth endpoints bypass body inspection (body replay across middleware is
     # not reliable across all Starlette/FastAPI versions — auth is protected
     # by rate-limiting and brute-force blocking instead)
-    BYPASS_PREFIXES = ("/static/", "/_next/", "/assets/", "/api/auth/", "/api/chat")
+    BYPASS_PREFIXES = ("/static/", "/_next/", "/assets/", "/api/auth/", "/api/chat", "/api/owner/run-maintenance")
 
     async def dispatch(self, request: Request, call_next):
         # Skip security for internal health checks and static assets
