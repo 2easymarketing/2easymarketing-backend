@@ -16,6 +16,7 @@ import re
 # ─── LLM COUNCIL ENGINE ─────────────────────────────────────────────────────
 from council import run_council_session, quick_council, get_council_roster, COUNCIL_MODELS
 from council_routes import router as council_router
+from external_search_utils import json_bearer_headers
 
 # ─── FORTRESS SECURITY ENGINE ────────────────────────────────────────────────
 from security import (
@@ -235,19 +236,35 @@ async def fetch_competitor_pricing() -> str:
     now = time.time()
     if _competitor_cache["data"] and (now - _competitor_cache["timestamp"]) < CACHE_TTL:
         return _competitor_cache["data"]
+
     api_key = os.environ.get("PPLX_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+    headers = json_bearer_headers(api_key)
+
+    fallback_data = """
+MARKET DATA: Budget agencies $300–$800/mo | Boutique $800–$2,000/mo |
+Mid-tier $2,000–$5,000/mo | Large $5,000–$15,000+/mo |
+RI local $500–$3,000/mo | Most charge $500–$2,000 setup fees + 6–12mo contracts.
+"""
+
+    if not headers:
+        print("Competitor search skipped: missing PPLX_API_KEY or OPENAI_API_KEY")
+        _competitor_cache["data"] = fallback_data
+        _competitor_cache["timestamp"] = now
+        return fallback_data
+
     queries = [
         "digital marketing agency pricing packages 2026 per month",
         "SEO agency monthly retainer cost 2026",
         "Rhode Island digital marketing agency pricing",
     ]
     results_text = []
+
     async with httpx.AsyncClient(timeout=15.0) as http:
         for query in queries:
             try:
                 resp = await http.post(
                     "https://api.perplexity.ai/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    headers=headers,
                     json={
                         "model": "sonar",
                         "messages": [{"role": "user", "content": f"Search: {query}. Return concise pricing ranges with dollar amounts."}],
@@ -256,13 +273,12 @@ async def fetch_competitor_pricing() -> str:
                 )
                 if resp.status_code == 200:
                     results_text.append(resp.json()["choices"][0]["message"]["content"])
+                else:
+                    print(f"Competitor search returned {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 print(f"Competitor search error: {e}")
-    data = "\n\n---\n\n".join(results_text) if results_text else """
-MARKET DATA: Budget agencies $300–$800/mo | Boutique $800–$2,000/mo |
-Mid-tier $2,000–$5,000/mo | Large $5,000–$15,000+/mo |
-RI local $500–$3,000/mo | Most charge $500–$2,000 setup fees + 6–12mo contracts.
-"""
+
+    data = "\n\n---\n\n".join(results_text) if results_text else fallback_data
     _competitor_cache["data"] = data
     _competitor_cache["timestamp"] = now
     return data
@@ -1052,6 +1068,12 @@ async def run_competitor_monitor():
     """Check competitor pricing, detect changes, and alert owner if significant shift."""
     print("🔎 [AUTONOMOUS] Running competitor monitor...")
     api_key = os.environ.get("PPLX_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+    headers = json_bearer_headers(api_key)
+
+    if not headers:
+        print("  ⚠️  Competitor monitor skipped: missing PPLX_API_KEY or OPENAI_API_KEY")
+        return
+
     queries = [
         "digital marketing agency pricing 2026 monthly retainer rates",
         "SEO agency cost per month small business 2026",
@@ -1064,7 +1086,7 @@ async def run_competitor_monitor():
             try:
                 resp = await http.post(
                     "https://api.perplexity.ai/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    headers=headers,
                     json={
                         "model": "sonar",
                         "messages": [{"role": "user", "content": f"{q}. List specific dollar amounts, agency names, and plan tiers found online."}],
@@ -1073,6 +1095,8 @@ async def run_competitor_monitor():
                 )
                 if resp.status_code == 200:
                     fresh_parts.append(resp.json()["choices"][0]["message"]["content"])
+                else:
+                    print(f"  Competitor query returned {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 print(f"  Competitor query error: {e}")
 
@@ -1136,33 +1160,42 @@ Be concise and actionable."""}]
     print("✅ [AUTONOMOUS] Competitor monitor — CHANGE DETECTED, alert saved.")
 
 
+
 # ─── ENGINE 4: OPPORTUNITY SPOTTER ───────────────────────────────────────────
 async def run_opportunity_spotter():
     """Detect marketing trends, content gaps, and timing opportunities."""
     print("💡 [AUTONOMOUS] Running opportunity spotter...")
     api_key = os.environ.get("PPLX_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+    headers = json_bearer_headers(api_key)
+
     queries = [
         "digital marketing trends small business opportunities 2026 latest",
         "Rhode Island small business marketing opportunities Providence Pawtucket 2026",
         f"marketing campaign ideas {datetime.utcnow().strftime('%B %Y')} small business trending",
     ]
     trend_data = []
-    async with httpx.AsyncClient(timeout=20.0) as http:
-        for q in queries:
-            try:
-                resp = await http.post(
-                    "https://api.perplexity.ai/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": "sonar",
-                        "messages": [{"role": "user", "content": q}],
-                        "max_tokens": 350,
-                    }
-                )
-                if resp.status_code == 200:
-                    trend_data.append(resp.json()["choices"][0]["message"]["content"])
-            except Exception as e:
-                print(f"  Trend query error: {e}")
+
+    if not headers:
+        print("  ⚠️  Trend queries skipped: missing PPLX_API_KEY or OPENAI_API_KEY")
+    else:
+        async with httpx.AsyncClient(timeout=20.0) as http:
+            for q in queries:
+                try:
+                    resp = await http.post(
+                        "https://api.perplexity.ai/chat/completions",
+                        headers=headers,
+                        json={
+                            "model": "sonar",
+                            "messages": [{"role": "user", "content": q}],
+                            "max_tokens": 350,
+                        }
+                    )
+                    if resp.status_code == 200:
+                        trend_data.append(resp.json()["choices"][0]["message"]["content"])
+                    else:
+                        print(f"  Trend query returned {resp.status_code}: {resp.text[:200]}")
+                except Exception as e:
+                    print(f"  Trend query error: {e}")
 
     if not trend_data:
         trend_data = ["No live trend data — using baseline intelligence."]
@@ -1203,6 +1236,7 @@ Include: seasonal hooks, trending content formats, local RI events/angles, and a
         opp_content
     )
     print("✅ [AUTONOMOUS] Opportunity spotter complete.")
+
 
 
 # ─── AUTONOMOUS SCHEDULER ─────────────────────────────────────────────────────
