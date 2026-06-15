@@ -15,6 +15,7 @@ import re
 
 # ─── LLM COUNCIL ENGINE ─────────────────────────────────────────────────────
 from council import run_council_session, quick_council, get_council_roster, COUNCIL_MODELS
+from council_routes import router as council_router
 
 # ─── FORTRESS SECURITY ENGINE ────────────────────────────────────────────────
 from security import (
@@ -25,6 +26,8 @@ from security import (
 )
 
 app = FastAPI()
+
+app.include_router(council_router)
 
 # CORS must come BEFORE Fortress so preflight OPTIONS bypass security
 app.add_middleware(
