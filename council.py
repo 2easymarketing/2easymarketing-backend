@@ -34,9 +34,9 @@ COUNCIL_MODELS = {
 }
 
 COUNCIL_ROLES = {
-    "claude":  "You are the Creative Strategist on the 2EasyMarketing AI Council. Your specialty is brand voice, storytelling, emotional resonance, and creative direction. You think in narratives and human psychology.",
-    "gpt4o":   "You are the Data Analyst on the 2EasyMarketing AI Council. Your specialty is competitive intelligence, performance benchmarking, structured frameworks, and ROI-driven decisions. You think in numbers and systems.",
-    "gemini":  "You are the Growth Hacker on the 2EasyMarketing AI Council. Your specialty is viral mechanics, platform algorithm exploitation, rapid A/B testing, and unconventional growth tactics. You think in experiments and velocity.",
+    "claude": "You are the Creative Strategist on the 2EasyMarketing AI Council. Your specialty is brand voice, storytelling, emotional resonance, and creative direction. You think in narratives and human psychology.",
+    "gpt4o": "You are the Data Analyst on the 2EasyMarketing AI Council. Your specialty is competitive intelligence, performance benchmarking, structured frameworks, and ROI-driven decisions. You think in numbers and systems.",
+    "gemini": "You are the Growth Hacker on the 2EasyMarketing AI Council. Your specialty is viral mechanics, platform algorithm exploitation, rapid A/B testing, and unconventional growth tactics. You think in experiments and velocity.",
 }
 
 SYNTHESIZER_PROMPT = """You are Maya — the Chief AI Strategist of 2EasyMarketing and chair of the LLM Council.
@@ -48,17 +48,17 @@ Your job is to:
 4. Rate each model's contribution (1-10) with a one-line reason
 
 Return ONLY valid JSON with this exact structure:
-{
-  "verdict": "Full unified recommendation (2-5 paragraphs, ready to execute)",
-  "key_actions": ["Action 1", "Action 2", "Action 3", "Action 4", "Action 5"],
-  "scores": {
-    "claude": {"score": 8, "reason": "Strong brand voice but lacked data"},
-    "gpt4o": {"score": 9, "reason": "Solid framework and metrics"},
-    "gemini": {"score": 7, "reason": "Creative tactics, execution gaps"}
-  },
-  "winning_insight": "The single most valuable idea from the entire council session",
-  "confidence": 87
-}"""
+
+"verdict": "Full unified recommendation (2-5 paragraphs, ready to execute)",
+"key_actions": ["Action 1", "Action 2", "Action 3", "Action 4", "Action 5"],
+"scores": {
+"claude": {"score": 8, "reason": "Strong brand voice but lacked data"},
+"gpt4o": {"score": 9, "reason": "Solid framework and metrics"},
+"gemini": {"score": 7, "reason": "Creative tactics, execution gaps"}
+},
+"winning_insight": "The single most valuable idea from the entire council session",
+"confidence": 87
+"""
 
 # ─── MODEL CALLERS ────────────────────────────────────────────────────────────
 
@@ -76,7 +76,6 @@ async def _call_claude(role_prompt: str, task_prompt: str, api_key: str) -> str:
         return resp.content[0].text
     except Exception as e:
         return f"[Claude unavailable: {e}]"
-
 
 async def _call_gpt4o(role_prompt: str, task_prompt: str, api_key: str) -> str:
     """Call GPT-4o via OpenAI REST API."""
@@ -96,12 +95,11 @@ async def _call_gpt4o(role_prompt: str, task_prompt: str, api_key: str) -> str:
                     ],
                 },
             )
-            if resp.status_code == 200:
-                return resp.json()["choices"][0]["message"]["content"]
-            return f"[GPT-4o error {resp.status_code}: {resp.text[:200]}]"
+        if resp.status_code == 200:
+            return resp.json()["choices"][0]["message"]["content"]
+        return f"[GPT-4o error {resp.status_code}: {resp.text[:200]}]"
     except Exception as e:
         return f"[GPT-4o unavailable: {e}]"
-
 
 async def _call_gemini(role_prompt: str, task_prompt: str, api_key: str) -> str:
     """Call Gemini Pro via Google REST API."""
@@ -118,13 +116,12 @@ async def _call_gemini(role_prompt: str, task_prompt: str, api_key: str) -> str:
                     "generationConfig": {"maxOutputTokens": 1500},
                 },
             )
-            if resp.status_code == 200:
-                data = resp.json()
-                return data["candidates"][0]["content"]["parts"][0]["text"]
-            return f"[Gemini error {resp.status_code}: {resp.text[:200]}]"
+        if resp.status_code == 200:
+            data = resp.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        return f"[Gemini error {resp.status_code}: {resp.text[:200]}]"
     except Exception as e:
         return f"[Gemini unavailable: {e}]"
-
 
 async def _synthesize_with_claude(responses: dict, brief: str, api_key: str) -> dict:
     """Maya synthesizes the 3 model responses into a unified council verdict."""
@@ -161,7 +158,6 @@ Synthesize the above into a COUNCIL VERDICT. Return only valid JSON."""
             messages=[{"role": "user", "content": council_input}],
         )
         raw = resp.content[0].text.strip()
-        # Extract JSON if wrapped in markdown
         if "```" in raw:
             raw = raw.split("```")[1]
             if raw.startswith("json"):
@@ -169,7 +165,7 @@ Synthesize the above into a COUNCIL VERDICT. Return only valid JSON."""
         return json.loads(raw)
     except json.JSONDecodeError as e:
         return {
-            "verdict": raw if "raw" in dir() else "Synthesis failed — JSON parse error",
+            "verdict": raw if "raw" in locals() else "Synthesis failed — JSON parse error",
             "key_actions": [],
             "scores": {},
             "winning_insight": "",
@@ -185,7 +181,6 @@ Synthesize the above into a COUNCIL VERDICT. Return only valid JSON."""
             "confidence": 0,
             "error": str(e),
         }
-
 
 # ─── MAIN COUNCIL SESSION ─────────────────────────────────────────────────────
 
@@ -223,35 +218,34 @@ Additional context:
 Based on your specialized role and expertise, provide your BEST recommendation.
 Be specific, actionable, and bold. This is a council deliberation — compete to give the strongest answer."""
 
-    # Run all 3 models in parallel
-    claude_task  = _call_claude(COUNCIL_ROLES["claude"],  task_prompt, anthropic_key)
-    gpt4o_task   = _call_gpt4o(COUNCIL_ROLES["gpt4o"],   task_prompt, openai_key)
-    gemini_task  = _call_gemini(COUNCIL_ROLES["gemini"], task_prompt, gemini_key)
-
+    # FIX: return_exceptions=True prevents one failed model from crashing the worker
     claude_resp, gpt4o_resp, gemini_resp = await asyncio.gather(
-        claude_task, gpt4o_task, gemini_task
+        _call_claude(COUNCIL_ROLES["claude"], task_prompt, anthropic_key),
+        _call_gpt4o(COUNCIL_ROLES["gpt4o"], task_prompt, openai_key),
+        _call_gemini(COUNCIL_ROLES["gemini"], task_prompt, gemini_key),
+        return_exceptions=True,
     )
 
+    def safe(r): return f"[Error: {r}]" if isinstance(r, Exception) else r
+
     responses = {
-        "claude": claude_resp,
-        "gpt4o":  gpt4o_resp,
-        "gemini": gemini_resp,
+        "claude": safe(claude_resp),
+        "gpt4o": safe(gpt4o_resp),
+        "gemini": safe(gemini_resp),
     }
 
-    # Synthesize
     verdict = await _synthesize_with_claude(responses, brief, anthropic_key)
 
     return {
-        "session_id":   session_id,
-        "started_at":   started_at,
+        "session_id": session_id,
+        "started_at": started_at,
         "completed_at": datetime.utcnow().isoformat(),
-        "brief":        brief,
-        "context":      context,
-        "responses":    responses,
-        "verdict":      verdict,
-        "models_used":  list(COUNCIL_MODELS.keys()),
+        "brief": brief,
+        "context": context,
+        "responses": responses,
+        "verdict": verdict,
+        "models_used": list(COUNCIL_MODELS.keys()),
     }
-
 
 # ─── QUICK COUNCIL (single-question, fast mode) ───────────────────────────────
 
@@ -273,24 +267,30 @@ async def quick_council(
 
 Answer from your specialized perspective in 3-5 sentences. Be direct and actionable."""
 
-    claude_task  = _call_claude(quick_role(COUNCIL_ROLES["claude"]),  task_prompt, anthropic_key)
-    gpt4o_task   = _call_gpt4o(quick_role(COUNCIL_ROLES["gpt4o"]),   task_prompt, openai_key)
-    gemini_task  = _call_gemini(quick_role(COUNCIL_ROLES["gemini"]), task_prompt, gemini_key)
-
+    # FIX: return_exceptions=True here too
     claude_resp, gpt4o_resp, gemini_resp = await asyncio.gather(
-        claude_task, gpt4o_task, gemini_task
+        _call_claude(quick_role(COUNCIL_ROLES["claude"]), task_prompt, anthropic_key),
+        _call_gpt4o(quick_role(COUNCIL_ROLES["gpt4o"]), task_prompt, openai_key),
+        _call_gemini(quick_role(COUNCIL_ROLES["gemini"]), task_prompt, gemini_key),
+        return_exceptions=True,
     )
 
-    responses = {"claude": claude_resp, "gpt4o": gpt4o_resp, "gemini": gemini_resp}
-    verdict   = await _synthesize_with_claude(responses, question, anthropic_key)
+    def safe(r): return f"[Error: {r}]" if isinstance(r, Exception) else r
 
-    return {
-        "question":  question,
-        "responses": responses,
-        "verdict":   verdict,
-        "mode":      "quick",
+    responses = {
+        "claude": safe(claude_resp),
+        "gpt4o": safe(gpt4o_resp),
+        "gemini": safe(gemini_resp),
     }
 
+    verdict = await _synthesize_with_claude(responses, question, anthropic_key)
+
+    return {
+        "question": question,
+        "responses": responses,
+        "verdict": verdict,
+        "mode": "quick",
+    }
 
 # ─── COUNCIL MODEL INFO ───────────────────────────────────────────────────────
 
