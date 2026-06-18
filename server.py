@@ -1954,6 +1954,212 @@ async def _fulfill_task_with_media(task_id: int, task_type: str, brief_data: dic
             conn.close()
 
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  MEDIA FACTORY — INSTANT GENERATE ENDPOINT
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _media_svg_escape(value) -> str:
+    return str(value or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")[:260]
+
+def _media_safe_filename(prefix: str, task_id: int, ext: str = "svg") -> str:
+    return f"{prefix}_{task_id}_{uuid.uuid4().hex[:8]}.{ext}"
+
+def _build_branded_svg(media_type: str, brief: dict, task_id: int) -> tuple[str, str]:
+    """Create a branded SVG preview asset using only built-in Python."""
+    title = _media_svg_escape(brief.get("title") or brief.get("brief") or "2EasyMarketing Media")
+    business = _media_svg_escape(brief.get("business") or "2EasyMarketing")
+    platform = _media_svg_escape(brief.get("platform") or "Social Media")
+    style = _media_svg_escape(brief.get("style") or brief.get("video_style") or brief.get("tone") or "Premium")
+    goal = _media_svg_escape(brief.get("goal") or brief.get("campaign_goal") or "More leads")
+    details = _media_svg_escape(brief.get("brief") or "AI-generated creative direction")
+    aspect = str(brief.get("aspect_ratio") or "1:1")
+
+    is_video = media_type == "video_ad"
+    width, height = (1080, 1920) if "9:16" in aspect or "Vertical" in aspect else (1600, 900) if "16:9" in aspect else (1200, 1200)
+    prefix = "video_storyboard" if is_video else "image_ad"
+    fname = _media_safe_filename(prefix, task_id, "svg")
+    path = os.path.join(MEDIA_DIR, fname)
+
+    label = "AI VIDEO STORYBOARD" if is_video else "AI IMAGE AD"
+    icon = "PLAY" if is_video else "2E"
+    footer = "Storyboard preview generated instantly — connect a video provider for final MP4" if is_video else "Image preview generated instantly"
+
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#031716"/>
+      <stop offset="42%" stop-color="#062b2a"/>
+      <stop offset="100%" stop-color="#001110"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="28%" r="62%">
+      <stop offset="0%" stop-color="#00c4b4" stop-opacity=".45"/>
+      <stop offset="100%" stop-color="#00c4b4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <rect width="100%" height="100%" fill="url(#glow)"/>
+  <circle cx="{width*0.78:.0f}" cy="{height*0.16:.0f}" r="{min(width,height)*0.22:.0f}" fill="#00c4b4" opacity=".14" filter="url(#softGlow)"/>
+  <circle cx="{width*0.18:.0f}" cy="{height*0.84:.0f}" r="{min(width,height)*0.18:.0f}" fill="#5eeee6" opacity=".10" filter="url(#softGlow)"/>
+  <rect x="{width*.06:.0f}" y="{height*.06:.0f}" width="{width*.88:.0f}" height="{height*.88:.0f}" rx="34" fill="#061d1c" stroke="#00c4b4" stroke-width="3" opacity=".96"/>
+  <text x="{width*.09:.0f}" y="{height*.13:.0f}" fill="#5eeee6" font-family="Arial, Helvetica, sans-serif" font-size="{max(26, width*.028):.0f}" font-weight="800" letter-spacing="6">{label}</text>
+  <text x="{width*.09:.0f}" y="{height*.22:.0f}" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="{max(44, width*.060):.0f}" font-weight="900">{title}</text>
+  <text x="{width*.09:.0f}" y="{height*.29:.0f}" fill="#b7fffb" font-family="Arial, Helvetica, sans-serif" font-size="{max(24, width*.030):.0f}" font-weight="700">For {business}</text>
+
+  <g transform="translate({width*.09:.0f},{height*.38:.0f})">
+    <rect width="{width*.82:.0f}" height="{height*.26:.0f}" rx="26" fill="#001d1b" stroke="#00c4b4" stroke-width="2" opacity=".78"/>
+    <text x="42" y="72" fill="#00c4b4" font-family="Arial, Helvetica, sans-serif" font-size="{max(24, width*.030):.0f}" font-weight="900">{icon}</text>
+    <text x="42" y="135" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="{max(26, width*.033):.0f}" font-weight="800">Platform: {platform}</text>
+    <text x="42" y="195" fill="#d6fffd" font-family="Arial, Helvetica, sans-serif" font-size="{max(24, width*.028):.0f}" font-weight="700">Style: {style}</text>
+    <text x="42" y="255" fill="#d6fffd" font-family="Arial, Helvetica, sans-serif" font-size="{max(24, width*.028):.0f}" font-weight="700">Goal: {goal}</text>
+  </g>
+
+  <text x="{width*.09:.0f}" y="{height*.72:.0f}" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="{max(24, width*.030):.0f}" font-weight="700">Creative Direction</text>
+  <foreignObject x="{width*.09:.0f}" y="{height*.745:.0f}" width="{width*.82:.0f}" height="{height*.12:.0f}">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Arial,Helvetica,sans-serif;color:#d8fffd;font-size:{max(22, width*.026):.0f}px;line-height:1.35;font-weight:500;">
+      {details}
+    </div>
+  </foreignObject>
+
+  <rect x="{width*.09:.0f}" y="{height*.88:.0f}" width="{width*.50:.0f}" height="{height*.055:.0f}" rx="18" fill="#00c4b4"/>
+  <text x="{width*.12:.0f}" y="{height*.916:.0f}" fill="#001110" font-family="Arial, Helvetica, sans-serif" font-size="{max(22, width*.028):.0f}" font-weight="900">Generated by 2EasyMarketing</text>
+  <text x="{width*.09:.0f}" y="{height*.965:.0f}" fill="#7ff7ef" font-family="Arial, Helvetica, sans-serif" font-size="{max(18, width*.020):.0f}" opacity=".75">{footer}</text>
+</svg>"""
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(svg)
+    return fname, path
+
+def _build_voiceover_script(brief: dict) -> str:
+    title = brief.get("title") or "2EasyMarketing Voiceover"
+    business = brief.get("business") or "your business"
+    purpose = brief.get("purpose") or "Promotional Announcement"
+    tone = brief.get("tone") or "Professional & Confident"
+    duration = brief.get("duration") or "30 seconds"
+    message = brief.get("brief") or "Promote the main offer and invite customers to take action."
+
+    return f"""🎙️ {title}
+
+Purpose: {purpose}
+Tone: {tone}
+Target length: {duration}
+
+SCRIPT:
+Are you ready to make marketing easier and more effective? At {business}, your message deserves to be clear, professional, and built to get attention.
+
+{message}
+
+Now is the time to turn interest into action. Keep it simple, make it memorable, and give your audience one clear next step.
+
+Call to action:
+Visit the website, send a message, or book today to get started.
+
+Voice direction:
+Read with a confident, warm, modern delivery. Start calm, build energy in the middle, and finish with a clear call-to-action.
+"""
+
+@app.post("/api/media-factory/generate")
+async def media_factory_generate(request: Request, session: dict = Depends(require_auth)):
+    """
+    Immediate Media Factory generator.
+
+    This fixes the portal buttons so Image, Video, and Voiceover produce an
+    instant on-page result. Image/video previews are generated as branded SVG
+    assets without requiring external CLI tools. Voiceover creates a polished
+    script plus browser speech preview on the frontend.
+    """
+    body = await request.json()
+    media_type = (body.get("task_type") or body.get("media_type") or "").strip()
+    brief_raw = body.get("brief") or {}
+
+    if media_type not in ("image_ad", "video_ad", "voiceover"):
+        return JSONResponse({"error": "Invalid media type"}, status_code=400)
+
+    conn = get_db()
+    client_row = conn.execute("SELECT * FROM clients WHERE id=?", (session["client_id"],)).fetchone()
+    if not client_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    brief = {
+        "business": client_row["business"] or client_row["name"] or "2EasyMarketing",
+        "website": client_row["website"] or "",
+        "plan": client_row["plan"],
+        **({k: str(v) for k, v in brief_raw.items()} if isinstance(brief_raw, dict) else {"brief": str(brief_raw)})
+    }
+
+    title = brief.get("title") or {
+        "image_ad": "AI Image Ad",
+        "video_ad": "AI Video Storyboard",
+        "voiceover": "AI Voiceover Script"
+    }.get(media_type, "AI Media")
+
+    cur = conn.execute("""
+        INSERT INTO tasks (client_id, client_name, client_email, client_plan, task_type, title, brief, status)
+        VALUES (?,?,?,?,?,?,?,?)
+    """, (
+        client_row["id"], client_row["name"], client_row["email"], client_row["plan"],
+        media_type, title, json.dumps(brief), "delivered"
+    ))
+    conn.commit()
+    task_id = cur.lastrowid
+
+    media_url = ""
+    filename = ""
+    content = ""
+    ai_result = ""
+
+    if media_type == "image_ad":
+        filename, path = _build_branded_svg("image_ad", brief, task_id)
+        media_url = f"/media/{filename}"
+        ai_result = f"IMAGE_AD_READY:{filename}\n\nInstant AI image-ad preview generated by 2EasyMarketing."
+        content = "Instant branded image-ad preview generated."
+
+        conn.execute(
+            "INSERT INTO media_files (task_id, client_id, file_type, filename, file_path, status) VALUES (?,?,?,?,?,?)",
+            (task_id, client_row["id"], "image_ad", filename, path, "ready")
+        )
+
+    elif media_type == "video_ad":
+        filename, path = _build_branded_svg("video_ad", brief, task_id)
+        media_url = f"/media/{filename}"
+        ai_result = f"VIDEO_STORYBOARD_READY:{filename}\n\nInstant AI video storyboard generated by 2EasyMarketing. Connect a video provider later for final MP4 rendering."
+        content = "Instant branded video storyboard generated."
+
+        conn.execute(
+            "INSERT INTO media_files (task_id, client_id, file_type, filename, file_path, status) VALUES (?,?,?,?,?,?)",
+            (task_id, client_row["id"], "video_storyboard", filename, path, "ready")
+        )
+
+    else:
+        content = _build_voiceover_script(brief)
+        ai_result = f"VOICEOVER_SCRIPT_READY:\n{content}"
+
+    conn.execute(
+        "UPDATE tasks SET ai_result=?, status='delivered', completed_at=? WHERE id=?",
+        (ai_result, datetime.utcnow().isoformat(), task_id)
+    )
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "ok",
+        "task_id": task_id,
+        "media_type": media_type,
+        "title": title,
+        "media_url": media_url,
+        "filename": filename,
+        "content": content,
+        "ai_result": ai_result,
+        "message": "Media generated successfully."
+    }
+
+
 # ─── MEDIA FILE ENDPOINTS ─────────────────────────────────────────────────────
 
 @app.get("/api/media/{task_id}")

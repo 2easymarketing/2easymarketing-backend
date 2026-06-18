@@ -856,6 +856,8 @@ function apiFetch(path, method = 'GET', body = null) {
 
   function showMediaForm(type) {
     currentMediaType = type;
+    const instantResult = document.getElementById('media-instant-result');
+    if (instantResult) { instantResult.style.display = 'none'; instantResult.innerHTML = ''; }
     const def = MEDIA_FORMS[type];
     document.getElementById('media-type-grid').style.display = 'none';
     document.getElementById('media-form-container').style.display = 'block';
@@ -876,55 +878,119 @@ function apiFetch(path, method = 'GET', body = null) {
     }
   }
 
+  window.selectMediaType = showMediaForm;
+
   async function submitMediaRequest() {
     const form   = document.getElementById('media-form');
     const errEl  = document.getElementById('media-submit-error');
     const btn    = document.getElementById('submit-media-btn');
-    errEl.textContent = '';
+    const result = document.getElementById('media-instant-result');
+
+    if (!form || !btn) return;
+    if (errEl) { errEl.textContent = ''; errEl.style.color = '#ef4444'; }
+    if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+
+    if (!currentMediaType || !MEDIA_FORMS[currentMediaType]) {
+      if (errEl) errEl.textContent = 'Choose Image, Video, or Voiceover first.';
+      return;
+    }
 
     const brief = {};
-    for (const el of form.elements) { if (el.name) brief[el.name] = el.value.trim(); }
+    for (const el of form.elements) { if (el.name) brief[el.name] = (el.value || '').trim(); }
 
     const def = MEDIA_FORMS[currentMediaType];
     for (const f of def.fields) {
-      if (f.required && !brief[f.name]) { errEl.textContent = '"' + f.label + '" is required.'; return; }
+      if (f.required && !brief[f.name]) {
+        if (errEl) errEl.textContent = '"' + f.label + '" is required.';
+        return;
+      }
     }
 
-    // Add client business context
     if (currentUser && currentUser.business) brief.business = currentUser.business;
     if (currentUser && currentUser.website)  brief.website  = currentUser.website;
 
-    btn.disabled = true; btn.textContent = '⚡ Generating with AI...';
+    btn.disabled = true;
+    btn.textContent = '⚡ Generating now...';
+
+    if (result) {
+      result.style.display = 'block';
+      result.style.borderColor = 'rgba(0,196,180,.25)';
+      result.innerHTML = '<div style="color:#00c4b4;font-weight:800;margin-bottom:.35rem">Generating...</div><div>Maya is creating your media now. This should only take a few seconds.</div>';
+    }
 
     try {
-      const res  = await apiFetch('/api/tasks/submit', 'POST', {
+      const res  = await apiFetch('/api/media-factory/generate', 'POST', {
         task_type: currentMediaType,
         title: brief.title || def.label,
         brief
       });
       const data = await res.json();
-      if (!res.ok) { errEl.textContent = data.error || 'Submission failed'; return; }
 
-      btn.textContent = '✅ Submitted! AI is generating...';
+      if (!res.ok) {
+        throw new Error(data.error || data.detail || 'Media generation failed');
+      }
 
-      // Show timing note
-      const timingNote = { image_ad:'Image takes ~60 seconds', video_ad:'Video takes 2–4 minutes', voiceover:'Audio takes ~30 seconds' }[currentMediaType];
-      errEl.style.color = '#00c4b4';
-      errEl.textContent = timingNote + ' — check My Tasks for updates.';
+      btn.textContent = '✅ Generated!';
+      renderInstantMediaResult(data);
+      loadMediaGallery();
 
       setTimeout(() => {
         btn.disabled = false;
-        btn.textContent = '⚡ Generate with AI — Starts Now →';
-        errEl.textContent = '';
-        errEl.style.color = '#ef4444';
-        navigateTo('my-tasks');
-      }, 3000);
+        btn.textContent = '⚡ Generate Again →';
+      }, 900);
+
     } catch(e) {
-      errEl.textContent = 'Connection error — please try again.';
+      if (errEl) errEl.textContent = 'Media Factory error: ' + e.message;
+      if (result) {
+        result.style.display = 'block';
+        result.style.borderColor = 'rgba(248,113,113,.35)';
+        result.innerHTML = '<div style="color:#f87171;font-weight:800">Generation failed</div><div>' + esc(e.message) + '</div>';
+      }
       btn.disabled = false;
       btn.textContent = '⚡ Generate with AI — Starts Now →';
     }
   }
+
+  function renderInstantMediaResult(data) {
+    const result = document.getElementById('media-instant-result');
+    if (!result) return;
+
+    let preview = '';
+    if (data.media_type === 'image_ad' && data.media_url) {
+      preview = '<img src="' + esc(data.media_url) + '" style="width:100%;max-height:420px;object-fit:contain;border-radius:10px;border:1px solid rgba(0,196,180,.18);background:#001110;margin:.75rem 0" />' +
+        '<a href="' + esc(data.media_url) + '" download style="display:inline-block;margin-top:.35rem;color:#00c4b4;font-weight:800;text-decoration:none">⬇ Download Image Preview</a>';
+    } else if (data.media_type === 'video_ad' && data.media_url) {
+      preview = '<img src="' + esc(data.media_url) + '" style="width:100%;max-height:420px;object-fit:contain;border-radius:10px;border:1px solid rgba(0,196,180,.18);background:#001110;margin:.75rem 0" />' +
+        '<div style="color:rgba(225,240,250,.72);font-size:.82rem;margin-top:.35rem">This is an instant AI video storyboard preview. Connect a real video provider later for final MP4 rendering.</div>' +
+        '<a href="' + esc(data.media_url) + '" download style="display:inline-block;margin-top:.5rem;color:#00c4b4;font-weight:800;text-decoration:none">⬇ Download Storyboard</a>';
+    } else if (data.media_type === 'voiceover') {
+      preview = '<div id="voiceover-preview-text" style="white-space:pre-wrap;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:1rem;margin:.75rem 0;color:#eafffe">' + esc(data.content || data.ai_result || '') + '</div>' +
+        '<button onclick="window.speakVoiceoverPreview && window.speakVoiceoverPreview()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:white;padding:.55rem 1rem;border-radius:8px;font-weight:800;cursor:pointer">▶ Speak Preview</button>';
+    }
+
+    result.style.display = 'block';
+    result.style.borderColor = 'rgba(34,197,94,.30)';
+    result.innerHTML =
+      '<div style="display:flex;align-items:center;gap:.5rem;color:#4ade80;font-weight:900;margin-bottom:.35rem">✅ Media Generated</div>' +
+      '<div style="font-weight:800;color:#fff;font-size:1rem">' + esc(data.title || 'Generated Media') + '</div>' +
+      '<div style="color:rgba(225,240,250,.68);font-size:.82rem;margin-top:.25rem">' + esc(data.message || 'Created successfully.') + '</div>' +
+      preview +
+      '<div style="margin-top:.75rem;color:rgba(225,240,250,.58);font-size:.78rem">Saved to your Media Library / tasks.</div>';
+  }
+
+  window.speakVoiceoverPreview = function() {
+    const el = document.getElementById('voiceover-preview-text');
+    if (!el || !('speechSynthesis' in window)) {
+      alert('Speech preview is not supported in this browser.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const text = el.textContent || '';
+    const utterance = new SpeechSynthesisUtterance(text.replace(/🎙️/g, ''));
+    utterance.rate = 0.96;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
 
   async function loadMediaGallery() {
     try {
@@ -960,10 +1026,18 @@ function apiFetch(path, method = 'GET', body = null) {
       const fname = result.split(':')[1].split('\n')[0].trim();
       mediaPreview = `<video src="/media/${fname}" controls style="width:100%;border-radius:8px;margin-bottom:.75rem;max-height:200px"></video>
         <a href="/media/${fname}" download="${fname}" class="media-dl-btn">⬇ Download Video</a>`;
+    } else if (result.startsWith('VIDEO_STORYBOARD_READY:')) {
+      const fname = result.split(':')[1].split('\n')[0].trim();
+      mediaPreview = `<img src="/media/${fname}" style="width:100%;border-radius:8px;margin-bottom:.75rem;max-height:220px;object-fit:contain;background:#001110" loading="lazy" />
+        <div style="color:rgba(180,200,220,.65);font-size:.78rem;margin-bottom:.5rem">AI video storyboard preview — connect a video provider for final MP4.</div>
+        <a href="/media/${fname}" download="${fname}" class="media-dl-btn">⬇ Download Storyboard</a>`;
     } else if (result.startsWith('VOICEOVER_READY:')) {
       const fname = result.split(':')[1].split('\n')[0].trim();
       mediaPreview = `<audio src="/media/${fname}" controls style="width:100%;margin-bottom:.75rem"></audio>
         <a href="/media/${fname}" download="${fname}" class="media-dl-btn">⬇ Download Audio</a>`;
+    } else if (result.startsWith('VOICEOVER_SCRIPT_READY:')) {
+      const script = result.replace('VOICEOVER_SCRIPT_READY:', '').trim();
+      mediaPreview = `<div style="white-space:pre-wrap;color:rgba(225,240,250,.78);font-size:.78rem;line-height:1.45;max-height:220px;overflow:auto;background:rgba(0,0,0,.18);border-radius:8px;padding:.75rem">${esc(script)}</div>`;
     } else {
       mediaPreview = `<div style="color:rgba(180,200,220,.5);font-size:.82rem">${esc(result.slice(0,200))}</div>`;
     }

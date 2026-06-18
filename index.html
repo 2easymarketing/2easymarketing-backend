@@ -1113,19 +1113,19 @@
 
           <!-- Media type cards -->
           <div id="media-type-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-bottom:2rem">
-            <div class="media-type-card" data-media-type="image_ad" style="background:linear-gradient(135deg,rgba(0,196,180,.08),rgba(0,196,180,.02));border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+            <div class="media-type-card" data-media-type="image_ad" onclick="window.selectMediaType && window.selectMediaType('image_ad')" style="background:linear-gradient(135deg,rgba(0,196,180,.08),rgba(0,196,180,.02));border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
               <div style="font-size:2.5rem;margin-bottom:.75rem">🖼️</div>
               <div style="font-weight:700;color:#00c4b4;font-size:1rem;margin-bottom:.4rem">AI Image Ad</div>
               <div style="color:rgba(180,200,220,.6);font-size:.82rem">Facebook, Instagram, Google Display — cinematic ad images in &lt;60 seconds</div>
               <div style="margin-top:.75rem;font-size:.75rem;color:#00c4b4;opacity:.7">→ Click to request</div>
             </div>
-            <div class="media-type-card" data-media-type="video_ad" style="background:linear-gradient(135deg,rgba(0,196,180,.08),rgba(0,196,180,.02));border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+            <div class="media-type-card" data-media-type="video_ad" onclick="window.selectMediaType && window.selectMediaType('video_ad')" style="background:linear-gradient(135deg,rgba(0,196,180,.08),rgba(0,196,180,.02));border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
               <div style="font-size:2.5rem;margin-bottom:.75rem">🎬</div>
               <div style="font-weight:700;color:#00c4b4;font-size:1rem;margin-bottom:.4rem">AI Video Ad</div>
               <div style="color:rgba(180,200,220,.6);font-size:.82rem">4–8 second cinematic video ads with native audio — Reels, TikTok, YouTube</div>
               <div style="margin-top:.75rem;font-size:.75rem;color:#00c4b4;opacity:.7">→ Click to request</div>
             </div>
-            <div class="media-type-card" data-media-type="voiceover" style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+            <div class="media-type-card" data-media-type="voiceover" onclick="window.selectMediaType && window.selectMediaType('voiceover')" style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
               <div style="font-size:2.5rem;margin-bottom:.75rem">🎙️</div>
               <div style="font-weight:700;color:#22c55e;font-size:1rem;margin-bottom:.4rem">AI Voiceover</div>
               <div style="color:rgba(180,200,220,.6);font-size:.82rem">Professional AI voiceover for ads, explainers, social content — multiple voices</div>
@@ -1141,6 +1141,7 @@
               <div id="media-form"></div>
               <div id="media-submit-error" style="color:#ef4444;font-size:.82rem;margin-top:.5rem;min-height:1.2em"></div>
               <button id="submit-media-btn" style="margin-top:1.25rem;background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#fff;padding:.7rem 2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.9rem;width:100%">⚡ Generate with AI — Starts Now →</button>
+              <div id="media-instant-result" style="display:none;margin-top:1.25rem;background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.22);border-radius:12px;padding:1rem;color:rgba(225,240,250,.9);font-size:.86rem;line-height:1.55"></div>
             </div>
           </div>
 
