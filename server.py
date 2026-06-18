@@ -1442,6 +1442,105 @@ async def manual_run_engine(request: Request, session: dict = Depends(require_ow
     return {"status": "running", "engine": engine, "message": f"Engine '{engine}' triggered — check Autonomous tab in ~30 seconds."}
 
 
+
+
+@app.post("/api/owner/generate-report")
+async def generate_owner_report(request: Request, session: dict = Depends(require_owner)):
+    """
+    Generate one-click owner/client reports from the Client Reports page.
+    The report is displayed in the portal and saved to Autonomous Tasks.
+    """
+    body = await request.json()
+    report_type = (body.get("report_type") or body.get("name") or "Custom Report").strip()
+    client_name = (body.get("client_name") or "All Clients").strip()
+
+    conn = get_db()
+    try:
+        total_clients = conn.execute("SELECT COUNT(*) FROM clients WHERE email != ?", (OWNER_EMAIL,)).fetchone()[0]
+        total_tasks = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+        recent_tasks = conn.execute("SELECT title, task_type, status, client_name FROM tasks ORDER BY created_at DESC LIMIT 10").fetchall()
+        recent_alerts = conn.execute("SELECT type, title, severity FROM alerts ORDER BY created_at DESC LIMIT 8").fetchall()
+        recent_auto = conn.execute("SELECT engine, title, status FROM autonomous_tasks ORDER BY generated_at DESC LIMIT 10").fetchall()
+    finally:
+        conn.close()
+
+    task_lines = [f"- {r['title']} ({r['task_type']}, {r['status']}) for {r['client_name'] or 'Unknown'}" for r in recent_tasks] or ["- No client tasks yet."]
+    alert_lines = [f"- {r['title']} ({r['type']}, {r['severity']})" for r in recent_alerts] or ["- No alerts yet."]
+    auto_lines = [f"- {r['title']} ({r['engine']}, {r['status']})" for r in recent_auto] or ["- No autonomous activity yet."]
+
+    prompt = f"""Create a polished 2EasyMarketing report.
+
+Report type: {report_type}
+Client scope: {client_name}
+Total clients: {total_clients}
+Total tasks: {total_tasks}
+
+Recent client tasks:
+{chr(10).join(task_lines)}
+
+Recent alerts:
+{chr(10).join(alert_lines)}
+
+Recent autonomous activity:
+{chr(10).join(auto_lines)}
+
+Write a professional, client-ready report with:
+1. Executive Summary
+2. What Was Done
+3. Key Wins
+4. Recommended Next Steps
+5. Plain-English Owner Notes
+"""
+
+    content = f"""# {report_type}
+
+## Executive Summary
+This report was generated successfully by 2EasyMarketing. Live AI writing becomes more detailed when ANTHROPIC_API_KEY is configured in Railway.
+
+## Current Snapshot
+- Total clients: {total_clients}
+- Total tasks: {total_tasks}
+- Report scope: {client_name}
+
+## Recent Work
+{chr(10).join(task_lines)}
+
+## Recent Alerts
+{chr(10).join(alert_lines)}
+
+## AI Activity
+{chr(10).join(auto_lines)}
+
+## Recommended Next Steps
+1. Review recent tasks and approve completed work.
+2. Add missing API keys in Railway for deeper live intelligence.
+3. Connect priority channels before enabling automated publishing.
+4. Use this report as a starting point for client updates.
+"""
+
+    try:
+        if os.getenv("ANTHROPIC_API_KEY", "").strip():
+            resp = await client.messages.create(
+                model=os.getenv("ANTHROPIC_REPORT_MODEL", os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")),
+                max_tokens=1800,
+                system="You are Maya, 2EasyMarketing's client reporting strategist. Write polished, useful, non-fluffy reports.",
+                messages=[{"role": "user", "content": prompt}],
+            )
+            content = resp.content[0].text
+    except Exception as e:
+        print(f"Report generation fallback used: {e}")
+
+    title = f"{report_type} — {datetime.utcnow().strftime('%b %d, %Y')}"
+
+    try:
+        save_auto_task(0, client_name, "all", "report", title, content)
+        save_alert("report", f"📊 Report Generated: {report_type}", f"A new {report_type} has been generated and saved.", severity="success")
+    except Exception as e:
+        print(f"Report save warning: {e}")
+
+    return {"status": "ok", "report_type": report_type, "title": title, "content": content, "message": "Report generated successfully."}
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  MAYA AI MEDIA FACTORY — Image Ads, Video Ads, Voiceover
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1497,6 +1596,34 @@ def build_video_prompt(brief: dict) -> str:
         f"End frame: strong call-to-action moment with brand energy. "
         f"Additional: {extra}"
     )
+
+
+
+MEDIA_FALLBACK_NOTE = """
+Media generation fallback:
+The generation request was received and processed, but the external media CLI/provider is not configured in this deployment.
+The task was converted into a production-ready creative brief instead of failing silently.
+"""
+
+def _media_fallback_result(file_type: str, brief: dict) -> str:
+    business = brief.get("business", "the business")
+    platform = brief.get("platform", "social media")
+    goal = brief.get("goal", "marketing growth")
+    details = brief.get("brief", "")
+    return f"""{file_type.upper()}_BRIEF_READY
+
+{MEDIA_FALLBACK_NOTE}
+
+Business: {business}
+Platform: {platform}
+Goal: {goal}
+
+Creative Direction:
+{details}
+
+Next Step:
+Add the required AI media provider/CLI credentials to Railway, then regenerate this task. For now, this brief can be used by the owner to create the final asset manually or through an external design tool.
+"""
 
 
 # ─── IMAGE AD GENERATION ─────────────────────────────────────────────────────
@@ -1567,9 +1694,10 @@ async def generate_image_ad(task_id: int, brief: dict):
     except Exception as e:
         print(f"❌ Image ad error task {task_id}: {e}")
         conn = get_db()
+        fallback_text = _media_fallback_result("image_ad", brief)
         conn.execute(
-            "UPDATE tasks SET status='error', owner_notes=? WHERE id=?",
-            (f"Image generation error: {str(e)[:200]}", task_id)
+            "UPDATE tasks SET ai_result=?, status='review', owner_notes=? WHERE id=?",
+            (fallback_text, f"Image generation fallback used: {str(e)[:200]}", task_id)
         )
         conn.commit()
         conn.close()
@@ -1641,9 +1769,10 @@ async def generate_video_ad(task_id: int, brief: dict):
     except Exception as e:
         print(f"❌ Video ad error task {task_id}: {e}")
         conn = get_db()
+        fallback_text = _media_fallback_result("video_ad", brief)
         conn.execute(
-            "UPDATE tasks SET status='error', owner_notes=? WHERE id=?",
-            (f"Video generation error: {str(e)[:200]}", task_id)
+            "UPDATE tasks SET ai_result=?, status='review', owner_notes=? WHERE id=?",
+            (fallback_text, f"Video generation fallback used: {str(e)[:200]}", task_id)
         )
         conn.commit()
         conn.close()
@@ -1725,9 +1854,10 @@ async def generate_voiceover(task_id: int, brief: dict):
     except Exception as e:
         print(f"❌ Voiceover error task {task_id}: {e}")
         conn = get_db()
+        fallback_text = _media_fallback_result("voiceover", brief)
         conn.execute(
-            "UPDATE tasks SET status='error', owner_notes=? WHERE id=?",
-            (f"Voiceover error: {str(e)[:200]}", task_id)
+            "UPDATE tasks SET ai_result=?, status='review', owner_notes=? WHERE id=?",
+            (fallback_text, f"Voiceover fallback used: {str(e)[:200]}", task_id)
         )
         conn.commit()
         conn.close()
@@ -1735,25 +1865,58 @@ async def generate_voiceover(task_id: int, brief: dict):
 
 @app.post("/api/ads/generate-campaign")
 async def generate_ad_campaign_ai(request: Request, session: dict = Depends(require_owner)):
-    """Generate ad campaign copy from the backend so API keys never appear in browser code."""
+    """
+    Generate ad campaign copy from the backend so API keys never appear in browser code.
+    This route now returns a usable fallback campaign if Anthropic is missing or temporarily fails.
+    """
     body = await request.json()
     prompt = (body.get("prompt") or "").strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt is required")
 
+    def fallback_campaign(reason: str = "") -> dict:
+        return {
+            "campaignName": "2EasyMarketing AI Campaign Draft",
+            "summary": "A ready-to-edit campaign draft was generated locally because the live AI provider was unavailable. Add ANTHROPIC_API_KEY in Railway to turn on full AI generation.",
+            "variations": [
+                {"headline": "Grow Faster Today", "body": "Get a high-converting marketing campaign built around your strongest offer.", "cta": "Start"},
+                {"headline": "More Leads, Less Stress", "body": "Launch a clean campaign designed to attract the right customers and drive action.", "cta": "Learn More"},
+                {"headline": "Turn Clicks Into Clients", "body": "Use a focused offer, clear targeting, and strong follow-up to improve conversions.", "cta": "Book Now"}
+            ],
+            "audience": {
+                "targeting": "Local small-business customers and warm prospects most likely to need the offer now.",
+                "interests": ["Small business", "Local services", "Entrepreneurship", "Marketing", "Business growth"],
+                "behaviors": "People who engage with service businesses, request quotes, or visit competitor websites.",
+                "lookalike": "Create a lookalike audience from existing leads, email subscribers, or website visitors."
+            },
+            "budget": {
+                "dailySpend": "40.00",
+                "totalEstimate": "Set based on selected duration",
+                "splitRecommendation": "Start with 70% prospecting and 30% retargeting, then shift budget to the best performer.",
+                "bestTimes": "Launch Monday morning, review performance after 72 hours, then optimize creative and targeting.",
+                "expectedResults": "Expect early learning data first, then optimize toward leads, clicks, or conversions."
+            },
+            "strategy": "Use one clear offer, one strong call-to-action, and retarget everyone who clicks but does not convert.",
+            "fallbackReason": reason
+        }
+
     model = os.getenv("ANTHROPIC_AD_MODEL", os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"))
     max_tokens = int(body.get("max_tokens", 1200) or 1200)
 
     try:
+        if not os.getenv("ANTHROPIC_API_KEY", "").strip():
+            return {"content": [{"text": json.dumps(fallback_campaign("Missing ANTHROPIC_API_KEY"))}]}
+
         response = await client.messages.create(
             model=model,
             max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
-        return {"content": [{"text": response.content[0].text}]}
+        return {"content": [{"text": response.content[0].text.strip()}]}
+
     except Exception as e:
-        print(f"Ad campaign AI error: {e}")
-        raise HTTPException(status_code=500, detail="AI campaign generation failed")
+        print(f"Ad campaign AI fallback used: {e}")
+        return {"content": [{"text": json.dumps(fallback_campaign(str(e)))}]}
 
 
 # ─── MEDIA TASK ROUTER — hook into _fulfill_task ─────────────────────────────

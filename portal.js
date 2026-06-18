@@ -1501,11 +1501,49 @@ function loadClientReports() {
         </div>
       `).join('')}
     </div>
+    <div id="client-report-output" style="display:none;background:rgba(255,255,255,.035);border:1px solid rgba(0,196,180,.18);border-radius:14px;padding:1.25rem;white-space:pre-wrap;color:rgba(225,240,250,.9);font-size:.86rem;line-height:1.65"></div>
   `;
 }
 
-window.generateReport = function(name) {
-  alert(`🤖 Maya is generating your "${name}"...\n\nThis feature activates once you have active clients. Maya will email the report directly to your client automatically.`);
+window.generateReport = async function(name) {
+  const out = document.getElementById('client-report-output');
+  if (out) {
+    out.style.display = 'block';
+    out.style.borderColor = 'rgba(0,196,180,.25)';
+    out.style.color = 'rgba(225,240,250,.9)';
+    out.textContent = '🤖 Maya is generating "' + name + '"...';
+  }
+
+  try {
+    const res = await apiFetch('/api/owner/generate-report', 'POST', { report_type: name });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail || data.error || 'Report generation failed');
+    }
+
+    if (out) {
+      out.style.display = 'block';
+      out.style.borderColor = 'rgba(34,197,94,.25)';
+      out.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">' +
+          '<div><div style="font-size:.78rem;color:#4ade80;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Generated Report</div>' +
+          '<div style="font-size:1rem;font-weight:800;color:#fff">' + esc(data.title || name) + '</div></div>' +
+          '<button onclick="navigator.clipboard.writeText(document.getElementById(\\'client-report-copy-text\\').textContent);this.textContent=\\'Copied ✓\\'" style="background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.35);color:#00c4b4;padding:.5rem .9rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer">Copy Report</button>' +
+        '</div>' +
+        '<div id="client-report-copy-text" style="white-space:pre-wrap;color:rgba(225,240,250,.9);font-size:.86rem;line-height:1.65">' + esc(data.content || 'Report generated.') + '</div>';
+    }
+
+  } catch (err) {
+    if (out) {
+      out.style.display = 'block';
+      out.style.borderColor = 'rgba(248,113,113,.3)';
+      out.style.color = '#f87171';
+      out.textContent = 'Report generation error: ' + err.message;
+    } else {
+      alert('Report generation error: ' + err.message);
+    }
+  }
 };
 
 window.generateClientReport = function() {
@@ -2243,7 +2281,7 @@ window.deleteCouncilSession = async function(id) {
       hide('ae-generating');
       showBlock('ae-output-content');
       var sub = document.getElementById('ae-output-sub');
-      if (sub) { sub.textContent = 'Error: ' + err.message + '. Please try again.'; sub.style.color = '#ff6b6b'; }
+      if (sub) { sub.textContent = 'Error: ' + err.message + '. If this keeps happening, confirm ANTHROPIC_API_KEY is set in Railway and redeploy.'; sub.style.color = '#ff6b6b'; }
     } finally {
       clearInterval(msgInterval);
       if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate Campaign with AI'; }
