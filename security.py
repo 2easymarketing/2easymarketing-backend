@@ -725,6 +725,7 @@ class FortressMiddleware(BaseHTTPMiddleware):
     # not reliable across all Starlette/FastAPI versions — auth is protected
     # by rate-limiting and brute-force blocking instead)
     BYPASS_PREFIXES = ("/static/", "/_next/", "/assets/", "/api/auth/", "/api/chat", "/api/owner/run-maintenance")
+    BODY_INSPECTION_BYPASS_PREFIXES = ("/api/media-factory/",)
 
     async def dispatch(self, request: Request, call_next):
         # Skip security for internal health checks and static assets
@@ -813,7 +814,7 @@ class FortressMiddleware(BaseHTTPMiddleware):
         # CRITICAL: Starlette's body stream can only be read ONCE.
         # We must store the bytes and set request.state._body so that
         # request.body() called again by FastAPI handlers returns the same bytes.
-        if method not in ("GET", "HEAD", "OPTIONS"):
+        if method not in ("GET", "HEAD", "OPTIONS") and not any(path.startswith(p) for p in self.BODY_INSPECTION_BYPASS_PREFIXES):
             body = b""
             try:
                 body = await request.body()

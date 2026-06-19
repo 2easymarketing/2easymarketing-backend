@@ -118,6 +118,11 @@ def db_conn():
 def hash_password(pw: str) -> str:
     return hashlib.sha256((pw + "2em_salt_2026").encode()).hexdigest()
 
+def ensure_column(cur, table: str, column: str, ddl: str):
+    columns = {row[1] for row in cur.execute(f"PRAGMA table_info({table})")}
+    if column not in columns:
+        cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+
 def init_db():
     conn = get_db()
     cur = conn.cursor()
@@ -203,6 +208,12 @@ def init_db():
         created_at  TEXT DEFAULT (datetime('now'))
     );
     """)
+
+    ensure_column(cur, "tasks", "ai_result", "TEXT DEFAULT ''")
+    ensure_column(cur, "tasks", "status", "TEXT DEFAULT 'pending'")
+    ensure_column(cur, "tasks", "owner_notes", "TEXT DEFAULT ''")
+    ensure_column(cur, "tasks", "completed_at", "TEXT DEFAULT NULL")
+    ensure_column(cur, "media_files", "created_at", "TEXT DEFAULT NULL")
     conn.commit()
 
     # Seed demo client if none exist
@@ -1582,7 +1593,14 @@ import subprocess, uuid
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-MEDIA_DIR = os.environ.get("MEDIA_DIR", "/app/media")
+def _default_media_dir() -> str:
+    if os.path.isdir("/data"):
+        return "/data/media"
+    if os.path.isdir("/app"):
+        return "/app/media"
+    return os.path.join(os.getcwd(), "media")
+
+MEDIA_DIR = os.environ.get("MEDIA_DIR") or _default_media_dir()
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
 # Serve generated media files statically

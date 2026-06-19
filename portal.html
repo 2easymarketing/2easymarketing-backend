@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Client Portal — 2EasyMarketing</title>
   <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260619-portal-jsfix" />
-  <link rel="stylesheet" href="premium.css?v=20260619-portal-jsfix" />
-  <link rel="stylesheet" href="portal.css?v=20260619-portal-jsfix" />
+  <link rel="stylesheet" href="style.css?v=20260619-media-factory" />
+  <link rel="stylesheet" href="premium.css?v=20260619-media-factory" />
+  <link rel="stylesheet" href="portal.css?v=20260619-media-factory" />
 </head>
 <body class="portal-body">
 
@@ -109,6 +109,10 @@
         <a href="#" class="sidebar-link" data-view="my-tasks">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
           My Tasks
+        </a>
+        <a href="#" class="sidebar-link" data-view="media-factory">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M21 15l-5-5L5 19"/></svg>
+          Media Factory
         </a>
         <!-- Owner only -->
         <a href="#" class="sidebar-link owner-only" data-view="owner-dashboard" style="display:none">
@@ -250,6 +254,52 @@
           <h1 class="view-title">Clients</h1>
         </div>
         <div id="clients-table-wrap" class="table-wrap"></div>
+      </div>
+
+      <!-- MEDIA FACTORY VIEW -->
+      <div id="view-media-factory" class="portal-view" style="display:none">
+        <div class="view-header">
+          <h1 class="view-title">&#127910; AI Media Factory</h1>
+          <p style="color:rgba(180,200,220,.55);font-size:.85rem;margin:0">Generate AI image ads, video storyboards, and voiceover scripts instantly.</p>
+        </div>
+
+        <div id="media-type-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-bottom:2rem">
+          <div class="media-type-card" data-media-type="image_ad" onclick="window.selectMediaType && window.selectMediaType('image_ad')" style="background:linear-gradient(135deg,rgba(0,196,180,.08),rgba(0,196,180,.02));border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+            <div style="font-size:2.5rem;margin-bottom:.75rem">&#128444;</div>
+            <div style="font-weight:700;color:#00c4b4;font-size:1rem;margin-bottom:.4rem">AI Image Ad</div>
+            <div style="color:rgba(180,200,220,.6);font-size:.82rem">Facebook, Instagram, Google Display, and campaign image previews.</div>
+            <div style="margin-top:.75rem;font-size:.75rem;color:#00c4b4;opacity:.7">&rarr; Click to generate</div>
+          </div>
+          <div class="media-type-card" data-media-type="video_ad" onclick="window.selectMediaType && window.selectMediaType('video_ad')" style="background:linear-gradient(135deg,rgba(0,196,180,.08),rgba(0,196,180,.02));border:1px solid rgba(0,196,180,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+            <div style="font-size:2.5rem;margin-bottom:.75rem">&#127910;</div>
+            <div style="font-weight:700;color:#00c4b4;font-size:1rem;margin-bottom:.4rem">AI Video Storyboard</div>
+            <div style="color:rgba(180,200,220,.6);font-size:.82rem">Reels, TikTok, YouTube, and short-form ad storyboard previews.</div>
+            <div style="margin-top:.75rem;font-size:.75rem;color:#00c4b4;opacity:.7">&rarr; Click to generate</div>
+          </div>
+          <div class="media-type-card" data-media-type="voiceover" onclick="window.selectMediaType && window.selectMediaType('voiceover')" style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all .2s">
+            <div style="font-size:2.5rem;margin-bottom:.75rem">&#127897;</div>
+            <div style="font-weight:700;color:#22c55e;font-size:1rem;margin-bottom:.4rem">AI Voiceover</div>
+            <div style="color:rgba(180,200,220,.6);font-size:.82rem">Professional scripts with an instant browser speech preview.</div>
+            <div style="margin-top:.75rem;font-size:.75rem;color:#22c55e;opacity:.7">&rarr; Click to generate</div>
+          </div>
+        </div>
+
+        <div id="media-form-container" style="display:none">
+          <button id="back-to-media-types" style="background:none;border:none;color:#00c4b4;cursor:pointer;font-size:.85rem;margin-bottom:1rem;padding:0">&larr; Back</button>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.75rem">
+            <h2 id="media-form-title" style="font-size:1.1rem;font-weight:700;color:#fff;margin:0 0 1.25rem"></h2>
+            <div id="media-form"></div>
+            <div id="media-submit-error" style="color:#ef4444;font-size:.82rem;margin-top:.5rem;min-height:1.2em"></div>
+            <button id="submit-media-btn" style="margin-top:1.25rem;background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#fff;padding:.7rem 2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.9rem;width:100%">Generate with AI</button>
+            <div id="media-instant-result" style="display:none;margin-top:1.25rem;background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.22);border-radius:12px;padding:1rem;color:rgba(225,240,250,.9);font-size:.86rem;line-height:1.55"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:2rem">
+          <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 .75rem">Your Media Library</h2>
+          <div id="media-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+        </div>
+      </div>
 
       <!-- AD ENGINE VIEW -->
       <div id="view-ad-engine" class="portal-view" style="display:none">
@@ -588,7 +638,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=20260619-portal-jsfix"></script>
-  <script src="portal.js?v=20260619-portal-jsfix"></script>
+  <script src="config.js?v=20260619-media-factory"></script>
+  <script src="portal.js?v=20260619-media-factory"></script>
 </body>
 </html>
