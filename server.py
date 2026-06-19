@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from anthropic import AsyncAnthropic
-import httpx, os, json, asyncio, time, sqlite3, hashlib, secrets
+import httpx, os, json, asyncio, time, sqlite3, hashlib, secrets, shutil
 from datetime import datetime, timedelta
 from typing import Optional
 import re
@@ -65,6 +65,12 @@ security = HTTPBearer(auto_error=False)
 
 # ─── OWNER CREDENTIALS ──────────────────────────────────────────────────────
 OWNER_EMAIL = os.getenv("OWNER_EMAIL", "2easymarketing@gmail.com").strip().lower()
+OWNER_EMAIL_ALIASES = {
+    email.strip().lower()
+    for email in os.getenv("OWNER_EMAIL_ALIASES", "dev@2easymedia.net,2easymarketing@gmail.com").split(",")
+    if email.strip()
+}
+OWNER_EMAIL_ALIASES.add(OWNER_EMAIL)
 OWNER_PASSWORD_HASH = os.getenv("OWNER_PASSWORD_HASH", "").strip()
 _OWNER_PASSWORD = os.getenv("OWNER_PASSWORD", "").strip()
 if not OWNER_PASSWORD_HASH and _OWNER_PASSWORD:
@@ -73,6 +79,21 @@ OWNER_SECRET = os.getenv("OWNER_SECRET", "")
 
 # ─── DATABASE SETUP ─────────────────────────────────────────────────────────
 DB_PATH = os.environ.get("DB_PATH", "/app/2easymarketing.db")
+SEED_DB_PATH = os.environ.get("SEED_DB_PATH", "/app/2easymarketing.db")
+
+def ensure_db_seeded():
+    db_path = os.path.abspath(DB_PATH)
+    seed_path = os.path.abspath(SEED_DB_PATH)
+    if os.path.exists(db_path):
+        return
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    if seed_path != db_path and os.path.exists(seed_path):
+        shutil.copy2(seed_path, db_path)
+
+ensure_db_seeded()
+
+def is_owner_email(email: str) -> bool:
+    return (email or "").strip().lower() in OWNER_EMAIL_ALIASES
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -556,7 +577,7 @@ async def login(request: Request):
         password = body.get("password", "").strip()
 
         # Owner login
-        if OWNER_PASSWORD_HASH and email == OWNER_EMAIL.lower() and hash_password(password) == OWNER_PASSWORD_HASH:
+        if OWNER_PASSWORD_HASH and is_owner_email(email) and hash_password(password) == OWNER_PASSWORD_HASH:
             # Create a virtual owner session
             conn = get_db()
             owner_row = conn.execute("SELECT id FROM clients WHERE email=?", (email,)).fetchone()
@@ -565,7 +586,7 @@ async def login(request: Request):
             else:
                 cur = conn.execute(
                     "INSERT INTO clients (name, email, password, business, plan) VALUES (?,?,?,?,?)",
-                    ("Dev (Owner)", OWNER_EMAIL, OWNER_PASSWORD_HASH, "2EasyMarketing", "agency")
+                    ("Dev (Owner)", email, OWNER_PASSWORD_HASH, "2EasyMarketing", "agency")
                 )
                 conn.commit()
                 owner_id = cur.lastrowid
@@ -573,7 +594,7 @@ async def login(request: Request):
             token = make_token(owner_id, "owner")
             return JSONResponse({
                 "token": token,
-                "user": {"id": owner_id, "name": "Dev (Owner)", "email": OWNER_EMAIL, "plan": "agency", "role": "owner"}
+                "user": {"id": owner_id, "name": "Dev (Owner)", "email": email, "plan": "agency", "role": "owner"}
             })
 
         # Client login
@@ -583,12 +604,13 @@ async def login(request: Request):
         if not row or row["password"] != hash_password(password):
             return JSONResponse({"error": "Invalid email or password"}, status_code=401)
 
-        token = make_token(row["id"], "client")
+        role = "owner" if is_owner_email(row["email"]) else "client"
+        token = make_token(row["id"], role)
         return JSONResponse({
             "token": token,
             "user": {
                 "id": row["id"], "name": row["name"], "email": row["email"],
-                "plan": row["plan"], "business": row["business"], "role": "client"
+                "plan": row["plan"], "business": row["business"], "role": role
             }
         })
     except Exception as e:

@@ -4,6 +4,7 @@ vercel.json
 .env.*
 !.env.example
 *.db
+!2easymarketing.db
 *.db-shm
 *.db-wal
 *.sqlite
