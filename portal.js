@@ -1603,9 +1603,17 @@ window.generateReport = async function(name) {
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">' +
           '<div><div style="font-size:.78rem;color:#4ade80;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Generated Report</div>' +
           '<div style="font-size:1rem;font-weight:800;color:#fff">' + esc(data.title || name) + '</div></div>' +
-          '<button onclick="navigator.clipboard.writeText(document.getElementById(\\'client-report-copy-text\\').textContent);this.textContent=\\'Copied ✓\\'" style="background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.35);color:#00c4b4;padding:.5rem .9rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer">Copy Report</button>' +
+          '<button id="client-report-copy-btn" type="button" style="background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.35);color:#00c4b4;padding:.5rem .9rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer">Copy Report</button>' +
         '</div>' +
         '<div id="client-report-copy-text" style="white-space:pre-wrap;color:rgba(225,240,250,.9);font-size:.86rem;line-height:1.65">' + esc(data.content || 'Report generated.') + '</div>';
+      const copyBtn = document.getElementById('client-report-copy-btn');
+      const copyText = document.getElementById('client-report-copy-text');
+      if (copyBtn && copyText) {
+        copyBtn.addEventListener('click', async () => {
+          await navigator.clipboard.writeText(copyText.textContent || '');
+          copyBtn.textContent = 'Copied';
+        });
+      }
     }
 
   } catch (err) {
