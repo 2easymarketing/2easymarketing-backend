@@ -1,0 +1,10 @@
+portal.js syntax via node --check: PASS
+server.py syntax: PASS
+token /api/pricing/public: PASS
+token data-view="pricing": PASS
+token id="view-pricing": PASS
+token function loadPricingPage: PASS
+token $29.99: PASS
+token $49.99: PASS
+token $149.99: PASS
+token $399: PASS

@@ -4,13 +4,14 @@ Maya chat + Client Portal + AI Task Engine + Owner Dashboard API
 """
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
 from anthropic import AsyncAnthropic
-import httpx, os, json, asyncio, time, sqlite3, hashlib, secrets, shutil
+import httpx, os, json, asyncio, time, sqlite3, hashlib, secrets, uuid, shutil
 from datetime import datetime, timedelta
 from typing import Optional
+from pathlib import Path
 import re
 
 # ─── LLM COUNCIL ENGINE ─────────────────────────────────────────────────────
@@ -39,17 +40,6 @@ app.add_middleware(
 # FORTRESS — add after CORS (middleware runs in reverse order, Fortress runs first on requests)
 app.add_middleware(FortressMiddleware)
 
-
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "DENY")
-    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-    return response
-
-
 # ─── RESPONSE HELPERS ────────────────────────────────────────────────────────
 from fastapi.responses import Response as FastAPIResponse
 
@@ -65,17 +55,17 @@ security = HTTPBearer(auto_error=False)
 
 # ─── OWNER CREDENTIALS ──────────────────────────────────────────────────────
 OWNER_EMAIL = os.getenv("OWNER_EMAIL", "2easymarketing@gmail.com").strip().lower()
-OWNER_EMAIL_ALIASES = {
-    email.strip().lower()
-    for email in os.getenv("OWNER_EMAIL_ALIASES", "dev@2easymedia.net,2easymarketing@gmail.com").split(",")
-    if email.strip()
-}
-OWNER_EMAIL_ALIASES.add(OWNER_EMAIL)
 OWNER_PASSWORD_HASH = os.getenv("OWNER_PASSWORD_HASH", "").strip()
 _OWNER_PASSWORD = os.getenv("OWNER_PASSWORD", "").strip()
 if not OWNER_PASSWORD_HASH and _OWNER_PASSWORD:
     OWNER_PASSWORD_HASH = hashlib.sha256((_OWNER_PASSWORD + "2em_salt_2026").encode()).hexdigest()
 OWNER_SECRET = os.getenv("OWNER_SECRET", "")
+OWNER_EMAIL_ALIASES = {
+    item.strip().lower()
+    for item in os.getenv("OWNER_EMAIL_ALIASES", "dev@2easymedia.net,2easymarketing@gmail.com").split(",")
+    if item.strip()
+}
+OWNER_EMAIL_ALIASES.add(OWNER_EMAIL)
 
 # ─── DATABASE SETUP ─────────────────────────────────────────────────────────
 DB_PATH = os.environ.get("DB_PATH", "/app/2easymarketing.db")
@@ -86,14 +76,13 @@ def ensure_db_seeded():
     seed_path = os.path.abspath(SEED_DB_PATH)
     if os.path.exists(db_path):
         return
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    db_dir = os.path.dirname(db_path)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
     if seed_path != db_path and os.path.exists(seed_path):
         shutil.copy2(seed_path, db_path)
 
 ensure_db_seeded()
-
-def is_owner_email(email: str) -> bool:
-    return (email or "").strip().lower() in OWNER_EMAIL_ALIASES
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -117,6 +106,14 @@ def db_conn():
 # ─── AUTH HELPERS ────────────────────────────────────────────────────────────
 def hash_password(pw: str) -> str:
     return hashlib.sha256((pw + "2em_salt_2026").encode()).hexdigest()
+
+def is_owner_email(email: str) -> bool:
+    return (email or "").strip().lower() in OWNER_EMAIL_ALIASES
+
+def owner_email_filter_sql(column: str = "email") -> tuple[str, list[str]]:
+    aliases = sorted(OWNER_EMAIL_ALIASES) or [OWNER_EMAIL]
+    placeholders = ",".join("?" for _ in aliases)
+    return f"{column} NOT IN ({placeholders})", aliases
 
 def ensure_column(cur, table: str, column: str, ddl: str):
     columns = {row[1] for row in cur.execute(f"PRAGMA table_info({table})")}
@@ -208,7 +205,6 @@ def init_db():
         created_at  TEXT DEFAULT (datetime('now'))
     );
     """)
-
     ensure_column(cur, "tasks", "ai_result", "TEXT DEFAULT ''")
     ensure_column(cur, "tasks", "status", "TEXT DEFAULT 'pending'")
     ensure_column(cur, "tasks", "owner_notes", "TEXT DEFAULT ''")
@@ -591,9 +587,15 @@ async def login(request: Request):
         if OWNER_PASSWORD_HASH and is_owner_email(email) and hash_password(password) == OWNER_PASSWORD_HASH:
             # Create a virtual owner session
             conn = get_db()
-            owner_row = conn.execute("SELECT id FROM clients WHERE email=?", (email,)).fetchone()
+            owner_aliases = sorted(OWNER_EMAIL_ALIASES)
+            owner_placeholders = ",".join("?" for _ in owner_aliases)
+            owner_row = conn.execute(
+                f"SELECT id, email FROM clients WHERE email IN ({owner_placeholders}) LIMIT 1",
+                owner_aliases
+            ).fetchone()
             if owner_row:
                 owner_id = owner_row["id"]
+                owner_email = owner_row["email"]
             else:
                 cur = conn.execute(
                     "INSERT INTO clients (name, email, password, business, plan) VALUES (?,?,?,?,?)",
@@ -601,11 +603,12 @@ async def login(request: Request):
                 )
                 conn.commit()
                 owner_id = cur.lastrowid
+                owner_email = email
             conn.close()
             token = make_token(owner_id, "owner")
             return JSONResponse({
                 "token": token,
-                "user": {"id": owner_id, "name": "Dev (Owner)", "email": email, "plan": "agency", "role": "owner"}
+                "user": {"id": owner_id, "name": "Dev (Owner)", "email": owner_email, "plan": "agency", "role": "owner"}
             })
 
         # Client login
@@ -1021,8 +1024,9 @@ def save_alert(alert_type: str, title: str, body: str, severity: str = "info"):
 def get_active_clients():
     """Return all active non-owner clients."""
     conn = get_db()
+    owner_filter, owner_params = owner_email_filter_sql("email")
     rows = conn.execute(
-        "SELECT * FROM clients WHERE status='active' AND email != ?", (OWNER_EMAIL,)
+        f"SELECT * FROM clients WHERE status='active' AND {owner_filter}", owner_params
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -1500,7 +1504,8 @@ async def generate_owner_report(request: Request, session: dict = Depends(requir
 
     conn = get_db()
     try:
-        total_clients = conn.execute("SELECT COUNT(*) FROM clients WHERE email != ?", (OWNER_EMAIL,)).fetchone()[0]
+        owner_filter, owner_params = owner_email_filter_sql("email")
+        total_clients = conn.execute(f"SELECT COUNT(*) FROM clients WHERE {owner_filter}", owner_params).fetchone()[0]
         total_tasks = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
         recent_tasks = conn.execute("SELECT title, task_type, status, client_name FROM tasks ORDER BY created_at DESC LIMIT 10").fetchall()
         recent_alerts = conn.execute("SELECT type, title, severity FROM alerts ORDER BY created_at DESC LIMIT 8").fetchall()
@@ -1583,6 +1588,1294 @@ This report was generated successfully by 2EasyMarketing. Live AI writing become
         print(f"Report save warning: {e}")
 
     return {"status": "ok", "report_type": report_type, "title": title, "content": content, "message": "Report generated successfully."}
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  SOCIAL AUTOPILOT PREVIEW — BRAND KIT, 30-DAY PLAN, APPROVAL QUEUE
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _init_social_autopilot_db():
+    conn = get_db()
+    try:
+        conn.executescript("""
+        CREATE TABLE IF NOT EXISTS brand_kits (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id            INTEGER UNIQUE REFERENCES clients(id),
+            brand_name           TEXT DEFAULT '',
+            audience             TEXT DEFAULT '',
+            voice                TEXT DEFAULT 'Professional, clear, confident',
+            colors               TEXT DEFAULT '#00c4b4, #031716, #ffffff',
+            main_offer           TEXT DEFAULT '',
+            differentiators      TEXT DEFAULT '',
+            forbidden_words      TEXT DEFAULT '',
+            created_at           TEXT DEFAULT (datetime('now')),
+            updated_at           TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS social_autopilot_posts (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id        INTEGER REFERENCES clients(id),
+            client_name      TEXT DEFAULT '',
+            platform         TEXT NOT NULL,
+            post_type        TEXT DEFAULT 'Post',
+            hook             TEXT DEFAULT '',
+            caption          TEXT NOT NULL,
+            cta              TEXT DEFAULT '',
+            hashtags         TEXT DEFAULT '',
+            asset_idea       TEXT DEFAULT '',
+            scheduled_date   TEXT DEFAULT '',
+            scheduled_time   TEXT DEFAULT '',
+            status           TEXT DEFAULT 'queued_review',
+            approval_notes   TEXT DEFAULT '',
+            created_at       TEXT DEFAULT (datetime('now')),
+            approved_at      TEXT DEFAULT NULL,
+            rejected_at      TEXT DEFAULT NULL
+        );
+        """)
+        conn.commit()
+    finally:
+        conn.close()
+
+def _client_for_session(session: dict):
+    conn = get_db()
+    try:
+        return conn.execute("SELECT * FROM clients WHERE id=?", (session["client_id"],)).fetchone()
+    finally:
+        conn.close()
+
+def _default_brand_kit(client_row) -> dict:
+    business = (client_row["business"] if client_row else "") or (client_row["name"] if client_row else "") or "2EasyMarketing Client"
+    return {
+        "brand_name": business,
+        "audience": "Local customers and warm leads who need trustworthy help now.",
+        "voice": "Professional, clear, confident, friendly, and conversion-focused.",
+        "colors": "#00c4b4, #031716, #ffffff",
+        "main_offer": "Book a consultation, request a quote, or send a message to get started.",
+        "differentiators": "Fast response, professional service, clear communication, and modern marketing.",
+        "forbidden_words": "guaranteed, cheapest, unbelievable"
+    }
+
+def _row_to_brand(row, client_row=None) -> dict:
+    base = _default_brand_kit(client_row)
+    if not row:
+        return base
+    for key in base.keys():
+        base[key] = row[key] or base[key]
+    return base
+
+def _post_row(row) -> dict:
+    return {
+        "id": row["id"],
+        "client_id": row["client_id"],
+        "client_name": row["client_name"],
+        "platform": row["platform"],
+        "post_type": row["post_type"],
+        "hook": row["hook"],
+        "caption": row["caption"],
+        "cta": row["cta"],
+        "hashtags": row["hashtags"],
+        "asset_idea": row["asset_idea"],
+        "scheduled_date": row["scheduled_date"],
+        "scheduled_time": row["scheduled_time"],
+        "status": row["status"],
+        "approval_notes": row["approval_notes"],
+        "created_at": row["created_at"],
+        "approved_at": row["approved_at"],
+        "rejected_at": row["rejected_at"]
+    }
+
+def _build_local_30_day_plan(client_row, brand: dict, days: int = 30) -> list[dict]:
+    """Free built-in plan generator. No paid API required."""
+    business = brand.get("brand_name") or client_row["business"] or client_row["name"] or "Your Business"
+    audience = brand.get("audience") or "local customers"
+    voice = brand.get("voice") or "professional and friendly"
+    offer = brand.get("main_offer") or "book a consultation"
+    diff = brand.get("differentiators") or "fast service and clear communication"
+
+    platforms = [
+        ("Instagram", "Reel", "10:00 AM"),
+        ("TikTok", "Short Video", "3:00 PM"),
+        ("Facebook", "Feed Post", "1:00 PM"),
+        ("YouTube Shorts", "Short", "12:00 PM"),
+        ("LinkedIn", "Thought Leadership", "9:00 AM"),
+        ("Instagram", "Carousel", "6:00 PM"),
+        ("Facebook", "Story", "7:00 PM"),
+    ]
+    themes = [
+        ("Problem/Solution", "Most people wait too long before fixing this problem. Here is the simple way to move forward."),
+        ("Behind the Brand", "People do business with people. Show the real process, the team, and why the work matters."),
+        ("Client Pain Point", "Call out the exact frustration your audience feels and explain how your offer makes it easier."),
+        ("Quick Tip", "Give one useful tip your audience can apply today, then invite them to take the next step."),
+        ("Proof/Trust", "Show why your business is reliable: process, results, reviews, examples, or experience."),
+        ("Offer Push", "Make the offer clear, simple, and urgent without sounding pushy."),
+        ("Myth Busting", "Correct a common misunderstanding and position the brand as the expert."),
+        ("FAQ", "Answer one common question in plain English and end with a direct call-to-action."),
+        ("Comparison", "Show the difference between doing it alone and getting professional help."),
+        ("Transformation", "Describe the before-and-after result the customer wants.")
+    ]
+
+    today = datetime.utcnow().date()
+    posts = []
+    for i in range(max(7, min(int(days or 30), 30))):
+        platform, post_type, time_slot = platforms[i % len(platforms)]
+        theme, angle = themes[i % len(themes)]
+        date = today + timedelta(days=i)
+        hook = f"{theme}: make {business} the easy choice"
+        caption = (
+            f"{hook}\n\n"
+            f"{angle}\n\n"
+            f"For {audience}, {business} should sound {voice}. "
+            f"The message is simple: {diff}.\n\n"
+            f"{offer}"
+        )
+        cta = "Send a message today" if i % 3 else "Book now"
+        hashtags = "#2EasyMarketing #SmallBusinessMarketing #ContentMarketing #LeadGeneration"
+        asset_idea = (
+            "Use a branded teal/black design with one bold headline and one clear CTA."
+            if post_type in ("Feed Post", "Carousel", "Thought Leadership")
+            else "Use a short vertical clip/storyboard with a strong opening hook in the first 2 seconds."
+        )
+        posts.append({
+            "platform": platform,
+            "post_type": post_type,
+            "hook": hook,
+            "caption": caption,
+            "cta": cta,
+            "hashtags": hashtags,
+            "asset_idea": asset_idea,
+            "scheduled_date": date.isoformat(),
+            "scheduled_time": time_slot,
+            "status": "queued_review"
+        })
+    return posts
+
+_init_social_autopilot_db()
+
+@app.get("/api/autopilot/status")
+async def social_autopilot_status(session: dict = Depends(require_auth)):
+    _init_social_autopilot_db()
+    client_row = _client_for_session(session)
+    conn = get_db()
+    try:
+        if session["role"] == "owner":
+            total = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts").fetchone()[0]
+            queued = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE status='queued_review'").fetchone()[0]
+            approved = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE status='approved'").fetchone()[0]
+            ready = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE status='ready_to_publish'").fetchone()[0]
+        else:
+            cid = session["client_id"]
+            total = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE client_id=?", (cid,)).fetchone()[0]
+            queued = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE client_id=? AND status='queued_review'", (cid,)).fetchone()[0]
+            approved = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE client_id=? AND status='approved'", (cid,)).fetchone()[0]
+            ready = conn.execute("SELECT COUNT(*) FROM social_autopilot_posts WHERE client_id=? AND status='ready_to_publish'", (cid,)).fetchone()[0]
+    finally:
+        conn.close()
+
+    return {
+        "status": "ok",
+        "client": client_row["name"] if client_row else "",
+        "total_posts": total,
+        "queued_review": queued,
+        "approved": approved,
+        "ready_to_publish": ready,
+        "publishing_enabled": False,
+        "message": "Preview mode: posts are generated, reviewed, approved, and exported. Nothing publishes automatically yet."
+    }
+
+@app.get("/api/autopilot/brand-kit")
+async def get_brand_kit(session: dict = Depends(require_auth)):
+    _init_social_autopilot_db()
+    client_row = _client_for_session(session)
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM brand_kits WHERE client_id=?", (session["client_id"],)).fetchone()
+    finally:
+        conn.close()
+    return {"status": "ok", "brand": _row_to_brand(row, client_row)}
+
+@app.post("/api/autopilot/brand-kit")
+async def save_brand_kit(request: Request, session: dict = Depends(require_auth)):
+    _init_social_autopilot_db()
+    body = await request.json()
+    allowed = ["brand_name", "audience", "voice", "colors", "main_offer", "differentiators", "forbidden_words"]
+    data = {k: str(body.get(k, "")).strip() for k in allowed}
+
+    client_row = _client_for_session(session)
+    defaults = _default_brand_kit(client_row)
+    for k in allowed:
+        if not data[k]:
+            data[k] = defaults.get(k, "")
+
+    conn = get_db()
+    try:
+        conn.execute("""
+            INSERT INTO brand_kits
+                (client_id, brand_name, audience, voice, colors, main_offer, differentiators, forbidden_words, updated_at)
+            VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(client_id) DO UPDATE SET
+                brand_name=excluded.brand_name,
+                audience=excluded.audience,
+                voice=excluded.voice,
+                colors=excluded.colors,
+                main_offer=excluded.main_offer,
+                differentiators=excluded.differentiators,
+                forbidden_words=excluded.forbidden_words,
+                updated_at=excluded.updated_at
+        """, (
+            session["client_id"], data["brand_name"], data["audience"], data["voice"],
+            data["colors"], data["main_offer"], data["differentiators"], data["forbidden_words"],
+            datetime.utcnow().isoformat()
+        ))
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {"status": "ok", "brand": data, "message": "Brand Kit saved."}
+
+@app.post("/api/autopilot/generate-plan")
+async def generate_social_autopilot_plan(request: Request, session: dict = Depends(require_auth)):
+    _init_social_autopilot_db()
+    body = await request.json()
+    days = int(body.get("days", 30) or 30)
+    replace_existing = bool(body.get("replace_existing", False))
+
+    client_row = _client_for_session(session)
+    if not client_row:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    conn = get_db()
+    try:
+        brand_row = conn.execute("SELECT * FROM brand_kits WHERE client_id=?", (session["client_id"],)).fetchone()
+        brand = _row_to_brand(brand_row, client_row)
+        posts = _build_local_30_day_plan(client_row, brand, days=days)
+
+        if replace_existing:
+            conn.execute("DELETE FROM social_autopilot_posts WHERE client_id=? AND status IN ('draft','queued_review','rejected')", (session["client_id"],))
+
+        for p in posts:
+            conn.execute("""
+                INSERT INTO social_autopilot_posts
+                    (client_id, client_name, platform, post_type, hook, caption, cta, hashtags, asset_idea, scheduled_date, scheduled_time, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                session["client_id"], client_row["name"], p["platform"], p["post_type"], p["hook"], p["caption"],
+                p["cta"], p["hashtags"], p["asset_idea"], p["scheduled_date"], p["scheduled_time"], p["status"]
+            ))
+
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {
+        "status": "ok",
+        "created": len(posts),
+        "message": f"{len(posts)} posts generated and placed in the approval queue.",
+        "publishing_enabled": False
+    }
+
+@app.get("/api/autopilot/posts")
+async def list_social_autopilot_posts(status: str = "", session: dict = Depends(require_auth)):
+    _init_social_autopilot_db()
+    conn = get_db()
+    try:
+        params = []
+        where = []
+        if session["role"] != "owner":
+            where.append("client_id=?")
+            params.append(session["client_id"])
+        if status:
+            where.append("status=?")
+            params.append(status)
+        sql = "SELECT * FROM social_autopilot_posts"
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        sql += " ORDER BY scheduled_date ASC, scheduled_time ASC, id ASC LIMIT 120"
+        rows = conn.execute(sql, tuple(params)).fetchall()
+    finally:
+        conn.close()
+    return {"status": "ok", "posts": [_post_row(r) for r in rows]}
+
+@app.post("/api/autopilot/posts/{post_id}/approve")
+async def approve_social_autopilot_post(post_id: int, request: Request, session: dict = Depends(require_owner)):
+    body = await request.json()
+    notes = str(body.get("notes", "")).strip()
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE social_autopilot_posts SET status='approved', approval_notes=?, approved_at=? WHERE id=?",
+            (notes, datetime.utcnow().isoformat(), post_id)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"status": "ok", "message": "Post approved."}
+
+@app.post("/api/autopilot/posts/{post_id}/reject")
+async def reject_social_autopilot_post(post_id: int, request: Request, session: dict = Depends(require_owner)):
+    body = await request.json()
+    notes = str(body.get("notes", "")).strip() or "Needs revision."
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE social_autopilot_posts SET status='rejected', approval_notes=?, rejected_at=? WHERE id=?",
+            (notes, datetime.utcnow().isoformat(), post_id)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"status": "ok", "message": "Post rejected for revision."}
+
+@app.post("/api/autopilot/posts/{post_id}/ready")
+async def mark_social_autopilot_ready(post_id: int, session: dict = Depends(require_owner)):
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE social_autopilot_posts SET status='ready_to_publish' WHERE id=?",
+            (post_id,)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"status": "ok", "message": "Post marked ready to publish. Auto-publishing is still disabled in preview mode."}
+
+@app.get("/api/autopilot/export.csv")
+async def export_social_autopilot_csv(session: dict = Depends(require_auth)):
+    import csv as _csv, io as _io
+    _init_social_autopilot_db()
+    conn = get_db()
+    try:
+        if session["role"] == "owner":
+            rows = conn.execute("SELECT * FROM social_autopilot_posts ORDER BY scheduled_date ASC, scheduled_time ASC").fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM social_autopilot_posts WHERE client_id=? ORDER BY scheduled_date ASC, scheduled_time ASC",
+                (session["client_id"],)
+            ).fetchall()
+    finally:
+        conn.close()
+
+    buf = _io.StringIO()
+    writer = _csv.writer(buf)
+    writer.writerow(["scheduled_date", "scheduled_time", "platform", "post_type", "hook", "caption", "cta", "hashtags", "asset_idea", "status"])
+    for r in rows:
+        writer.writerow([r["scheduled_date"], r["scheduled_time"], r["platform"], r["post_type"], r["hook"], r["caption"], r["cta"], r["hashtags"], r["asset_idea"], r["status"]])
+
+    return FastAPIResponse(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=2easymarketing-social-autopilot.csv"}
+    )
+
+
+
+
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  GROWTH OS v1 — ALL 10 COMPETITOR GAP UPGRADES SAFE PREVIEW
+# ═══════════════════════════════════════════════════════════════════════════
+
+GROWTH_PLATFORMS = ["Instagram", "Facebook", "TikTok", "YouTube Shorts", "LinkedIn", "X / Twitter", "Pinterest"]
+
+GROWTH_TEMPLATE_LIBRARY = [
+    {
+        "id": "local_offer",
+        "name": "Local Offer Post",
+        "category": "Offer",
+        "best_for": "Local businesses",
+        "hook": "Here is a simple offer your customers can act on today.",
+        "structure": ["Problem", "Simple offer", "Why now", "Clear call-to-action"]
+    },
+    {
+        "id": "before_after",
+        "name": "Before / After Transformation",
+        "category": "Proof",
+        "best_for": "Service businesses, beauty, fitness, home services",
+        "hook": "Show what life looks like before and after the service.",
+        "structure": ["Before state", "What changed", "Result", "CTA"]
+    },
+    {
+        "id": "faq_answer",
+        "name": "FAQ Answer",
+        "category": "Education",
+        "best_for": "Any business with common customer questions",
+        "hook": "Answer one question clearly so the customer trusts you.",
+        "structure": ["Question", "Simple answer", "Why it matters", "CTA"]
+    },
+    {
+        "id": "testimonial",
+        "name": "Testimonial / Trust Builder",
+        "category": "Trust",
+        "best_for": "Businesses with reviews or client wins",
+        "hook": "Use proof to make the next customer feel safer.",
+        "structure": ["Customer problem", "Positive result", "Trust point", "CTA"]
+    },
+    {
+        "id": "carousel_tips",
+        "name": "Carousel Tips",
+        "category": "Carousel",
+        "best_for": "Instagram, LinkedIn, Facebook",
+        "hook": "Turn one useful lesson into a swipeable carousel.",
+        "structure": ["Title slide", "Tip 1", "Tip 2", "Tip 3", "CTA slide"]
+    },
+    {
+        "id": "short_video_script",
+        "name": "Short Video Script",
+        "category": "Video",
+        "best_for": "TikTok, Reels, YouTube Shorts",
+        "hook": "Open strong in the first two seconds, then give one useful point.",
+        "structure": ["Hook", "Point", "Proof", "CTA"]
+    },
+    {
+        "id": "event_promo",
+        "name": "Event / Launch Promo",
+        "category": "Promotion",
+        "best_for": "Events, launches, offers, new services",
+        "hook": "Tell people what is happening, why it matters, and how to act.",
+        "structure": ["Announcement", "Benefit", "Details", "CTA"]
+    },
+    {
+        "id": "myth_buster",
+        "name": "Myth Buster",
+        "category": "Authority",
+        "best_for": "Expert positioning",
+        "hook": "Correct a common mistake and sound helpful, not pushy.",
+        "structure": ["Myth", "Truth", "Example", "CTA"]
+    }
+]
+
+def _growth_init_db():
+    conn = get_db()
+    try:
+        conn.executescript("""
+        CREATE TABLE IF NOT EXISTS growth_posts (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id        INTEGER,
+            client_name      TEXT DEFAULT '',
+            source           TEXT DEFAULT '',
+            platform         TEXT DEFAULT '',
+            post_type        TEXT DEFAULT '',
+            hook             TEXT DEFAULT '',
+            caption          TEXT DEFAULT '',
+            hashtags         TEXT DEFAULT '',
+            asset_idea       TEXT DEFAULT '',
+            status           TEXT DEFAULT 'draft_review',
+            readiness_score  INTEGER DEFAULT 0,
+            readiness_notes  TEXT DEFAULT '',
+            scheduled_date   TEXT DEFAULT '',
+            created_at       TEXT DEFAULT (datetime('now')),
+            updated_at       TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS growth_usage (
+            id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id              INTEGER,
+            usage_month            TEXT,
+            posts_generated        INTEGER DEFAULT 0,
+            repurposes             INTEGER DEFAULT 0,
+            readiness_checks       INTEGER DEFAULT 0,
+            queue_items            INTEGER DEFAULT 0,
+            media_scene_sets       INTEGER DEFAULT 0,
+            updated_at             TEXT DEFAULT (datetime('now')),
+            UNIQUE(client_id, usage_month)
+        );
+
+        CREATE TABLE IF NOT EXISTS growth_onboarding (
+            client_id              INTEGER PRIMARY KEY,
+            brand_kit_done         INTEGER DEFAULT 0,
+            first_plan_done        INTEGER DEFAULT 0,
+            first_post_done        INTEGER DEFAULT 0,
+            approval_flow_seen     INTEGER DEFAULT 0,
+            export_seen            INTEGER DEFAULT 0,
+            plugin_reviewed        INTEGER DEFAULT 0,
+            trust_examples_seen    INTEGER DEFAULT 0,
+            updated_at             TEXT DEFAULT (datetime('now'))
+        );
+        """)
+        conn.commit()
+    finally:
+        conn.close()
+
+def _growth_current_client(session: dict):
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM clients WHERE id=?", (session["client_id"],)).fetchone()
+        return row
+    finally:
+        conn.close()
+
+def _growth_brand_context(session: dict) -> dict:
+    client = _growth_current_client(session)
+    business = (client["business"] if client else "") or (client["name"] if client else "") or "Your Business"
+    base = {
+        "business": business,
+        "audience": "local customers and warm leads",
+        "voice": "clear, professional, friendly, and direct",
+        "colors": "#00c4b4, #031716, #ffffff",
+        "main_offer": "send a message or book a consultation",
+        "differentiators": "clear communication, modern marketing, and simple next steps",
+        "forbidden_words": "guaranteed, cheapest, unbelievable"
+    }
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM brand_kits WHERE client_id=?", (session["client_id"],)).fetchone()
+        if row:
+            for key in ["audience", "voice", "colors", "main_offer", "differentiators", "forbidden_words"]:
+                if row[key]:
+                    base[key] = row[key]
+            if row["brand_name"]:
+                base["business"] = row["brand_name"]
+    except Exception:
+        pass
+    finally:
+        conn.close()
+    return base
+
+def _growth_month() -> str:
+    return datetime.utcnow().strftime("%Y-%m")
+
+def _growth_increment_usage(client_id: int, field: str, amount: int = 1):
+    if field not in {"posts_generated", "repurposes", "readiness_checks", "queue_items", "media_scene_sets"}:
+        return
+    conn = get_db()
+    try:
+        month = _growth_month()
+        conn.execute("""
+            INSERT INTO growth_usage (client_id, usage_month, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(client_id, usage_month) DO UPDATE SET updated_at=excluded.updated_at
+        """, (client_id, month, datetime.utcnow().isoformat()))
+        conn.execute(f"UPDATE growth_usage SET {field} = COALESCE({field},0) + ?, updated_at=? WHERE client_id=? AND usage_month=?",
+                     (amount, datetime.utcnow().isoformat(), client_id, month))
+        conn.commit()
+    finally:
+        conn.close()
+
+def _growth_platform_post(idea: str, platform: str, brand: dict, template_id: str = "") -> dict:
+    business = brand["business"]
+    audience = brand["audience"]
+    offer = brand["main_offer"]
+    differentiators = brand["differentiators"]
+
+    platform_map = {
+        "Instagram": ("Reel / Carousel", "#2EasyMarketing #SmallBusinessMarketing #ContentMarketing", "Use a teal/black branded visual with one bold headline."),
+        "Facebook": ("Feed Post", "#LocalBusiness #MarketingHelp #2EasyMarketing", "Use a clear service graphic and a friendly caption."),
+        "TikTok": ("Short Video", "#MarketingTips #BusinessGrowth #AITools", "Use a vertical video script with text captions in the first 2 seconds."),
+        "YouTube Shorts": ("Short", "#Shorts #MarketingTips #SmallBusiness", "Use a 30-45 second short video storyboard."),
+        "LinkedIn": ("Thought Leadership", "#MarketingStrategy #SmallBusiness #Agency", "Use a professional text post or clean carousel."),
+        "X / Twitter": ("Short Thread", "#Marketing #SmallBusiness", "Use a short hook plus 3 practical points."),
+        "Pinterest": ("Pin", "#BusinessTips #MarketingIdeas #ContentPlanning", "Use a tall visual pin with headline and CTA.")
+    }
+    post_type, hashtags, asset = platform_map.get(platform, ("Post", "#2EasyMarketing #Marketing", "Use a clean branded visual."))
+
+    hook = f"{business}: {idea[:72].strip()}"
+    if platform in ["TikTok", "YouTube Shorts", "Instagram"]:
+        caption = (
+            f"Most businesses do not need more random content. They need a clear plan.\n\n"
+            f"Here is the idea: {idea.strip()}\n\n"
+            f"For {audience}, keep the message simple: {differentiators}.\n\n"
+            f"Next step: {offer}."
+        )
+    elif platform == "LinkedIn":
+        caption = (
+            f"A stronger marketing system starts with one clear message.\n\n"
+            f"Topic: {idea.strip()}\n\n"
+            f"What matters most is clarity: who it helps, why it matters, and what the next step is.\n\n"
+            f"For {business}, the goal is simple — help {audience} understand the value and take action.\n\n"
+            f"Next step: {offer}."
+        )
+    else:
+        caption = (
+            f"{idea.strip()}\n\n"
+            f"{business} helps {audience} with marketing that feels clear, organized, and ready to use.\n\n"
+            f"{offer}."
+        )
+
+    score_data = _growth_readiness(platform, caption, hashtags, asset, has_cta=True)
+    return {
+        "platform": platform,
+        "post_type": post_type,
+        "hook": hook,
+        "caption": caption,
+        "hashtags": hashtags,
+        "asset_idea": asset,
+        "readiness_score": score_data["score"],
+        "readiness_notes": "; ".join(score_data["issues"] or ["Ready for review."]),
+        "status": "draft_review"
+    }
+
+def _growth_readiness(platform: str, caption: str, hashtags: str = "", media_type: str = "", video_seconds: int = 0, has_cta: bool = False) -> dict:
+    score = 100
+    issues = []
+    caption = caption or ""
+    hashtags = hashtags or ""
+
+    if len(caption.strip()) < 40:
+        score -= 18
+        issues.append("Caption is too short to explain the value.")
+    if len(caption) > 2200 and platform in ["Instagram", "Facebook", "LinkedIn"]:
+        score -= 12
+        issues.append("Caption may be too long for quick reading.")
+    if platform in ["TikTok", "YouTube Shorts", "Instagram"] and "video" in (media_type or "").lower() and video_seconds and video_seconds > 60:
+        score -= 12
+        issues.append("Short-form video should usually stay under 60 seconds.")
+    if platform in ["TikTok", "Instagram", "YouTube Shorts"] and not any(word in caption.lower() for word in ["watch", "here", "tip", "stop", "how", "why", "first"]):
+        score -= 8
+        issues.append("Opening hook could be stronger for short-form platforms.")
+    if not hashtags.strip():
+        score -= 10
+        issues.append("Hashtags are missing.")
+    elif hashtags.count("#") > 12:
+        score -= 8
+        issues.append("Too many hashtags can look spammy.")
+    if not has_cta and not any(x in caption.lower() for x in ["message", "book", "call", "visit", "click", "send", "start", "learn more"]):
+        score -= 14
+        issues.append("Call-to-action is missing or unclear.")
+    if platform == "Pinterest" and "pin" not in (media_type or "").lower() and "tall" not in (media_type or "").lower():
+        score -= 6
+        issues.append("Pinterest usually needs a tall visual layout.")
+    if platform == "LinkedIn" and len(caption.split()) < 40:
+        score -= 6
+        issues.append("LinkedIn posts usually perform better with a little more context.")
+
+    score = max(0, min(100, score))
+    return {
+        "score": score,
+        "status": "ready" if score >= 85 else "needs_review" if score >= 70 else "needs_fix",
+        "issues": issues,
+        "summary": "Ready for review." if score >= 85 else "Good start, but check the notes."
+    }
+
+_growth_init_db()
+
+@app.get("/api/growth/templates")
+async def growth_templates(session: dict = Depends(require_auth)):
+    """Viral Template Library v1."""
+    return {
+        "status": "ok",
+        "templates": GROWTH_TEMPLATE_LIBRARY,
+        "message": "Template Library loaded."
+    }
+
+@app.post("/api/growth/one-post-everywhere")
+async def growth_one_post_everywhere(request: Request, session: dict = Depends(require_auth)):
+    """One Post Everywhere v1 — creates platform-specific drafts and adds them to the publish queue."""
+    body = await request.json()
+    idea = str(body.get("idea") or body.get("topic") or "").strip()
+    template_id = str(body.get("template_id") or "").strip()
+    platforms = body.get("platforms") or GROWTH_PLATFORMS
+    if not idea:
+        return JSONResponse({"error": "Please enter a post idea or topic."}, status_code=400)
+
+    brand = _growth_brand_context(session)
+    client = _growth_current_client(session)
+    client_name = (client["name"] if client else "") or brand["business"]
+
+    posts = []
+    conn = get_db()
+    try:
+        for platform in platforms:
+            p = _growth_platform_post(idea, str(platform), brand, template_id)
+            cur = conn.execute("""
+                INSERT INTO growth_posts
+                    (client_id, client_name, source, platform, post_type, hook, caption, hashtags, asset_idea, status, readiness_score, readiness_notes, scheduled_date, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                session["client_id"], client_name, "one_post_everywhere", p["platform"], p["post_type"], p["hook"],
+                p["caption"], p["hashtags"], p["asset_idea"], p["status"], p["readiness_score"], p["readiness_notes"],
+                (datetime.utcnow().date() + timedelta(days=len(posts))).isoformat(), datetime.utcnow().isoformat()
+            ))
+            p["id"] = cur.lastrowid
+            posts.append(p)
+        conn.commit()
+    finally:
+        conn.close()
+
+    _growth_increment_usage(session["client_id"], "posts_generated", len(posts))
+    _growth_increment_usage(session["client_id"], "queue_items", len(posts))
+    return {
+        "status": "ok",
+        "created": len(posts),
+        "posts": posts,
+        "message": f"{len(posts)} platform-specific drafts created and added to the publish queue."
+    }
+
+@app.post("/api/growth/repurpose")
+async def growth_repurpose(request: Request, session: dict = Depends(require_auth)):
+    """Content Repurposing v1 — turns notes/scripts/text into post ideas."""
+    body = await request.json()
+    source_text = str(body.get("source_text") or body.get("text") or "").strip()
+    if not source_text:
+        return JSONResponse({"error": "Paste text, notes, a script, or an article summary to repurpose."}, status_code=400)
+
+    brand = _growth_brand_context(session)
+    cleaned = re.sub(r"\s+", " ", source_text)[:1800]
+    words = cleaned.split()
+    short = " ".join(words[:34])
+    ideas = [
+        {
+            "title": "Main takeaway post",
+            "idea": f"Turn this into a clear post for {brand['audience']}: {short}",
+            "best_platforms": ["Facebook", "LinkedIn", "Instagram"]
+        },
+        {
+            "title": "Short video hook",
+            "idea": f"Use this as a 30-second short video: {short}",
+            "best_platforms": ["TikTok", "YouTube Shorts", "Instagram"]
+        },
+        {
+            "title": "Carousel breakdown",
+            "idea": f"Break this topic into 5 simple carousel slides: {short}",
+            "best_platforms": ["Instagram", "LinkedIn", "Pinterest"]
+        },
+        {
+            "title": "FAQ angle",
+            "idea": f"Answer the biggest question behind this topic in plain English: {short}",
+            "best_platforms": ["Facebook", "LinkedIn", "X / Twitter"]
+        }
+    ]
+
+    _growth_increment_usage(session["client_id"], "repurposes", 1)
+    return {
+        "status": "ok",
+        "source_preview": cleaned[:280],
+        "ideas": ideas,
+        "message": "Repurposing ideas created. Use one in One Post Everywhere."
+    }
+
+@app.post("/api/growth/readiness-check")
+async def growth_readiness_check(request: Request, session: dict = Depends(require_auth)):
+    """Platform Readiness Score v1."""
+    body = await request.json()
+    result = _growth_readiness(
+        str(body.get("platform") or "Instagram"),
+        str(body.get("caption") or ""),
+        str(body.get("hashtags") or ""),
+        str(body.get("media_type") or ""),
+        int(body.get("video_seconds") or 0),
+        bool(body.get("has_cta") or False)
+    )
+    _growth_increment_usage(session["client_id"], "readiness_checks", 1)
+    return {"status": "ok", "readiness": result}
+
+@app.get("/api/growth/publish-queue")
+async def growth_publish_queue(status: str = "", session: dict = Depends(require_auth)):
+    """Publish Queue Preview v1."""
+    conn = get_db()
+    try:
+        params = []
+        where = []
+        if session.get("role") != "owner":
+            where.append("client_id=?")
+            params.append(session["client_id"])
+        if status:
+            where.append("status=?")
+            params.append(status)
+        sql = "SELECT * FROM growth_posts"
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        sql += " ORDER BY created_at DESC LIMIT 100"
+        rows = conn.execute(sql, tuple(params)).fetchall()
+        posts = [dict(r) for r in rows]
+    finally:
+        conn.close()
+    return {"status": "ok", "posts": posts, "publishing_enabled": False}
+
+@app.post("/api/growth/publish-queue/{post_id}/status")
+async def growth_update_queue_status(post_id: int, request: Request, session: dict = Depends(require_auth)):
+    body = await request.json()
+    new_status = str(body.get("status") or "draft_review").strip()
+    allowed = {"draft_review", "needs_fix", "approved", "scheduled", "exported", "posted_preview", "rejected"}
+    if new_status not in allowed:
+        return JSONResponse({"error": "Invalid status."}, status_code=400)
+
+    conn = get_db()
+    try:
+        if session.get("role") == "owner":
+            conn.execute("UPDATE growth_posts SET status=?, updated_at=? WHERE id=?", (new_status, datetime.utcnow().isoformat(), post_id))
+        else:
+            conn.execute("UPDATE growth_posts SET status=?, updated_at=? WHERE id=? AND client_id=?", (new_status, datetime.utcnow().isoformat(), post_id, session["client_id"]))
+        conn.commit()
+    finally:
+        conn.close()
+    return {
+        "status": "ok",
+        "message": "Queue status updated.",
+        "publishing_enabled": False,
+        "note": "This is still preview mode. It does not auto-post to social media yet."
+    }
+
+@app.post("/api/growth/carousel-scenes")
+async def growth_carousel_scenes(request: Request, session: dict = Depends(require_auth)):
+    """AI Visual Agent v1 — carousel/slideshow/video scene builder."""
+    body = await request.json()
+    topic = str(body.get("topic") or "").strip()
+    if not topic:
+        return JSONResponse({"error": "Please enter a topic."}, status_code=400)
+    count = max(3, min(int(body.get("slides") or 5), 8))
+    brand = _growth_brand_context(session)
+    scenes = []
+    for i in range(count):
+        if i == 0:
+            title = f"{topic}"
+            body_text = f"Make the first slide clear and bold for {brand['business']}."
+        elif i == count - 1:
+            title = "Ready to take the next step?"
+            body_text = brand["main_offer"]
+        else:
+            title = f"Point {i}"
+            body_text = f"Explain one useful point about {topic} in simple language."
+        scenes.append({
+            "slide": i + 1,
+            "title": title,
+            "body": body_text,
+            "visual_direction": f"Use {brand['colors']} with a clean dark background, teal accent, and strong white headline.",
+            "voiceover_line": f"{title}. {body_text}"
+        })
+
+    _growth_increment_usage(session["client_id"], "media_scene_sets", 1)
+    return {
+        "status": "ok",
+        "topic": topic,
+        "scenes": scenes,
+        "message": "Carousel / video scene plan created."
+    }
+
+@app.get("/api/growth/usage")
+async def growth_usage(session: dict = Depends(require_auth)):
+    """Credits / Usage Tracking v1."""
+    conn = get_db()
+    try:
+        month = _growth_month()
+        row = conn.execute("SELECT * FROM growth_usage WHERE client_id=? AND usage_month=?", (session["client_id"], month)).fetchone()
+        usage = dict(row) if row else {
+            "client_id": session["client_id"], "usage_month": month, "posts_generated": 0, "repurposes": 0,
+            "readiness_checks": 0, "queue_items": 0, "media_scene_sets": 0
+        }
+    finally:
+        conn.close()
+    return {"status": "ok", "usage": usage}
+
+@app.get("/api/growth/onboarding")
+async def growth_onboarding(session: dict = Depends(require_auth)):
+    """Trust + Onboarding Checklist v1."""
+    conn = get_db()
+    try:
+        conn.execute("INSERT OR IGNORE INTO growth_onboarding (client_id, updated_at) VALUES (?, ?)", (session["client_id"], datetime.utcnow().isoformat()))
+        conn.commit()
+        row = conn.execute("SELECT * FROM growth_onboarding WHERE client_id=?", (session["client_id"],)).fetchone()
+        data = dict(row)
+    finally:
+        conn.close()
+    steps = [
+        {"key": "brand_kit_done", "label": "Complete Brand Kit", "why": "Your tools need voice, audience, offer, and colors."},
+        {"key": "first_plan_done", "label": "Generate first 30-day plan", "why": "Start with a clear content direction."},
+        {"key": "first_post_done", "label": "Create one post everywhere", "why": "Turn one idea into multiple platform drafts."},
+        {"key": "approval_flow_seen", "label": "Review approval workflow", "why": "Nothing should move forward without approval."},
+        {"key": "export_seen", "label": "Review export / publish queue", "why": "Know what is ready, scheduled, or exported."},
+        {"key": "plugin_reviewed", "label": "Review Plugin Hub", "why": "See what can be connected later."},
+        {"key": "trust_examples_seen", "label": "Review examples and service proof", "why": "Trust and proof help customers buy."}
+    ]
+    for s in steps:
+        s["done"] = bool(data.get(s["key"], 0))
+    return {"status": "ok", "steps": steps, "raw": data}
+
+@app.post("/api/growth/onboarding")
+async def growth_update_onboarding(request: Request, session: dict = Depends(require_auth)):
+    body = await request.json()
+    key = str(body.get("key") or "").strip()
+    value = 1 if bool(body.get("done", True)) else 0
+    allowed = {"brand_kit_done", "first_plan_done", "first_post_done", "approval_flow_seen", "export_seen", "plugin_reviewed", "trust_examples_seen"}
+    if key not in allowed:
+        return JSONResponse({"error": "Invalid onboarding key."}, status_code=400)
+    conn = get_db()
+    try:
+        conn.execute("INSERT OR IGNORE INTO growth_onboarding (client_id, updated_at) VALUES (?, ?)", (session["client_id"], datetime.utcnow().isoformat()))
+        conn.execute(f"UPDATE growth_onboarding SET {key}=?, updated_at=? WHERE client_id=?", (value, datetime.utcnow().isoformat(), session["client_id"]))
+        conn.commit()
+    finally:
+        conn.close()
+    return {"status": "ok", "message": "Onboarding updated."}
+
+@app.get("/api/growth/webhook-guide")
+async def growth_webhook_guide(session: dict = Depends(require_auth)):
+    """API + Automation guide v1."""
+    return {
+        "status": "ok",
+        "api_ready": False,
+        "webhooks_enabled": False,
+        "message": "Preview guide only. Public API keys and webhooks should be added after core workflow testing.",
+        "future_endpoints": [
+            "/api/growth/one-post-everywhere",
+            "/api/growth/publish-queue",
+            "/api/growth/readiness-check",
+            "/api/growth/templates",
+            "/api/growth/usage"
+        ],
+        "safe_rule": "Do not expose private API keys in frontend files or GitHub."
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  SUBSCRIPTION ACCESS — HUMAN CLEAN PLAN-BASED DASHBOARD
+# ═══════════════════════════════════════════════════════════════════════════
+
+PLAN_ACCESS = {
+    "starter": {
+        "label": "Starter Platform",
+        "mode": "Self-Service",
+        "description": "For customers who want simple tools to organize and create their own marketing content.",
+        "price_note": "$29.99/mo",
+        "visible_views": ["dashboard", "pricing", "plan-access", "growth-os", "launch-checklist", "new-task", "my-tasks", "content-calendar"],
+        "included_tools": [
+            "Dashboard",
+            "New Task",
+            "My Tasks",
+            "Brand Kit",
+            "Basic Content Calendar",
+            "AI Captions",
+            "CSV Export",
+            "Basic Reports"
+        ],
+        "limited_tools": ["Content Calendar"],
+        "locked_tools": ["Plugin Hub", "Media Factory", "Voiceover", "Multi-Client", "Ad Engine"],
+        "best_for": "Solo business owners who want a simple starting point."
+    },
+    "pro": {
+        "label": "Pro Platform",
+        "mode": "Advanced Self-Service",
+        "description": "For businesses that want more automation, media tools, approvals, and reporting.",
+        "price_note": "$49.99/mo",
+        "visible_views": ["dashboard", "pricing", "plan-access", "growth-os", "launch-checklist", "new-task", "my-tasks", "content-calendar", "media-factory", "channel-hub", "plugin-hub", "client-reports"],
+        "included_tools": [
+            "Everything in Starter",
+            "Social Autopilot",
+            "Approval Queue",
+            "Media Factory",
+            "Plugin Hub Preview",
+            "Platform Readiness Score",
+            "Weekly Reports"
+        ],
+        "limited_tools": ["Plugin Hub live connections", "Real MP4/MP3 media until API keys are connected"],
+        "locked_tools": ["Multi-Client Agency View"],
+        "best_for": "Businesses that want to run their own marketing with stronger tools."
+    },
+    "done_for_you": {
+        "label": "Done-For-You",
+        "mode": "Client Portal",
+        "description": "For clients who want 2EasyMarketing to do the work while they review and approve.",
+        "price_note": "$399+/mo",
+        "visible_views": ["dashboard", "pricing", "plan-access", "growth-os", "launch-checklist", "new-task", "my-tasks", "content-calendar", "client-reports"],
+        "included_tools": [
+            "Submit Requests",
+            "Content Waiting for Approval",
+            "Approve / Reject Posts",
+            "Campaign Progress",
+            "Reports",
+            "Messages from 2EasyMarketing"
+        ],
+        "limited_tools": ["Self-service editing tools"],
+        "locked_tools": ["Agency Multi-Client Tools", "Owner System Tools"],
+        "best_for": "Clients who want help instead of doing everything themselves."
+    },
+    "agency": {
+        "label": "Agency / Multi-Client",
+        "mode": "Scale Plan",
+        "description": "For managing multiple clients, brand kits, queues, reports, and export/publish workflows.",
+        "price_note": "$149.99/mo",
+        "visible_views": ["dashboard", "pricing", "plan-access", "growth-os", "launch-checklist", "new-task", "my-tasks", "content-calendar", "media-factory", "channel-hub", "plugin-hub", "client-reports", "clients", "revenue"],
+        "included_tools": [
+            "Multiple Clients",
+            "Client Switcher",
+            "Team Workflow",
+            "Multiple Brand Kits",
+            "Approval Queues Per Client",
+            "Reports Per Client",
+            "Export / Publish Queue"
+        ],
+        "limited_tools": ["Live publishing until social APIs are connected"],
+        "locked_tools": ["Owner-only system controls"],
+        "best_for": "Agencies, creators, and managers who need to handle more than one client."
+    },
+    "owner": {
+        "label": "Owner",
+        "mode": "2EasyMarketing Admin",
+        "description": "Full internal access for managing clients, systems, reports, plugins, automations, and revenue.",
+        "price_note": "Internal account",
+        "visible_views": ["dashboard", "pricing", "plan-access", "growth-os", "launch-checklist", "new-task", "my-tasks", "owner-dashboard", "clients", "media-factory", "autonomous", "channel-hub", "content-calendar", "plugin-hub", "competitor-spy", "revenue", "client-reports", "system-health", "update-log", "council", "ad-engine", "security"],
+        "included_tools": [
+            "All client tools",
+            "Owner Dashboard",
+            "Clients",
+            "Autonomous Engine",
+            "Competitor Spy",
+            "Revenue",
+            "System Health",
+            "LLM Council",
+            "Ad Engine",
+            "Security"
+        ],
+        "limited_tools": ["Live external services require valid provider API keys"],
+        "locked_tools": [],
+        "best_for": "Internal 2EasyMarketing operations."
+    }
+}
+
+FEATURE_TO_VIEW = {
+    "media_factory": "media-factory",
+    "plugin_hub": "plugin-hub",
+    "channel_hub": "channel-hub",
+    "client_reports": "client-reports",
+    "content_calendar": "content-calendar",
+    "clients": "clients",
+    "revenue": "revenue",
+    "ad_engine": "ad-engine",
+    "owner_dashboard": "owner-dashboard"
+}
+
+def _normalize_plan_name(plan: str) -> str:
+    raw = str(plan or "starter").strip().lower().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "basic": "starter",
+        "free": "starter",
+        "starter_platform": "starter",
+        "premium": "pro",
+        "professional": "pro",
+        "pro_platform": "pro",
+        "done_for_you": "done_for_you",
+        "doneforyou": "done_for_you",
+        "managed": "done_for_you",
+        "managed_service": "done_for_you",
+        "agency_multi_client": "agency",
+        "multi_client": "agency",
+        "scale": "agency",
+        "enterprise": "agency",
+        "admin": "owner"
+    }
+    return aliases.get(raw, raw if raw in PLAN_ACCESS else "starter")
+
+def _subscription_access_for_session(session: dict) -> dict:
+    role = session.get("role", "client")
+    if role == "owner":
+        plan_key = "owner"
+    else:
+        conn = get_db()
+        try:
+            row = conn.execute("SELECT plan FROM clients WHERE id=?", (session["client_id"],)).fetchone()
+            plan_key = _normalize_plan_name(row["plan"] if row else "starter")
+        finally:
+            conn.close()
+
+    plan = dict(PLAN_ACCESS.get(plan_key, PLAN_ACCESS["starter"]))
+    plan["key"] = plan_key
+    plan["role"] = role
+    plan["all_plan_keys"] = ["starter", "pro", "done_for_you", "agency"]
+    plan["publishing_enabled"] = False
+    plan["truth_note"] = "This controls what the customer sees. Live posting and paid AI media still require real provider connections."
+    return plan
+
+@app.get("/api/subscription/access")
+async def subscription_access(session: dict = Depends(require_auth)):
+    """Return the current user's plan and the views/tools they are allowed to see."""
+    return {"status": "ok", "access": _subscription_access_for_session(session)}
+
+@app.get("/api/subscription/plans")
+async def subscription_plans(session: dict = Depends(require_auth)):
+    """Return human-readable plan comparison for the dashboard."""
+    plans = []
+    for key in ["starter", "pro", "done_for_you", "agency"]:
+        p = dict(PLAN_ACCESS[key])
+        p["key"] = key
+        plans.append(p)
+    return {
+        "status": "ok",
+        "pricing_order": ["starter", "pro", "agency", "done_for_you"],
+        "plans": plans,
+        "publishing_enabled": False,
+        "message": "Preview mode. This comparison is for plan access and onboarding clarity."
+    }
+
+@app.get("/api/subscription/check/{feature}")
+async def subscription_check(feature: str, session: dict = Depends(require_auth)):
+    access = _subscription_access_for_session(session)
+    view = FEATURE_TO_VIEW.get(feature)
+    allowed = bool(view and view in access["visible_views"])
+    return {
+        "status": "ok",
+        "feature": feature,
+        "allowed": allowed,
+        "plan": access["key"],
+        "message": "Allowed for this plan." if allowed else "This feature is available on a higher plan."
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  PLUGIN HUB PREVIEW — SAFE INTEGRATION MARKETPLACE
+# ═══════════════════════════════════════════════════════════════════════════
+
+PLUGIN_CATALOG = [
+    {
+        "slug": "instagram-facebook",
+        "name": "Instagram + Facebook",
+        "category": "Social Channels",
+        "status": "setup_required",
+        "icon": "IG",
+        "description": "Connect Meta pages, schedule posts, push Reels, and manage approval before publishing.",
+        "features": ["OAuth", "Reels", "Pages"],
+        "required_env": ["META_APP_ID", "META_APP_SECRET"]
+    },
+    {
+        "slug": "youtube-shorts",
+        "name": "YouTube Shorts",
+        "category": "Social Channels",
+        "status": "setup_required",
+        "icon": "YT",
+        "description": "Upload approved Shorts, attach captions, thumbnails, and track video performance.",
+        "features": ["Shorts", "Upload", "Analytics"],
+        "required_env": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]
+    },
+    {
+        "slug": "tiktok-publisher",
+        "name": "TikTok Publisher",
+        "category": "Social Channels",
+        "status": "setup_required",
+        "icon": "TT",
+        "description": "Prepare TikTok clips, captions, hashtags, approvals, and publishing workflow.",
+        "features": ["Videos", "Captions", "Queue"],
+        "required_env": ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"]
+    },
+    {
+        "slug": "elevenlabs-voiceover",
+        "name": "ElevenLabs Voiceover",
+        "category": "AI Media",
+        "status": "setup_required",
+        "icon": "EL",
+        "description": "Create real MP3 voiceovers from approved scripts using natural AI voices.",
+        "features": ["MP3", "TTS", "Voices"],
+        "required_env": ["ELEVENLABS_API_KEY"]
+    },
+    {
+        "slug": "luma-video-api",
+        "name": "Luma Video API",
+        "category": "AI Media",
+        "status": "setup_required",
+        "icon": "LU",
+        "description": "Generate actual MP4 AI video ads from your Media Factory storyboards.",
+        "features": ["MP4", "Video AI", "Ads"],
+        "required_env": ["LUMA_API_KEY"]
+    },
+    {
+        "slug": "openai-images",
+        "name": "OpenAI Images",
+        "category": "AI Media",
+        "status": "setup_required",
+        "icon": "OA",
+        "description": "Create real AI images for ads, thumbnails, carousels, campaigns, and posts.",
+        "features": ["Images", "Ads", "Creative"],
+        "required_env": ["OPENAI_API_KEY"]
+    },
+    {
+        "slug": "email-engine",
+        "name": "Email Engine",
+        "category": "Email & SMS",
+        "status": "connected",
+        "icon": "EM",
+        "description": "Generate client emails, campaign updates, reminders, reports, and follow-up messages.",
+        "features": ["Built-In", "Reports", "Client Updates"],
+        "required_env": []
+    },
+    {
+        "slug": "approval-queue",
+        "name": "Approval Queue",
+        "category": "Automation",
+        "status": "connected",
+        "icon": "AP",
+        "description": "Owner/client approval workflow before publishing, exporting, or sending campaigns.",
+        "features": ["Built-In", "Approve", "Reject"],
+        "required_env": []
+    },
+    {
+        "slug": "csv-export",
+        "name": "CSV Export",
+        "category": "Automation",
+        "status": "connected",
+        "icon": "CSV",
+        "description": "Export posts, captions, schedules, clients, reports, and campaign plans.",
+        "features": ["Built-In", "Export", "Safe"],
+        "required_env": []
+    }
+]
+
+def _plugin_with_runtime_status(plugin: dict) -> dict:
+    missing = [key for key in plugin.get("required_env", []) if not os.getenv(key, "").strip()]
+    out = dict(plugin)
+    out["missing_env"] = missing
+    if plugin["status"] != "connected":
+        out["status"] = "ready_to_test" if not missing else "setup_required"
+    out["publishing_enabled"] = False
+    return out
+
+@app.get("/api/plugins/catalog")
+async def plugin_catalog(session: dict = Depends(require_auth)):
+    """Return safe Plugin Hub catalog. Preview mode: nothing connects or publishes automatically."""
+    plugins = [_plugin_with_runtime_status(p) for p in PLUGIN_CATALOG]
+    return {
+        "status": "ok",
+        "preview_mode": True,
+        "publishing_enabled": False,
+        "plugins": plugins,
+        "summary": {
+            "total": len(plugins),
+            "connected": len([p for p in plugins if p["status"] == "connected"]),
+            "setup_required": len([p for p in plugins if p["status"] == "setup_required"]),
+            "ready_to_test": len([p for p in plugins if p["status"] == "ready_to_test"]),
+        }
+    }
+
+@app.get("/api/plugins/{slug}")
+async def plugin_detail(slug: str, session: dict = Depends(require_auth)):
+    plugin = next((p for p in PLUGIN_CATALOG if p["slug"] == slug), None)
+    if not plugin:
+        raise HTTPException(status_code=404, detail="Plugin not found")
+    p = _plugin_with_runtime_status(plugin)
+    return {
+        "status": "ok",
+        "plugin": p,
+        "setup_steps": [
+            "Create the provider developer account/app if needed.",
+            "Copy the required API key/client ID/client secret.",
+            "Add the values in Railway Variables, never inside GitHub code.",
+            "Redeploy Railway.",
+            "Come back to Plugin Hub and press Test Connection."
+        ],
+        "message": "Preview mode only. Real OAuth connection will be added in a later phase."
+    }
+
+@app.post("/api/plugins/{slug}/test")
+async def plugin_test_connection(slug: str, session: dict = Depends(require_owner)):
+    plugin = next((p for p in PLUGIN_CATALOG if p["slug"] == slug), None)
+    if not plugin:
+        raise HTTPException(status_code=404, detail="Plugin not found")
+    p = _plugin_with_runtime_status(plugin)
+    if p["missing_env"]:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "setup_required",
+                "plugin": p,
+                "message": f"Missing Railway Variables: {', '.join(p['missing_env'])}"
+            }
+        )
+    return {
+        "status": "ok",
+        "plugin": p,
+        "message": "Required variables are present. Full live API/OAuth test will be added in the next integration phase."
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2189,7 +3482,17 @@ async def media_factory_generate(request: Request, session: dict = Depends(requi
 
     else:
         content = _build_voiceover_script(brief)
-        ai_result = f"VOICEOVER_SCRIPT_READY:\n{content}"
+        filename = _media_safe_filename("voiceover_script", task_id, "txt")
+        voice_path = os.path.join(MEDIA_DIR, filename)
+        with open(voice_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        media_url = f"/media/{filename}"
+        ai_result = f"VOICEOVER_SCRIPT_READY:{filename}\n\n{content}"
+
+        conn.execute(
+            "INSERT INTO media_files (task_id, client_id, file_type, filename, file_path, status) VALUES (?,?,?,?,?,?)",
+            (task_id, client_row["id"], "voiceover_script", filename, voice_path, "ready")
+        )
 
     conn.execute(
         "UPDATE tasks SET ai_result=?, status='delivered', completed_at=? WHERE id=?",
@@ -3280,42 +4583,193 @@ async def council_stats(session: dict = Depends(require_owner)):
     }
 
 
-# ─── FRONTEND STATIC FALLBACK ────────────────────────────────────────────────
-# Allows the same Railway service to serve the landing page if the frontend is
-# deployed with the backend. Keep this last so API routes above win first.
-PUBLIC_DIR = os.path.dirname(os.path.abspath(__file__))
-PUBLIC_STATIC_FILES = {
-    "index.html",
-    "robots.txt",
-    "sitemap.xml",
-    "manifest.json",
-    "favicon.ico",
-    "favicon.svg",
-}
-PUBLIC_STATIC_EXTS = (".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico")
+@app.get("/api/pricing/public")
+async def pricing_public():
+    """Public-safe pricing preview. No payment processing yet."""
+    ordered = ["starter", "pro", "agency", "done_for_you"]
+    cards = []
+    for key in ordered:
+        p = dict(PLAN_ACCESS[key])
+        p["key"] = key
+        p["price"] = {
+            "starter": "$29.99",
+            "pro": "$49.99",
+            "agency": "$149.99",
+            "done_for_you": "$399+"
+        }[key]
+        p["period"] = "/month" if key == "done_for_you" else "/month"
+        cards.append(p)
+    return {
+        "status": "ok",
+        "payment_enabled": False,
+        "publishing_enabled": False,
+        "plans": cards,
+        "message": "Pricing preview only. Payments will be connected in a later phase."
+    }
 
 
-def public_file_response(path: str) -> FileResponse:
-    full_path = os.path.abspath(os.path.join(PUBLIC_DIR, path))
-    if not full_path.startswith(PUBLIC_DIR + os.sep) and full_path != PUBLIC_DIR:
-        raise HTTPException(status_code=404, detail="Not Found")
-    if not os.path.isfile(full_path):
-        raise HTTPException(status_code=404, detail="Not Found")
-    return FileResponse(full_path)
 
 
-@app.get("/", include_in_schema=False)
-async def serve_index():
-    return public_file_response("index.html")
+# ═══════════════════════════════════════════════════════════════════════════
+#  CUSTOMER READY LAUNCH v1 — TRUST, ONBOARDING, FAQ, CTA, LAUNCH CHECKLIST
+# ═══════════════════════════════════════════════════════════════════════════
+
+CUSTOMER_READY_PRICING = [
+    {
+        "key": "starter",
+        "name": "Starter Platform",
+        "price": "$29.99",
+        "period": "/month",
+        "tag": "Self-Service",
+        "best_for": "A small business owner who wants simple marketing tools.",
+        "description": "Organize your brand, create captions, plan basic content, and export your work.",
+        "included": ["Brand Kit", "Basic Content Calendar", "AI Captions", "CSV Export", "Basic Reports"],
+        "cta": "Start with Starter"
+    },
+    {
+        "key": "pro",
+        "name": "Pro Platform",
+        "price": "$49.99",
+        "period": "/month",
+        "tag": "Advanced Self-Service",
+        "best_for": "A business that wants stronger planning, approvals, and content workflows.",
+        "description": "Create platform drafts, use Growth OS, manage approvals, and prepare reports.",
+        "included": ["Everything in Starter", "Growth OS", "Social Autopilot", "Approval Queue", "Media Factory", "Plugin Hub Preview", "Weekly Reports"],
+        "cta": "Choose Pro"
+    },
+    {
+        "key": "agency",
+        "name": "Agency / Multi-Client",
+        "price": "$149.99",
+        "period": "/month",
+        "tag": "Scale Plan",
+        "best_for": "Agencies, creators, or managers handling more than one client.",
+        "description": "Manage multiple clients, brand kits, reports, approval queues, and export-ready posts.",
+        "included": ["Multiple Clients", "Client Switcher", "Multiple Brand Kits", "Approval Queues Per Client", "Reports Per Client", "Export / Publish Queue"],
+        "cta": "Scale with Agency"
+    },
+    {
+        "key": "done_for_you",
+        "name": "Done-For-You",
+        "price": "$399+",
+        "period": "/month",
+        "tag": "Managed Service",
+        "best_for": "A client who wants 2EasyMarketing to help create and organize the marketing work.",
+        "description": "You submit requests, we prepare the work, and you review and approve before anything moves forward.",
+        "included": ["Submit Requests", "We Prepare Content", "Approve / Reject Posts", "Campaign Progress", "Reports", "Messages from 2EasyMarketing"],
+        "cta": "Request Done-For-You"
+    }
+]
+
+CUSTOMER_READY_FAQS = [
+    {
+        "question": "Is this only an AI tool?",
+        "answer": "No. 2EasyMarketing is being built as a marketing platform plus a done-for-you service option. AI helps with drafts and organization, but the focus is clear marketing workflow, approvals, and client support."
+    },
+    {
+        "question": "Does it post directly to social media right now?",
+        "answer": "Not yet. The current build prepares drafts, queue items, exports, approvals, and readiness checks. Live posting requires real social platform connections and API approval later."
+    },
+    {
+        "question": "What happens after someone signs up?",
+        "answer": "They should complete their Brand Kit, choose or confirm a plan, create or request content, review drafts, approve work, and track progress in the dashboard."
+    },
+    {
+        "question": "Why does Done-For-You say $399+?",
+        "answer": "Because managed service work can vary depending on how much content, strategy, reporting, or custom support the client needs."
+    },
+    {
+        "question": "Are payments connected yet?",
+        "answer": "No. Stripe or another payment provider should be connected after the pricing, onboarding flow, and dashboard are approved."
+    },
+    {
+        "question": "Can customers use this on mobile?",
+        "answer": "Yes. A mobile responsive pass was added so the dashboard, pricing, plan access, and Growth OS pages work better on phones."
+    }
+]
+
+CUSTOMER_READY_TRUST_SECTIONS = [
+    {
+        "title": "Clear Workflow",
+        "body": "Customers can see what to do next: create, review, approve, export, and report."
+    },
+    {
+        "title": "Plan-Based Access",
+        "body": "Each plan shows the right tools instead of overwhelming every customer with everything."
+    },
+    {
+        "title": "Approval Before Publishing",
+        "body": "Nothing should move forward without client or owner approval."
+    },
+    {
+        "title": "Human Service Option",
+        "body": "Done-For-You keeps the business from feeling like just another AI software tool."
+    },
+    {
+        "title": "Mobile Ready",
+        "body": "Customers should be able to check requests, approvals, and reports from their phone."
+    },
+    {
+        "title": "Honest Preview Mode",
+        "body": "Live posting, payment processing, and real provider media generation are clearly marked as later connection steps."
+    }
+]
+
+CUSTOMER_READY_ONBOARDING = [
+    {"step": 1, "title": "Choose your plan", "body": "Pick Starter, Pro, Agency, or Done-For-You based on how much help you want."},
+    {"step": 2, "title": "Complete your Brand Kit", "body": "Add business name, audience, offer, brand voice, colors, and what to avoid."},
+    {"step": 3, "title": "Create or request content", "body": "Self-service users create drafts. Done-For-You clients submit requests."},
+    {"step": 4, "title": "Review and approve", "body": "Check captions, visuals, readiness score, and queue status before anything moves forward."},
+    {"step": 5, "title": "Export, schedule, or connect later", "body": "Use exports now. Live posting can be connected later through approved providers."},
+    {"step": 6, "title": "Review reports", "body": "Track what was created, what is approved, and what should happen next."}
+]
+
+CUSTOMER_READY_LAUNCH_CHECKLIST = [
+    {"item": "Homepage explains the offer in 10 seconds", "done": True},
+    {"item": "Pricing is visible and simple", "done": True},
+    {"item": "Plan access is different per subscription", "done": True},
+    {"item": "Growth OS tools work in safe-preview mode", "done": True},
+    {"item": "Mobile responsive pass is included", "done": True},
+    {"item": "FAQ and trust sections are included", "done": True},
+    {"item": "Terms, privacy, and refund policy pages still need legal review", "done": False},
+    {"item": "Stripe checkout still needs to be connected", "done": False},
+    {"item": "Live social posting still needs provider approval/API keys", "done": False},
+    {"item": "Real phone + Railway deployment testing still needs to happen", "done": False}
+]
+
+@app.get("/api/customer-ready/home")
+async def customer_ready_home():
+    """Public-safe customer-ready homepage data."""
+    return {
+        "status": "ok",
+        "hero": {
+            "headline": "Marketing tools and done-for-you support in one clean place.",
+            "subheadline": "2EasyMarketing helps businesses plan, create, review, organize, and prepare marketing content without making the process confusing.",
+            "primary_cta": "View Pricing",
+            "secondary_cta": "See How It Works"
+        },
+        "pricing": CUSTOMER_READY_PRICING,
+        "trust": CUSTOMER_READY_TRUST_SECTIONS,
+        "faqs": CUSTOMER_READY_FAQS,
+        "onboarding": CUSTOMER_READY_ONBOARDING,
+        "launch_checklist": CUSTOMER_READY_LAUNCH_CHECKLIST,
+        "truth_note": "Payment processing, live social publishing, and provider-based AI media still require real external accounts and testing."
+    }
+
+@app.get("/api/customer-ready/launch-checklist")
+async def customer_ready_launch_checklist(session: dict = Depends(require_auth)):
+    """Internal launch checklist for owner/client dashboard."""
+    return {
+        "status": "ok",
+        "checklist": CUSTOMER_READY_LAUNCH_CHECKLIST,
+        "message": "Customer-ready launch checklist loaded."
+    }
 
 
-@app.get("/{path:path}", include_in_schema=False)
-async def serve_frontend_asset_or_spa(path: str):
-    clean_path = (path or "").strip("/")
-    if clean_path.startswith("api/") or clean_path.startswith("media/"):
-        raise HTTPException(status_code=404, detail="Not Found")
-
-    if clean_path in PUBLIC_STATIC_FILES or clean_path.endswith(PUBLIC_STATIC_EXTS):
-        return public_file_response(clean_path)
-
-    return public_file_response("index.html")
+@app.get("/customer-ready.html")
+async def customer_ready_page():
+    """Serve the customer-ready launch page directly."""
+    page = Path(__file__).with_name("customer-ready.html")
+    if not page.exists():
+        return JSONResponse({"error": "customer-ready.html not found"}, status_code=404)
+    return FileResponse(str(page), media_type="text/html")

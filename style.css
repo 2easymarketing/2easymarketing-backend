@@ -248,7 +248,7 @@ h1,h2,h3,h4,h5,h6 {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 11000;
+  z-index: 1000;
   background: rgba(6,16,24,0.98);
   backdrop-filter: blur(20px);
   flex-direction: column;
@@ -257,14 +257,6 @@ h1,h2,h3,h4,h5,h6 {
   gap: var(--space-6);
 }
 .mobile-nav.open { display: flex; }
-.mobile-nav nav {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-6);
-  width: min(100%, 360px);
-}
 .mobile-nav-close {
   position: absolute;
   top: var(--space-6);
@@ -274,7 +266,6 @@ h1,h2,h3,h4,h5,h6 {
   color: var(--text);
   font-size: 1.5rem;
   cursor: pointer;
-  z-index: 1;
 }
 .mobile-nav-link {
   font-family: var(--font-display);
@@ -284,7 +275,6 @@ h1,h2,h3,h4,h5,h6 {
   text-decoration: none;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  text-align: center;
   transition: color var(--transition);
 }
 .mobile-nav-link:hover { color: var(--accent); }
@@ -1450,11 +1440,6 @@ h1,h2,h3,h4,h5,h6 {
   transition: opacity var(--transition);
 }
 .contact-link:hover { opacity: 0.75; }
-.contact-note {
-  color: var(--text-muted);
-  cursor: default;
-}
-.contact-note:hover { opacity: 1; }
 
 /* Contact form submit button — full width, teal filled */
 .contact-form .btn-primary,
@@ -1481,4 +1466,20 @@ h1,h2,h3,h4,h5,h6 {
 /* Make the form-row work inside the full-width cta-inner */
 .contact-form .form-row {
   margin-bottom: var(--space-4);
+}
+
+
+
+
+/* 2EasyMarketing landing mobile polish */
+@media (max-width: 900px) {
+  body { overflow-x: hidden; }
+  .hero, .section, .container, .pricing, .features, .grid { max-width: 100%; }
+  .hero, .split, .two-column, .pricing-grid, .features-grid, .grid {
+    grid-template-columns: 1fr !important;
+  }
+  h1 { font-size: clamp(2rem, 11vw, 3.1rem) !important; line-height: 1.04 !important; }
+  h2 { font-size: clamp(1.45rem, 7vw, 2.15rem) !important; }
+  .btn, button, input, select, textarea { min-height: 44px; font-size: 16px; }
+  img, video { max-width: 100%; height: auto; }
 }
