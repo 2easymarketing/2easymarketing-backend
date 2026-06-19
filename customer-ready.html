@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>2EasyMarketing — Customer Ready Launch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#031716">
+<style>
+:root{--teal:#00c4b4;--teal2:#5eeee6;--dark:#031716;--dark2:#020b0b;--text:#eafffe;--muted:rgba(210,235,240,.70);--border:rgba(255,255,255,.09)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);min-height:100vh;background:radial-gradient(circle at 13% -6%,rgba(0,196,180,.38),transparent 31%),radial-gradient(circle at 90% 9%,rgba(94,238,230,.14),transparent 35%),linear-gradient(135deg,#020b0b,#031716 42%,#010909);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.container{max-width:1180px;margin:0 auto;padding:0 24px}
+.nav{position:sticky;top:0;z-index:50;background:rgba(2,11,11,.78);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.07)}
+.nav-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--teal),#01766d);display:flex;align-items:center;justify-content:center;color:#001110;font-weight:1000;box-shadow:0 0 30px rgba(0,196,180,.25)}.brand strong{display:block}.brand span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.nav-links{display:flex;gap:16px;align-items:center;color:rgba(235,255,255,.80);font-weight:750;font-size:14px}.nav-links a:hover{color:var(--teal2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--teal),#008c80);color:#001110;font-weight:1000;cursor:pointer;box-shadow:0 0 24px rgba(0,196,180,.18)}.btn.secondary{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;box-shadow:none}
+.hero{padding:86px 0 46px}.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center}.eyebrow{display:inline-flex;color:var(--teal2);border:1px solid rgba(0,196,180,.28);background:rgba(0,196,180,.08);padding:7px 11px;border-radius:999px;font-weight:1000;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px}
+h1{font-size:clamp(2.4rem,6vw,4.9rem);line-height:.98;margin:0 0 18px;letter-spacing:-.06em}.lead{font-size:clamp(1rem,2vw,1.18rem);color:var(--muted);line-height:1.65;max-width:650px;margin:0 0 24px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap}.mini-proof{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.mini-proof span{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);border-radius:999px;padding:7px 10px;color:rgba(235,255,255,.78);font-size:12px;font-weight:850}
+.product-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:28px;padding:20px;box-shadow:0 0 70px rgba(0,196,180,.09)}.dash-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:14px;margin-bottom:14px}.dash-title{font-weight:1000}.dash-pill{color:var(--teal2);font-size:11px;border:1px solid rgba(0,196,180,.28);border-radius:999px;padding:5px 8px}.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dash-card{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}.dash-card b{display:block;color:#fff;margin-bottom:6px}.dash-card span{color:var(--muted);font-size:12px;line-height:1.45}.score{font-size:28px;font-weight:1000;color:var(--teal)}
+section{padding:50px 0}.section-head{text-align:center;max-width:780px;margin:0 auto 26px}.section-head h2{font-size:clamp(1.7rem,4vw,2.6rem);margin:0 0 10px;letter-spacing:-.04em}.section-head p{margin:0;color:var(--muted);line-height:1.6}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card{background:rgba(255,255,255,.043);border:1px solid rgba(255,255,255,.085);border-radius:20px;padding:20px}.card h3{margin:0 0 8px}.card p{margin:0;color:var(--muted);line-height:1.55;font-size:14px}
+.pricing{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.price-card{display:flex;flex-direction:column;background:rgba(255,255,255,.045);border:1px solid var(--border);border-radius:22px;padding:20px;min-height:520px}.price-card.pro{border-color:rgba(0,196,180,.45);box-shadow:0 0 42px rgba(0,196,180,.10)}.tag{display:inline-flex;width:max-content;color:var(--teal2);border:1px solid rgba(0,196,180,.28);background:rgba(0,196,180,.08);border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:1000;text-transform:uppercase;margin-bottom:12px}.price-card h3{margin:0 0 10px}.price{font-size:34px;font-weight:1000;color:var(--teal);margin-bottom:10px}.price span{font-size:12px;color:rgba(210,235,240,.55);font-weight:700}.price-card p{color:var(--muted);font-size:13px;line-height:1.5;min-height:78px}.price-card ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}.price-card li{font-size:13px;color:rgba(235,255,255,.80)}.price-card .btn{margin-top:auto}
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.step{background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.14);border-radius:16px;padding:14px}.num{width:30px;height:30px;border-radius:10px;background:rgba(0,196,180,.14);border:1px solid rgba(0,196,180,.25);display:flex;align-items:center;justify-content:center;color:var(--teal2);font-weight:1000;margin-bottom:10px}.step b{display:block;margin-bottom:6px}.step span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+.faq{max-width:920px;margin:0 auto;display:grid;gap:12px}.faq-item{background:rgba(255,255,255,.043);border:1px solid rgba(255,255,255,.085);border-radius:18px;padding:18px}.faq-item b{display:block;color:#fff;margin-bottom:7px}.faq-item span{display:block;color:var(--muted);line-height:1.55}
+.truth{border:1px dashed rgba(0,196,180,.25);background:rgba(0,196,180,.045);border-radius:18px;padding:18px;color:var(--muted);line-height:1.58}
+.footer{padding:35px 0;border-top:1px solid rgba(255,255,255,.07);color:rgba(210,235,240,.58);font-size:13px}
+@media(max-width:1100px){.hero-grid,.pricing,.cards{grid-template-columns:1fr 1fr}.steps{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.container{padding:0 16px}.nav-inner{height:auto;min-height:72px;padding:12px 0}.nav-links{display:none}.hero{padding:48px 0 30px}.hero-grid,.pricing,.cards,.steps,.dash-grid{grid-template-columns:1fr}.price-card{min-height:auto}section{padding:36px 0}.product-card{border-radius:22px}button,.btn,input,select,textarea{font-size:16px;min-height:44px}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#"><div class="logo">2E</div><div><strong>2EasyMarketing</strong><span>Marketing platform + service</span></div></a>
+    <div class="nav-links"><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a class="btn" href="/portal.html">Open Dashboard</a></div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow">Customer-ready launch preview</div>
+      <h1>Marketing tools and done-for-you support in one clean place.</h1>
+      <p class="lead">2EasyMarketing helps businesses plan, create, review, organize, and prepare marketing content without making the process confusing.</p>
+      <div class="hero-actions"><a class="btn" href="#pricing">View Pricing</a><a class="btn secondary" href="#how">See How It Works</a></div>
+      <div class="mini-proof"><span>Plan-based access</span><span>Approval workflow</span><span>Mobile-friendly</span><span>Done-for-you option</span></div>
+    </div>
+    <div class="product-card">
+      <div class="dash-top"><div><div class="dash-title">Growth OS</div><div style="color:var(--muted);font-size:12px;margin-top:3px">Safe preview workflow</div></div><div class="dash-pill">Mobile Ready</div></div>
+      <div class="dash-grid">
+        <div class="dash-card"><b>One Post Everywhere</b><span>Create platform-specific drafts from one idea.</span></div>
+        <div class="dash-card"><b>Readiness Score</b><div class="score">86%</div><span>Check before approval.</span></div>
+        <div class="dash-card"><b>Publish Queue</b><span>Approved, scheduled, exported, or needs-fix.</span></div>
+        <div class="dash-card"><b>Client Approval</b><span>Nothing moves forward without review.</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="container">
+    <div class="section-head"><h2>Built for clarity, not confusion.</h2><p>The website should explain what customers get, what happens next, and how each plan is different.</p></div>
+    <div class="cards">
+      <div class="card"><h3>Self-service platform</h3><p>Customers can use tools to create drafts, check readiness, manage plans, and export content.</p></div>
+      <div class="card"><h3>Done-for-you service</h3><p>Clients can submit requests and let 2EasyMarketing help prepare the work for review.</p></div>
+      <div class="card"><h3>Agency-ready workflow</h3><p>Multi-client tools help organize brand kits, approvals, reports, and queues per client.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="container">
+    <div class="section-head"><h2>Simple pricing. Different dashboards.</h2><p>Each plan unlocks a different view so customers only see the tools that match what they purchased.</p></div>
+    <div class="pricing">
+      <div class="price-card"><div class="tag">Self-Service</div><h3>Starter Platform</h3><div class="price">$29.99 <span>/month</span></div><p>Organize your brand, create captions, plan basic content, and export your work.</p><ul><li>✓ Brand Kit</li><li>✓ Basic Content Calendar</li><li>✓ AI Captions</li><li>✓ CSV Export</li><li>✓ Basic Reports</li></ul><a class="btn" href="/portal.html">Start Starter</a></div>
+      <div class="price-card pro"><div class="tag">Advanced Self-Service</div><h3>Pro Platform</h3><div class="price">$49.99 <span>/month</span></div><p>Create platform drafts, use Growth OS, manage approvals, and prepare reports.</p><ul><li>✓ Everything in Starter</li><li>✓ Growth OS</li><li>✓ Approval Queue</li><li>✓ Media Factory</li><li>✓ Weekly Reports</li></ul><a class="btn" href="/portal.html">Choose Pro</a></div>
+      <div class="price-card"><div class="tag">Scale Plan</div><h3>Agency / Multi-Client</h3><div class="price">$149.99 <span>/month</span></div><p>Manage multiple clients, brand kits, reports, approval queues, and export-ready posts.</p><ul><li>✓ Client Switcher</li><li>✓ Multiple Brand Kits</li><li>✓ Reports Per Client</li><li>✓ Export / Publish Queue</li></ul><a class="btn" href="/portal.html">Scale with Agency</a></div>
+      <div class="price-card"><div class="tag">Managed Service</div><h3>Done-For-You</h3><div class="price">$399+ <span>/month</span></div><p>You submit requests, we prepare the work, and you approve before anything moves forward.</p><ul><li>✓ Submit Requests</li><li>✓ We Prepare Content</li><li>✓ Approve / Reject Posts</li><li>✓ Campaign Progress</li><li>✓ Reports</li></ul><a class="btn" href="/portal.html">Request Service</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="container">
+    <div class="section-head"><h2>What happens after someone signs up?</h2><p>The onboarding flow needs to feel simple and human.</p></div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><b>Choose plan</b><span>Pick the level of tools or support.</span></div>
+      <div class="step"><div class="num">2</div><b>Brand Kit</b><span>Add audience, offer, colors, and voice.</span></div>
+      <div class="step"><div class="num">3</div><b>Create/request</b><span>Use tools or submit requests.</span></div>
+      <div class="step"><div class="num">4</div><b>Review</b><span>Check captions, visuals, and score.</span></div>
+      <div class="step"><div class="num">5</div><b>Approve</b><span>Nothing moves forward without approval.</span></div>
+      <div class="step"><div class="num">6</div><b>Report</b><span>Track work and next steps.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="container">
+    <div class="section-head"><h2>Questions customers will ask</h2><p>Clear answers build trust before someone pays.</p></div>
+    <div class="faq">
+      <div class="faq-item"><b>Is this only an AI tool?</b><span>No. AI helps with drafts and organization, but the focus is a clear marketing workflow plus a done-for-you service option.</span></div>
+      <div class="faq-item"><b>Does it post directly to social media right now?</b><span>Not yet. The current build prepares drafts, approvals, exports, and queue items. Live posting needs real platform connections later.</span></div>
+      <div class="faq-item"><b>Why does Done-For-You say $399+?</b><span>Managed service work can vary depending on content amount, strategy, reporting, and custom support.</span></div>
+      <div class="faq-item"><b>Are payments connected yet?</b><span>No. Stripe/payment setup should come after the pricing and onboarding are approved.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="truth"><strong style="color:#00c4b4">Truthful launch note:</strong> This version makes the website more customer-ready, but live payment processing, live social posting, legal policy review, and real deployment testing still need to happen before selling to real customers.</div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">© 2EasyMarketing · Customer-ready launch preview · Teal/dark brand theme</div>
+</footer>
+</body>
+</html>

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Client Portal — 2EasyMarketing</title>
   <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260619-media-factory" />
-  <link rel="stylesheet" href="premium.css?v=20260619-media-factory" />
-  <link rel="stylesheet" href="portal.css?v=20260619-media-factory" />
+  <link rel="stylesheet" href="style.css?v=20260619-customer-ready-merge" />
+  <link rel="stylesheet" href="premium.css?v=20260619-customer-ready-merge" />
+  <link rel="stylesheet" href="portal.css?v=20260619-customer-ready-merge" />
 </head>
 <body class="portal-body">
 
@@ -102,6 +102,22 @@
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           Dashboard
         </a>
+        <a href="#" class="sidebar-link" data-view="plan-access">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Plan Access
+        </a>
+        <a href="#" class="sidebar-link" data-view="pricing">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+          Pricing
+        </a>
+        <a href="#" class="sidebar-link" data-view="growth-os">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19c5-1 9-5 11-10l3-7 2 2-7 3C8 9 4 13 3 18l1 1z"/><path d="M9 15l-4 4"/><path d="M14 4l6 6"/></svg>
+          Growth OS
+        </a>
+        <a href="#" class="sidebar-link" data-view="launch-checklist">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M9 9l2 2 4-4"/><path d="M8 16h8"/></svg>
+          Launch Checklist
+        </a>
         <a href="#" class="sidebar-link" data-view="new-task">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           New Task
@@ -113,6 +129,10 @@
         <a href="#" class="sidebar-link" data-view="media-factory">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M21 15l-5-5L5 19"/></svg>
           Media Factory
+        </a>
+        <a href="#" class="sidebar-link" data-view="plugin-hub">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 7V2"/><path d="M15 7V2"/><path d="M7 7h10v5a5 5 0 01-10 0V7z"/><path d="M12 17v5"/></svg>
+          Plugin Hub
         </a>
         <!-- Owner only -->
         <a href="#" class="sidebar-link owner-only" data-view="owner-dashboard" style="display:none">
@@ -231,6 +251,61 @@
           </div>
         </div>
         <div id="all-tasks-list" class="tasks-list"></div>
+      </div>
+
+      <!-- LAUNCH CHECKLIST VIEW -->
+      <div id="view-launch-checklist" class="portal-view" style="display:none">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Launch Checklist</h1>
+            <p class="view-subtitle">What is ready, what still needs testing, and what should happen before selling to real customers.</p>
+          </div>
+        </div>
+        <div id="launch-checklist-content"></div>
+      </div>
+
+      <!-- GROWTH OS VIEW -->
+      <div id="view-growth-os" class="portal-view" style="display:none">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Growth OS</h1>
+            <p class="view-subtitle">Templates, one-post-everywhere, repurposing, readiness checks, publish queue, and onboarding.</p>
+          </div>
+        </div>
+        <div id="growth-os-content"></div>
+      </div>
+
+      <!-- PRICING VIEW -->
+      <div id="view-pricing" class="portal-view" style="display:none">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Pricing</h1>
+            <p class="view-subtitle">Clear plans for self-service, agency, and done-for-you support.</p>
+          </div>
+        </div>
+        <div id="pricing-content"></div>
+      </div>
+
+      <!-- PLAN ACCESS VIEW -->
+      <div id="view-plan-access" class="portal-view" style="display:none">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Plan Access</h1>
+            <p class="view-subtitle">A clear view of what each subscription includes.</p>
+          </div>
+        </div>
+        <div id="subscription-access-content"></div>
+      </div>
+
+      <!-- PLUGIN HUB VIEW -->
+      <div id="view-plugin-hub" class="portal-view" style="display:none">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Plugin Hub</h1>
+            <p class="view-subtitle">Preview connection status for media, social, automation, CRM, and analytics tools.</p>
+          </div>
+        </div>
+        <div id="plugin-hub-content"></div>
       </div>
 
       <!-- ── OWNER DASHBOARD VIEW ── -->
@@ -638,7 +713,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=20260619-media-factory"></script>
-  <script src="portal.js?v=20260619-media-factory"></script>
+  <script src="config.js?v=20260619-customer-ready-merge"></script>
+  <script src="portal.js?v=20260619-customer-ready-merge"></script>
 </body>
 </html>

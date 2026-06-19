@@ -1,0 +1,15 @@
+{
+  "package": "2easymarketing-backend-main-SOCIAL-AUTOPILOT-PREVIEW-v1",
+  "based_on": "2easymarketing-backend-main-MEDIA-FACTORY-VERIFIED-CLEAN.zip",
+  "safe_preview": true,
+  "publishing_enabled": false,
+  "changed": [
+    "Removed old build-note files: MEDIA_FACTORY_VALIDATION_REPORT.txt, MEDIA_FACTORY_VERIFIED_REPORT.md",
+    "Added backend Social Autopilot API routes and tables",
+    "Checked server.py syntax: PASS",
+    "Replaced static Content Calendar with Social Autopilot preview UI",
+    "Updated Content Calendar header/button to Social Autopilot preview",
+    "Checked portal.js feature hooks: PASS"
+  ],
+  "notes": "Preview ZIP only. Do not publish until tested."
+}

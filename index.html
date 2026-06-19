@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+  <meta name="theme-color" content="#031716">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="canonical" href="https://2easymarketing.net" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="shortcut icon" href="favicon.ico" />
-  <link rel="manifest" href="manifest.json" />
+  <link rel="shortcut icon" href="favicon.svg" />
   <meta name="description" content="2EasyMarketing — AI-powered digital marketing agency in Pawtucket, Rhode Island. No setup fees. No contracts. AI handles the work, you approve the results." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://2easymarketing.net" />
@@ -16,18 +16,20 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="2EasyMarketing — AI-Powered Digital Marketing" />
   <meta name="twitter:description" content="AI handles the marketing. You approve the results. Starting at $497/mo." />
-  <meta name="twitter:image" content="https://2easymarketing.net/hero-bg.png" />
   <!-- Performance: preconnect to external origins -->
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link rel="dns-prefetch" href="https://api.fontshare.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <title>2EasyMarketing — Digital Marketing Made Easy</title>
+  <meta name="description" content="2EasyMarketing makes digital marketing simple, affordable, and effective. Step-by-step strategy, proven tools, and services that get results." />
+  <meta property="og:title" content="2EasyMarketing — Digital Marketing Made Easy" />
+  <meta property="og:description" content="Everything you need to launch, grow, and scale — without the complexity." />
 
   <!-- Fonts -->
     <link rel="preload" href="hero-bg.png" as="image" fetchpriority="high" />
   <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css?v=20260619-media-factory" />
+  <link rel="stylesheet" href="style.css?v=20260619-customer-ready-merge" />
   <style>
     /* Ensure custom fonts use swap to prevent FOIT */
     @font-face { font-display: swap; }
@@ -45,9 +47,11 @@
       border-radius: 8px;
     }
   </style>
-  <link rel="stylesheet" href="premium.css?v=20260619-media-factory" />
+  <link rel="stylesheet" href="premium.css?v=20260619-customer-ready-merge" />
 </head>
 <body>
+  <button id="mobile-menu-toggle" class="mobile-menu-toggle" type="button" aria-label="Open menu">☰</button>
+  <div id="mobile-sidebar-backdrop" class="mobile-sidebar-backdrop"></div>
 
   <!-- ===== HEADER ===== -->
   <header class="header" id="header">
@@ -72,6 +76,7 @@
         <a href="#tools" class="nav-link">Tools</a>
         <a href="#pricing" class="nav-link">Pricing</a>
         <a href="#" class="nav-link" id="open-portal-btn" style="color:var(--neon-blue, #00c4b4) !important;font-weight:600">Client Portal</a>
+        <a href="portal.html" class="nav-link">Plugin Hub</a>
         <a href="#contact" class="nav-cta">Get Started</a>
       </nav>
 
@@ -98,7 +103,7 @@
   <section class="hero" id="hero">
     <!-- Background -->
     <div class="hero-bg">
-      <img src="hero-bg.png" alt="2EasyMarketing — Digital marketing background" class="hero-bg-img" width="1536" height="1024" />
+      <img src="hero-bg.png" alt="2EasyMarketing — Digital marketing background" class="hero-bg-img" />
       <canvas id="particles-canvas" aria-hidden="true"></canvas>
       <div class="hero-overlay"></div>
     </div>
@@ -244,7 +249,7 @@
 
   <!-- ===== SERVICES IMAGE BANNER ===== -->
   <div class="full-bleed-banner">
-    <img src="services-bg.png" alt="AI-powered digital marketing intelligence" width="1717" height="916" loading="lazy" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.2);" />
+    <img src="services-bg.png" alt="AI-powered digital marketing intelligence" loading="lazy" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.2);" />
     <div class="banner-overlay">
       <p class="banner-caption">All services. One integrated strategy. Measurable results.</p>
     </div>
@@ -260,7 +265,7 @@
       </div>
 
       <div class="roadmap-visual">
-        <img src="roadmap.png" alt="Digital marketing journey roadmap" width="1693" height="929" loading="lazy" class="roadmap-img" />
+        <img src="roadmap.png" alt="Digital marketing journey roadmap" loading="lazy" class="roadmap-img" />
       </div>
 
       <div class="steps-grid">
@@ -413,7 +418,7 @@
 
       <div class="tools-layout">
         <div class="tools-image-col">
-          <img src="tools-bg.png" alt="Human and AI collaboration" width="1536" height="1024" loading="lazy" class="tools-img" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.3);" />
+          <img src="tools-bg.png" alt="Human and AI collaboration" loading="lazy" class="tools-img" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.3);" />
         </div>
         <div class="tools-list-col">
           <div class="tool-category">
@@ -535,7 +540,7 @@
           <div class="cert-arrow">→</div>
         </a>
 
-        <a href="https://skillshop.docebosaas.com/pages/23/google-analytics" target="_blank" rel="noopener" class="cert-card">
+        <a href="https://skillshop.withgoogle.com/googleanalytics" target="_blank" class="cert-card">
           <div class="cert-logo google">G</div>
           <div class="cert-info">
             <h4 class="cert-name">Google Analytics 4 Certification</h4>
@@ -823,7 +828,7 @@
           <p>Prefer a quick chat?</p>
           <div class="contact-links">
             <a href="mailto:2easymarketing@gmail.com" class="contact-link">📧 2easymarketing@gmail.com</a>
-            <span class="contact-link contact-note">Fastest response by email</span>
+            <a href="tel:+14015550100" class="contact-link">📞 (401) 555-0100</a>
           </div>
         </div>
       </div>
@@ -935,6 +940,11 @@
     <div class="footer-bottom">
       <div class="container">
         <p>© 2026 2EasyMarketing. All rights reserved.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Instagram">ig</a>
+          <a href="#" aria-label="Twitter/X">X</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -1010,11 +1020,16 @@
         </div>
         <nav class="sidebar-nav">
           <a href="#" class="sidebar-link active" data-view="dashboard">&#9632;&#9632; Dashboard</a>
+          <a href="#" class="sidebar-link" data-view="plan-access">☑ Plan Access</a>
+          <a href="#" class="sidebar-link" data-view="pricing">💳 Pricing</a>
+          <a href="#" class="sidebar-link" data-view="growth-os">🚀 Growth OS</a>
+          <a href="#" class="sidebar-link" data-view="launch-checklist">✅ Launch Checklist</a>
           <a href="#" class="sidebar-link" data-view="new-task">&#43; New Task</a>
           <a href="#" class="sidebar-link" data-view="my-tasks">&#10003; My Tasks</a>
           <a href="#" class="sidebar-link owner-only" data-view="owner-dashboard" style="display:none">&#9670; Owner Panel</a>
           <a href="#" class="sidebar-link owner-only" data-view="clients" style="display:none">&#128101; Clients</a>
           <a href="#" class="sidebar-link" data-view="media-factory">&#127910; Media Factory</a>
+          <a href="#" class="sidebar-link" data-view="plugin-hub">&#128268; Plugin Hub</a>
           <a href="#" class="sidebar-link owner-only" data-view="autonomous" style="display:none">&#129504; Autonomous <span id="auto-alert-badge" style="display:none;background:#f59e0b;color:#000;font-size:.65rem;font-weight:700;border-radius:9999px;padding:1px 6px;margin-left:4px;vertical-align:middle">0</span></a>
           <a href="#" class="sidebar-link" data-view="channel-hub">&#127760; Channel Hub</a>
           <a href="#" class="sidebar-link" data-view="content-calendar">&#128197; Content Calendar</a>
@@ -1077,6 +1092,50 @@
             </div>
           </div>
           <div id="all-tasks-list" class="tasks-list"></div>
+        </div>
+
+        
+        
+        
+        
+        <div id="view-launch-checklist" class="portal-view" style="display:none">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Launch Checklist</h1>
+              <p class="view-subtitle">What is ready, what still needs testing, and what should happen before selling to real customers.</p>
+            </div>
+          </div>
+          <div id="launch-checklist-content"></div>
+        </div>
+
+        <div id="view-growth-os" class="portal-view" style="display:none">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Growth OS</h1>
+              <p class="view-subtitle">Templates, one-post-everywhere, repurposing, readiness checks, publish queue, and onboarding.</p>
+            </div>
+          </div>
+          <div id="growth-os-content"></div>
+        </div>
+
+        <div id="view-pricing" class="portal-view" style="display:none">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Pricing</h1>
+              <p class="view-subtitle">Clear plans for self-service, agency, and done-for-you support.</p>
+            </div>
+          </div>
+          <div id="pricing-content"></div>
+        </div>
+
+        <div id="view-plan-access" class="portal-view" style="display:none">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Plan Access</h1>
+              <p class="view-subtitle">A clear view of what each subscription includes.</p>
+            </div>
+          </div>
+          <div id="subscription-access-content"></div>
         </div>
 
         <div id="view-owner-dashboard" class="portal-view" style="display:none">
@@ -1338,8 +1397,8 @@
         <!-- CONTENT CALENDAR -->
         <div id="view-content-calendar" class="portal-view" style="display:none">
           <div class="view-header">
-            <h1 class="view-title">&#128197; Content Calendar</h1>
-            <button style="background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="loadContentCalendar()">&#43; Add Post</button>
+            <h1 class="view-title">&#128197; Social Autopilot</h1>
+            <button style="background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#fff;padding:.55rem 1.2rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem" onclick="generateAutopilotPlan()">⚡ Generate Plan</button>
           </div>
           <div id="content-calendar-content"></div>
         </div>
@@ -1589,7 +1648,7 @@
                   <div><h3 style="margin:0">Snapchat Ads</h3><small>Snap Ads Manager</small></div>
                   <span class="ae-plat-status-dot" id="dot-snapchat" title="Not connected"></span>
                 </div>
-                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-snap-token" placeholder="snap_access_token" /><span class="ae-field-hint"><a href="https://developers.snap.com/marketing-api/home" target="_blank" rel="noopener">Snap Marketing API</a> &rarr; OAuth 2.0</span></div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-snap-token" placeholder="snap_access_token" /><span class="ae-field-hint"><a href="https://adsapi.snapchat.com" target="_blank">Snap Ads API</a> &rarr; OAuth 2.0</span></div>
                 <div class="ae-field"><label>Organization ID</label><input type="text" id="ae-snap-org-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></div>
                 <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-snap-account-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></div>
                 <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('snapchat')">Save Snapchat Settings</button></div>
@@ -1693,7 +1752,18 @@
           </div>
         </div><!-- /view-ad-engine -->
 
-      </main>
+      
+      <div id="view-plugin-hub" class="portal-view" style="display:none">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">🔌 Plugin Hub</h1>
+            <p class="view-subtitle">Connect social channels, AI media tools, ads, email/SMS, analytics, and automations.</p>
+          </div>
+        </div>
+        <div id="plugin-hub-content"></div>
+      </div>
+
+    </main>
     </div>
   </div>
 
@@ -1707,12 +1777,12 @@
       <div id="modal-body"></div>
     </div>
   </div>
-  <script src="config.js?v=20260619-media-factory" defer></script>
-  <script src="script.js?v=20260619-media-factory" defer></script>
-  <script src="chat.js?v=20260619-media-factory" defer></script>
-  <script src="premium-effects.js?v=20260619-media-factory" defer></script>
-  <link rel="stylesheet" href="portal.css?v=20260619-media-factory" />
-  <script src="portal.js?v=20260619-media-factory" defer></script>
+  <script src="config.js?v=20260619-customer-ready-merge" defer></script>
+  <script src="script.js?v=20260619-customer-ready-merge" defer></script>
+  <script src="chat.js?v=20260619-customer-ready-merge" defer></script>
+  <script src="premium-effects.js?v=20260619-customer-ready-merge" defer></script>
+  <link rel="stylesheet" href="portal.css?v=20260619-customer-ready-merge" />
+  <script src="portal.js?v=20260619-customer-ready-merge" defer></script>
   <!-- JSON-LD: Local Business + Service Schema (SEO) -->
   <script type="application/ld+json">
   {
@@ -1721,6 +1791,7 @@
     "name": "2EasyMarketing",
     "description": "AI-powered digital marketing agency. Strategy, SEO, social media, ads and content — all handled by AI, reviewed by humans.",
     "url": "https://2easymarketing.net",
+    "telephone": "+1-401-555-0100",
     "email": "2easymarketing@gmail.com",
     "address": {
       "@type": "PostalAddress",
@@ -1749,5 +1820,7 @@
     "sameAs": ["https://2easymarketing.net"]
   }
   </script>
+
+  <!-- Customer-ready launch page: customer-ready.html -->
 </body>
 </html>

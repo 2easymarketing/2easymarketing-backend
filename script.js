@@ -46,13 +46,11 @@
 
   function openNav() {
     mobileNav.classList.add('open');
-    document.body.classList.add('mobile-nav-active');
     document.body.style.overflow = 'hidden';
   }
 
   function closeNav() {
     mobileNav.classList.remove('open');
-    document.body.classList.remove('mobile-nav-active');
     document.body.style.overflow = '';
   }
 
@@ -145,6 +143,36 @@
   }, { threshold: 0.5 });
 
   statNumbers.forEach(el => observer.observe(el));
+})();
+
+// === CONTACT FORM ===
+(function () {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const original = btn.textContent;
+
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+
+    setTimeout(() => {
+      btn.textContent = '✓ Message Sent — We\'ll be in touch soon!';
+      btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+      btn.style.opacity = '1';
+
+      setTimeout(() => {
+        form.reset();
+        btn.textContent = original;
+        btn.style.background = '';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }, 4000);
+    }, 1200);
+  });
 })();
 
 // === SMOOTH SCROLL for nav links ===

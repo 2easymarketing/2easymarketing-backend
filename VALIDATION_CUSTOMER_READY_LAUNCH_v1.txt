@@ -1,0 +1,14 @@
+server.py syntax: PASS
+portal.js syntax via node --check: PASS
+token /api/customer-ready/home: PASS
+token /api/customer-ready/launch-checklist: PASS
+token customer-ready.html: PASS
+token @app.get("/customer-ready.html"): PASS
+token data-view="launch-checklist": PASS
+token id="view-launch-checklist": PASS
+token function loadLaunchChecklist: PASS
+token $29.99: PASS
+token $49.99: PASS
+token $149.99: PASS
+token $399+: PASS
+token Marketing tools and done-for-you support in one clean place.: PASS

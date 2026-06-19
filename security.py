@@ -720,11 +720,11 @@ class FortressMiddleware(BaseHTTPMiddleware):
     """
 
     # Paths that bypass security (health checks, static assets)
-    BYPASS_PATHS = {"/health", "/favicon.ico"}
+    BYPASS_PATHS = {"/health", "/api/health", "/favicon.ico"}
     # Auth endpoints bypass body inspection (body replay across middleware is
     # not reliable across all Starlette/FastAPI versions — auth is protected
     # by rate-limiting and brute-force blocking instead)
-    BYPASS_PREFIXES = ("/static/", "/_next/", "/assets/", "/api/auth/", "/api/chat", "/api/owner/run-maintenance")
+    BYPASS_PREFIXES = ("/static/", "/_next/", "/assets/", "/media/", "/api/auth/", "/api/chat", "/api/owner/run-maintenance")
     BODY_INSPECTION_BYPASS_PREFIXES = ("/api/media-factory/",)
 
     async def dispatch(self, request: Request, call_next):

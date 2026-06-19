@@ -4,6 +4,9 @@
 
 // Global API helper — accessible everywhere
 const _BACKEND = (window.__2EM_API_BASE__ || localStorage.getItem('2em_api_base') || '').replace(/\/$/, '');
+function esc(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+window.esc = window.esc || esc;
+
 function apiFetch(path, method = 'GET', body = null) {
   const token = window._authToken ? window._authToken() : (localStorage.getItem('2em_token') || null);
   const opts = {
@@ -128,6 +131,8 @@ function apiFetch(path, method = 'GET', body = null) {
         el.style.display = 'flex';
       });
     }
+
+    if (window.applyPlanAccess) setTimeout(window.applyPlanAccess, 60);
   }
 
   async function verifyAndLoad() {
@@ -299,6 +304,10 @@ function apiFetch(path, method = 'GET', body = null) {
 
     stopPolling();
     if (view === 'dashboard')       { loadDashboard(); startPolling('dashboard'); }
+    if (view === 'plan-access')     loadSubscriptionAccess();
+    if (view === 'pricing')         loadPricingPage();
+    if (view === 'growth-os')       loadGrowthOS();
+    if (view === 'launch-checklist') loadLaunchChecklist();
     if (view === 'my-tasks')        { loadMyTasks('all'); startPolling('my-tasks'); }
     if (view === 'owner-dashboard') { loadOwnerDashboard(); loadSmtpStatus(); }
     if (view === 'autonomous')       loadAutonomous();
@@ -310,6 +319,7 @@ function apiFetch(path, method = 'GET', body = null) {
     if (view === 'council')         loadCouncil();
     if (view === 'channel-hub')     loadChannelHub();
     if (view === 'content-calendar') loadContentCalendar();
+  if (view === 'plugin-hub') loadPluginHub();
     if (view === 'competitor-spy')  loadCompetitorSpy();
     if (view === 'revenue')         loadRevenueDashboard();
     if (view === 'client-reports')  loadClientReports();
@@ -318,6 +328,8 @@ function apiFetch(path, method = 'GET', body = null) {
       document.getElementById('task-type-grid').style.display = 'grid';
     }
   }
+
+  window.navigateTo = navigateTo;
 
   // ─── DASHBOARD ────────────────────────────────────────────────
   let _pollInterval = null;
@@ -335,6 +347,7 @@ function apiFetch(path, method = 'GET', body = null) {
   }
 
   async function loadDashboard() {
+    if (window.renderPlanBanner) window.renderPlanBanner();
     try {
       const res  = await apiFetch('/api/tasks/my');
       const data = await res.json();
@@ -915,7 +928,7 @@ function apiFetch(path, method = 'GET', body = null) {
     if (result) {
       result.style.display = 'block';
       result.style.borderColor = 'rgba(0,196,180,.25)';
-      result.innerHTML = '<div style="color:#00c4b4;font-weight:800;margin-bottom:.35rem">Generating...</div><div>Maya is creating your media now. This should only take a few seconds.</div>';
+      result.innerHTML = '<div style="color:#00c4b4;font-weight:800;margin-bottom:.35rem">Generating...</div><div>Creating your media draft now. This should only take a few seconds.</div>';
     }
 
     try {
@@ -964,8 +977,9 @@ function apiFetch(path, method = 'GET', body = null) {
         '<div style="color:rgba(225,240,250,.72);font-size:.82rem;margin-top:.35rem">This is an instant AI video storyboard preview. Connect a real video provider later for final MP4 rendering.</div>' +
         '<a href="' + esc(data.media_url) + '" download style="display:inline-block;margin-top:.5rem;color:#00c4b4;font-weight:800;text-decoration:none">⬇ Download Storyboard</a>';
     } else if (data.media_type === 'voiceover') {
+      const dl = data.media_url ? '<a href="' + esc(data.media_url) + '" download style="display:inline-block;margin-left:.5rem;color:#00c4b4;font-weight:800;text-decoration:none">⬇ Download Script File</a>' : '';
       preview = '<div id="voiceover-preview-text" style="white-space:pre-wrap;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:1rem;margin:.75rem 0;color:#eafffe">' + esc(data.content || data.ai_result || '') + '</div>' +
-        '<button onclick="window.speakVoiceoverPreview && window.speakVoiceoverPreview()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:white;padding:.55rem 1rem;border-radius:8px;font-weight:800;cursor:pointer">▶ Speak Preview</button>';
+        '<button onclick="window.speakVoiceoverPreview && window.speakVoiceoverPreview()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:white;padding:.55rem 1rem;border-radius:8px;font-weight:800;cursor:pointer">▶ Speak Preview</button>' + dl;
     }
 
     result.style.display = 'block';
@@ -1036,8 +1050,11 @@ function apiFetch(path, method = 'GET', body = null) {
       mediaPreview = `<audio src="/media/${fname}" controls style="width:100%;margin-bottom:.75rem"></audio>
         <a href="/media/${fname}" download="${fname}" class="media-dl-btn">⬇ Download Audio</a>`;
     } else if (result.startsWith('VOICEOVER_SCRIPT_READY:')) {
-      const script = result.replace('VOICEOVER_SCRIPT_READY:', '').trim();
-      mediaPreview = `<div style="white-space:pre-wrap;color:rgba(225,240,250,.78);font-size:.78rem;line-height:1.45;max-height:220px;overflow:auto;background:rgba(0,0,0,.18);border-radius:8px;padding:.75rem">${esc(script)}</div>`;
+      const body = result.replace('VOICEOVER_SCRIPT_READY:', '').trim();
+      const fname = body.split('\n')[0].trim();
+      const script = body.split('\n').slice(1).join('\n').trim() || body;
+      mediaPreview = `<div style="white-space:pre-wrap;color:rgba(225,240,250,.78);font-size:.78rem;line-height:1.45;max-height:220px;overflow:auto;background:rgba(0,0,0,.18);border-radius:8px;padding:.75rem">${esc(script)}</div>
+        ${fname ? `<a href="/media/${fname}" download="${fname}" class="media-dl-btn">⬇ Download Script File</a>` : ''}`;
     } else {
       mediaPreview = `<div style="color:rgba(180,200,220,.5);font-size:.82rem">${esc(result.slice(0,200))}</div>`;
     }
@@ -1373,72 +1390,209 @@ function showChannelSetup(channel) {
 
 
 // ─── CONTENT CALENDAR ────────────────────────────────────────────
-function loadContentCalendar() {
+async function loadContentCalendar() {
   const el = document.getElementById('content-calendar-content');
   if (!el) return;
 
-  const today = new Date();
-  const month = today.toLocaleString('default', { month: 'long', year: 'numeric' });
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-
-  const scheduledPosts = [
-    { day: today.getDate(), platform: 'Instagram', color: '#E1306C', type: 'Reel', time: '10:00 AM' },
-    { day: today.getDate()+2, platform: 'TikTok', color: '#69C9D0', type: 'Video', time: '3:00 PM' },
-    { day: today.getDate()+4, platform: 'YouTube', color: '#FF0000', type: 'Short', time: '12:00 PM' },
-    { day: today.getDate()+5, platform: 'LinkedIn', color: '#0A66C2', type: 'Post', time: '9:00 AM' },
-    { day: today.getDate()+7, platform: 'Twitter/X', color: '#000', type: 'Thread', time: '8:00 AM' },
-    { day: today.getDate()+9, platform: 'Facebook', color: '#1877F2', type: 'Reel', time: '2:00 PM' },
-    { day: today.getDate()+12, platform: 'TikTok', color: '#69C9D0', type: 'Video', time: '5:00 PM' },
-    { day: today.getDate()+14, platform: 'YouTube', color: '#FF0000', type: 'Video', time: '11:00 AM' },
-  ];
-
-  let calCells = '';
-  for (let i = 0; i < firstDay; i++) calCells += `<div></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const isToday = d === today.getDate();
-    const posts = scheduledPosts.filter(p => p.day === d);
-    calCells += `
-      <div style="background:${isToday?'rgba(0,196,180,.1)':'rgba(255,255,255,.03)'};border:1px solid ${isToday?'rgba(0,196,180,.3)':'rgba(255,255,255,.06)'};border-radius:8px;padding:.5rem;min-height:70px">
-        <div style="font-size:.75rem;font-weight:${isToday?'800':'500'};color:${isToday?'#00c4b4':'rgba(200,220,240,.6)'};margin-bottom:4px">${d}</div>
-        ${posts.map(p => `<div style="background:${p.color}22;border-left:2px solid ${p.color};border-radius:3px;padding:2px 5px;margin-bottom:2px;font-size:.65rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.platform} · ${p.type}</div>`).join('')}
-      </div>`;
-  }
-
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-      <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:1.8rem;font-weight:800;color:#00c4b4">${scheduledPosts.length}</div>
-        <div style="color:rgba(180,200,220,.6);font-size:.8rem">Posts Scheduled This Month</div>
-      </div>
-      <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.2);border-radius:12px;padding:1rem;text-align:center">
-        <div style="font-size:1.8rem;font-weight:800;color:#00c4b4">6</div>
-        <div style="color:rgba(180,200,220,.6);font-size:.8rem">Platforms Active</div>
-      </div>
-    </div>
-    <h2 style="color:#fff;font-size:1rem;font-weight:700;margin:0 0 1rem">${month}</h2>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;margin-bottom:.4rem">
-      ${days.map(d => `<div style="text-align:center;font-size:.7rem;font-weight:700;color:rgba(180,200,220,.4);padding:.3rem 0">${d}</div>`).join('')}
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;margin-bottom:1.5rem">
-      ${calCells}
-    </div>
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem">
-      <h3 style="margin:0 0 1rem;color:#fff;font-size:.9rem">📋 Upcoming Posts</h3>
-      ${scheduledPosts.slice(0,5).map(p => `
-        <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
-          <div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
-          <div style="flex:1"><span style="color:#fff;font-size:.85rem;font-weight:600">${p.platform}</span> <span style="color:rgba(180,200,220,.5);font-size:.8rem">· ${p.type}</span></div>
-          <div style="color:rgba(180,200,220,.5);font-size:.75rem">Day ${p.day} at ${p.time}</div>
+    <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <h2 style="margin:0 0 .35rem;color:#fff;font-size:1.05rem">🚀 Social Autopilot Preview</h2>
+          <p style="margin:0;color:rgba(200,220,240,.72);font-size:.86rem;line-height:1.5">
+            Generate a full 30-day content plan, review every post, approve what you like, and export everything. Preview mode means nothing auto-publishes yet.
+          </p>
         </div>
-      `).join('')}
-      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,196,180,.06);border-radius:8px;text-align:center">
-        <span style="color:#00c4b4;font-size:.82rem;font-weight:600">🤖 Maya auto-schedules posts at peak engagement times for each platform</span>
+        <button onclick="generateAutopilotPlan()" style="background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#001110;padding:.7rem 1.1rem;border-radius:10px;font-weight:900;cursor:pointer;white-space:nowrap">⚡ Generate 30-Day Plan</button>
+      </div>
+    </div>
+
+    <div id="autopilot-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.25rem"></div>
+
+    <div style="display:grid;grid-template-columns:minmax(260px,.9fr) minmax(320px,1.4fr);gap:1.25rem;align-items:start">
+      <div style="background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.1rem">
+        <div style="font-weight:900;color:#fff;margin-bottom:.75rem">🎨 Brand Kit</div>
+        <div id="brand-kit-form"></div>
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap">
+          <div style="font-weight:900;color:#fff">✅ Approval Queue</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button onclick="loadAutopilotPosts('')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.45rem .75rem;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:700">All</button>
+            <button onclick="loadAutopilotPosts('queued_review')" style="background:rgba(0,196,180,.10);border:1px solid rgba(0,196,180,.25);color:#00c4b4;padding:.45rem .75rem;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:700">Review</button>
+            <button onclick="loadAutopilotPosts('approved')" style="background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.25);color:#4ade80;padding:.45rem .75rem;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:700">Approved</button>
+            <a href="${_BACKEND}/api/autopilot/export.csv" target="_blank" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.45rem .75rem;border-radius:8px;text-decoration:none;font-size:.78rem;font-weight:700">⬇ CSV</a>
+          </div>
+        </div>
+        <div id="autopilot-posts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.9rem"></div>
       </div>
     </div>
   `;
+
+  await loadBrandKit();
+  await loadAutopilotStatus();
+  await loadAutopilotPosts('');
 }
+
+async function loadAutopilotStatus() {
+  const wrap = document.getElementById('autopilot-stats');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/autopilot/status');
+    const data = await res.json();
+    const cards = [
+      ['Total Posts', data.total_posts || 0, '#00c4b4'],
+      ['Needs Review', data.queued_review || 0, '#fbbf24'],
+      ['Approved', data.approved || 0, '#4ade80'],
+      ['Ready', data.ready_to_publish || 0, '#60a5fa'],
+    ];
+    wrap.innerHTML = cards.map(([label,val,color]) => `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-size:1.65rem;font-weight:900;color:${color}">${val}</div>
+        <div style="color:rgba(180,200,220,.62);font-size:.78rem;font-weight:700">${label}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load Social Autopilot status: ${esc(e.message)}</div>`;
+  }
+}
+
+async function loadBrandKit() {
+  const wrap = document.getElementById('brand-kit-form');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/autopilot/brand-kit');
+    const data = await res.json();
+    const b = data.brand || {};
+    const field = (name, label, type='text') => `
+      <label style="display:block;margin-bottom:.65rem">
+        <div style="color:rgba(180,200,220,.65);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.25rem">${label}</div>
+        ${type === 'textarea'
+          ? `<textarea id="bk-${name}" rows="3" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;padding:.6rem;outline:none">${esc(b[name] || '')}</textarea>`
+          : `<input id="bk-${name}" value="${esc(b[name] || '')}" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;padding:.6rem;outline:none">`
+        }
+      </label>`;
+    wrap.innerHTML = `
+      ${field('brand_name','Brand Name')}
+      ${field('audience','Target Audience','textarea')}
+      ${field('voice','Brand Voice','textarea')}
+      ${field('colors','Brand Colors')}
+      ${field('main_offer','Main Offer','textarea')}
+      ${field('differentiators','Why You Are Different','textarea')}
+      <button onclick="saveBrandKit()" style="width:100%;background:rgba(0,196,180,.14);border:1px solid rgba(0,196,180,.35);color:#00c4b4;padding:.65rem;border-radius:9px;font-weight:900;cursor:pointer">Save Brand Kit</button>
+      <div id="brand-kit-save-msg" style="min-height:1rem;margin-top:.55rem;color:#4ade80;font-size:.78rem"></div>
+    `;
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load Brand Kit: ${esc(e.message)}</div>`;
+  }
+}
+
+window.saveBrandKit = async function() {
+  const msg = document.getElementById('brand-kit-save-msg');
+  const payload = {
+    brand_name: document.getElementById('bk-brand_name')?.value || '',
+    audience: document.getElementById('bk-audience')?.value || '',
+    voice: document.getElementById('bk-voice')?.value || '',
+    colors: document.getElementById('bk-colors')?.value || '',
+    main_offer: document.getElementById('bk-main_offer')?.value || '',
+    differentiators: document.getElementById('bk-differentiators')?.value || '',
+    forbidden_words: ''
+  };
+  if (msg) msg.textContent = 'Saving...';
+  try {
+    const res = await apiFetch('/api/autopilot/brand-kit', 'POST', payload);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || data.error || 'Save failed');
+    if (msg) msg.textContent = 'Saved ✓';
+  } catch(e) {
+    if (msg) { msg.style.color = '#f87171'; msg.textContent = e.message; }
+  }
+};
+
+window.generateAutopilotPlan = async function() {
+  const wrap = document.getElementById('autopilot-posts');
+  if (wrap) wrap.innerHTML = `<div style="grid-column:1/-1;background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.18);border-radius:12px;padding:1rem;color:#00c4b4;font-weight:800">Building your 30-day content plan...</div>`;
+  try {
+    const res = await apiFetch('/api/autopilot/generate-plan', 'POST', { days: 30, replace_existing: true });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || data.error || 'Generation failed');
+    await loadAutopilotStatus();
+    await loadAutopilotPosts('queued_review');
+  } catch(e) {
+    if (wrap) wrap.innerHTML = `<div style="grid-column:1/-1;color:#f87171">Autopilot error: ${esc(e.message)}</div>`;
+  }
+};
+
+async function loadAutopilotPosts(status='') {
+  const wrap = document.getElementById('autopilot-posts');
+  if (!wrap) return;
+  wrap.innerHTML = `<div style="grid-column:1/-1;color:rgba(180,200,220,.6)">Loading posts...</div>`;
+  try {
+    const res = await apiFetch('/api/autopilot/posts' + (status ? '?status=' + encodeURIComponent(status) : ''));
+    const data = await res.json();
+    const posts = data.posts || [];
+    if (!posts.length) {
+      wrap.innerHTML = `<div style="grid-column:1/-1;background:rgba(255,255,255,.035);border:1px dashed rgba(255,255,255,.12);border-radius:12px;padding:1.25rem;text-align:center;color:rgba(180,200,220,.65)">No posts yet. Click <strong style="color:#00c4b4">Generate 30-Day Plan</strong>.</div>`;
+      return;
+    }
+    wrap.innerHTML = posts.map(p => renderAutopilotPostCard(p)).join('');
+  } catch(e) {
+    wrap.innerHTML = `<div style="grid-column:1/-1;color:#f87171">Could not load posts: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderAutopilotPostCard(p) {
+  const statusColor = p.status === 'approved' ? '#4ade80' : p.status === 'rejected' ? '#f87171' : p.status === 'ready_to_publish' ? '#60a5fa' : '#fbbf24';
+  const ownerButtons = currentUser && currentUser.role === 'owner' ? `
+    <div style="display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.8rem">
+      <button onclick="approveAutopilotPost(${p.id})" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.28);color:#4ade80;border-radius:7px;padding:.45rem .55rem;font-size:.74rem;font-weight:800;cursor:pointer">Approve</button>
+      <button onclick="markAutopilotReady(${p.id})" style="background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.28);color:#60a5fa;border-radius:7px;padding:.45rem .55rem;font-size:.74rem;font-weight:800;cursor:pointer">Ready</button>
+      <button onclick="rejectAutopilotPost(${p.id})" style="background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.22);color:#f87171;border-radius:7px;padding:.45rem .55rem;font-size:.74rem;font-weight:800;cursor:pointer">Reject</button>
+      <button onclick="navigator.clipboard.writeText(${JSON.stringify('')});copyAutopilotCaption(${p.id})" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:7px;padding:.45rem .55rem;font-size:.74rem;font-weight:800;cursor:pointer">Copy</button>
+    </div>` : '';
+  return `
+    <div data-post-id="${p.id}" data-caption="${esc(p.caption + '\\n\\n' + p.hashtags)}" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem">
+      <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:start;margin-bottom:.6rem">
+        <div>
+          <div style="color:#fff;font-weight:900;font-size:.9rem">${esc(p.platform)} · ${esc(p.post_type)}</div>
+          <div style="color:rgba(180,200,220,.48);font-size:.72rem;margin-top:.15rem">${esc(p.scheduled_date)} at ${esc(p.scheduled_time)}</div>
+        </div>
+        <div style="color:${statusColor};background:${statusColor}18;border:1px solid ${statusColor}33;border-radius:999px;padding:.18rem .48rem;font-size:.68rem;font-weight:900">${esc(p.status)}</div>
+      </div>
+      <div style="color:#00c4b4;font-weight:800;font-size:.8rem;margin-bottom:.4rem">${esc(p.hook)}</div>
+      <div style="white-space:pre-wrap;color:rgba(225,240,250,.82);font-size:.78rem;line-height:1.48;max-height:150px;overflow:auto">${esc(p.caption)}</div>
+      <div style="color:#7ff7ef;font-size:.74rem;margin-top:.6rem">${esc(p.hashtags)}</div>
+      <div style="background:rgba(0,196,180,.055);border-left:2px solid rgba(0,196,180,.45);border-radius:6px;padding:.55rem;margin-top:.7rem;color:rgba(180,220,220,.65);font-size:.72rem">${esc(p.asset_idea)}</div>
+      ${ownerButtons}
+    </div>
+  `;
+}
+
+window.copyAutopilotCaption = function(id) {
+  const card = document.querySelector('[data-post-id="' + id + '"]');
+  const text = card ? card.getAttribute('data-caption') : '';
+  navigator.clipboard.writeText(text || '').then(() => alert('Caption copied.'));
+};
+
+window.approveAutopilotPost = async function(id) {
+  await apiFetch('/api/autopilot/posts/' + id + '/approve', 'POST', { notes: 'Approved in Social Autopilot preview.' });
+  await loadAutopilotStatus();
+  await loadAutopilotPosts('queued_review');
+};
+
+window.rejectAutopilotPost = async function(id) {
+  const notes = prompt('Why reject this post?', 'Needs revision.');
+  await apiFetch('/api/autopilot/posts/' + id + '/reject', 'POST', { notes: notes || 'Needs revision.' });
+  await loadAutopilotStatus();
+  await loadAutopilotPosts('');
+};
+
+window.markAutopilotReady = async function(id) {
+  await apiFetch('/api/autopilot/posts/' + id + '/ready', 'POST');
+  await loadAutopilotStatus();
+  await loadAutopilotPosts('');
+};
+
 
 // ─── COMPETITOR SPY ──────────────────────────────────────────────
 function loadCompetitorSpy() {
@@ -1455,7 +1609,7 @@ function loadCompetitorSpy() {
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem">
       ${[
         { name: 'WebFX', pricing: '$3,000+/mo', weakness: 'No AI video ads, no Twitch', score: 72 },
-        { name: 'Hibu', pricing: '$500–2,000/mo', weakness: 'Slow delivery, no autonomous AI', score: 58 },
+        { name: 'Hibu', pricing: '$500–2,000/mo', weakness: 'Slow delivery, no automated', score: 58 },
         { name: 'Thrive Agency', pricing: '$1,500+/mo', weakness: 'No client portal, manual reports', score: 61 },
       ].map(c => `
         <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem">
@@ -1585,7 +1739,7 @@ window.generateReport = async function(name) {
     out.style.display = 'block';
     out.style.borderColor = 'rgba(0,196,180,.25)';
     out.style.color = 'rgba(225,240,250,.9)';
-    out.textContent = '🤖 Maya is generating "' + name + '"...';
+    out.textContent = '🤖 Creating "' + name + '"...';
   }
 
   try {
@@ -1603,17 +1757,9 @@ window.generateReport = async function(name) {
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">' +
           '<div><div style="font-size:.78rem;color:#4ade80;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Generated Report</div>' +
           '<div style="font-size:1rem;font-weight:800;color:#fff">' + esc(data.title || name) + '</div></div>' +
-          '<button id="client-report-copy-btn" type="button" style="background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.35);color:#00c4b4;padding:.5rem .9rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer">Copy Report</button>' +
+          '<button onclick="navigator.clipboard.writeText(document.getElementById(&quot;client-report-copy-text&quot;).textContent);this.textContent=&quot;Copied ✓&quot;" style="background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.35);color:#00c4b4;padding:.5rem .9rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer">Copy Report</button>' +
         '</div>' +
         '<div id="client-report-copy-text" style="white-space:pre-wrap;color:rgba(225,240,250,.9);font-size:.86rem;line-height:1.65">' + esc(data.content || 'Report generated.') + '</div>';
-      const copyBtn = document.getElementById('client-report-copy-btn');
-      const copyText = document.getElementById('client-report-copy-text');
-      if (copyBtn && copyText) {
-        copyBtn.addEventListener('click', async () => {
-          await navigator.clipboard.writeText(copyText.textContent || '');
-          copyBtn.textContent = 'Copied';
-        });
-      }
     }
 
   } catch (err) {
@@ -2091,24 +2237,6 @@ window.deleteCouncilSession = async function(id) {
 
   const META_GRAPH = 'https://graph.facebook.com/v19.0';
   const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
-  const AE_SENSITIVE_FIELD_RE = /(token|secret|api-key|dev-token)/i;
-  const AE_SENSITIVE_KEY_RE = /(token|secret|apiKey|devToken|refreshToken|metaToken)/i;
-
-  function aeStorageKeyFromField(fieldName) {
-    return fieldName.replace(/-([a-z])/g, function(m,c){ return c.toUpperCase(); });
-  }
-
-  function aeIsSensitiveField(fieldName) {
-    return AE_SENSITIVE_FIELD_RE.test(fieldName);
-  }
-
-  function aePersistSafeSettings() {
-    var safe = {};
-    Object.keys(aeSettings).forEach(function(key) {
-      if (!AE_SENSITIVE_KEY_RE.test(key)) safe[key] = aeSettings[key];
-    });
-    localStorage.setItem(AE_SETTINGS_KEY, JSON.stringify(safe));
-  }
 
   // ── Init ──────────────────────────────────────────────────
   function aeInit() {
@@ -2125,7 +2253,7 @@ window.deleteCouncilSession = async function(id) {
   // ── Load / Save ───────────────────────────────────────────
   function aeLoadSettings() {
     try { aeSettings = JSON.parse(localStorage.getItem(AE_SETTINGS_KEY)) || {}; } catch(e) { aeSettings = {}; }
-    setValue('ae-meta-token',       '');
+    setValue('ae-meta-token',       aeSettings.metaToken || '');
     setValue('ae-ad-account-id',    aeSettings.adAccountId || '');
     setValue('ae-page-id',          aeSettings.pageId || '');
     setValue('ae-ig-id',            aeSettings.igId || '');
@@ -2144,8 +2272,8 @@ window.deleteCouncilSession = async function(id) {
       'amz-client-id','amz-client-secret','amz-refresh-token','amz-profile-id'
     ];
     platFields.forEach(function(f) {
-      var key = aeStorageKeyFromField(f);
-      setValue('ae-' + f, aeIsSensitiveField(f) ? '' : (aeSettings[key] || ''));
+      var key = f.replace(/-([a-z])/g, function(m,c){ return c.toUpperCase(); });
+      setValue('ae-' + f, aeSettings[key] || '');
     });
     aeUpdateStatusDots();
   }
@@ -2170,10 +2298,10 @@ window.deleteCouncilSession = async function(id) {
       'amz-client-id','amz-client-secret','amz-refresh-token','amz-profile-id'
     ];
     platFields.forEach(function(f) {
-      var key = aeStorageKeyFromField(f);
+      var key = f.replace(/-([a-z])/g, function(m,c){ return c.toUpperCase(); });
       aeSettings[key] = getVal('ae-' + f);
     });
-    aePersistSafeSettings();
+    localStorage.setItem(AE_SETTINGS_KEY, JSON.stringify(aeSettings));
     aeUpdateStatusDots();
   }
 
@@ -2838,3 +2966,786 @@ window.deleteCouncilSession = async function(id) {
   }
 
 })(); // end AdEngine IIFE
+
+
+
+
+// ─── PLUGIN HUB PREVIEW ──────────────────────────────────────────────────
+async function loadPluginHub() {
+  const el = document.getElementById('plugin-hub-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="background:rgba(0,196,180,.06);border:1px solid rgba(0,196,180,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <h2 style="margin:0 0 .35rem;color:#fff;font-size:1.05rem">🔌 Plugin Marketplace Preview</h2>
+          <p style="margin:0;color:rgba(200,220,240,.72);font-size:.86rem;line-height:1.5">
+            Manage future integrations for social publishing, AI media, voiceover, ads, email/SMS, analytics, and automation.
+            Preview mode means no plugin will publish or connect accounts yet.
+          </p>
+        </div>
+        <button onclick="loadPluginHub()" style="background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#001110;padding:.7rem 1.1rem;border-radius:10px;font-weight:900;cursor:pointer;white-space:nowrap">Refresh Plugins</button>
+      </div>
+    </div>
+
+    <div id="plugin-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.2rem"></div>
+
+    <div style="display:grid;grid-template-columns:240px 1fr;gap:1.25rem;align-items:start">
+      <div style="background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1rem">
+        <div style="font-weight:900;color:#fff;margin-bottom:.75rem">Categories</div>
+        ${['All Plugins','Social Channels','AI Media','Ads','Email & SMS','Analytics','Automation','Security'].map((c,i)=>`
+          <button onclick="filterPlugins('${c}')" style="width:100%;text-align:left;margin-bottom:.45rem;background:${i===0?'rgba(0,196,180,.12)':'rgba(255,255,255,.04)'};border:1px solid ${i===0?'rgba(0,196,180,.25)':'rgba(255,255,255,.08)'};color:${i===0?'#5eeee6':'rgba(235,255,255,.78)'};padding:.65rem .7rem;border-radius:10px;font-weight:800;cursor:pointer">${c}</button>
+        `).join('')}
+        <div style="margin-top:1rem;color:rgba(200,220,230,.62);font-size:.78rem;line-height:1.5">
+          API keys go in Railway Variables only. Never paste private keys into GitHub or browser files.
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap">
+          <input id="plugin-search" oninput="renderPluginCards()" placeholder="Search plugins..." style="flex:1;min-width:220px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);color:#fff;border-radius:10px;padding:.75rem;outline:none">
+          <button onclick="renderPluginCards()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:.7rem 1rem;border-radius:10px;font-weight:800;cursor:pointer">Filter</button>
+        </div>
+        <div id="plugin-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.95rem"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.3rem;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.1rem">
+      <div style="font-weight:900;color:#fff;margin-bottom:.75rem">How it will work</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem">
+        ${[
+          ['1. Choose plugin','Select Instagram, YouTube, ElevenLabs, OpenAI Images, Luma, or another tool.'],
+          ['2. Add keys safely','Keys go in Railway Variables, never in GitHub or browser code.'],
+          ['3. Test connection','The dashboard checks if the plugin variables are present.'],
+          ['4. Use in workflow','Media Factory, Social Autopilot, reports, and publishing can use it later.']
+        ].map(s=>`
+          <div style="background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.14);border-radius:12px;padding:.85rem">
+            <div style="font-weight:900;color:#fff;margin-bottom:.3rem">${s[0]}</div>
+            <div style="color:rgba(200,220,230,.68);font-size:.8rem;line-height:1.45">${s[1]}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  try {
+    const res = await apiFetch('/api/plugins/catalog');
+    const data = await res.json();
+    window._pluginCatalog = data.plugins || [];
+    window._pluginFilter = 'All Plugins';
+
+    const stats = document.getElementById('plugin-stats');
+    if (stats) {
+      const s = data.summary || {};
+      const cards = [
+        ['Plugins', s.total || 0, '#00c4b4'],
+        ['Connected', s.connected || 0, '#4ade80'],
+        ['Setup Needed', s.setup_required || 0, '#fbbf24'],
+        ['Ready To Test', s.ready_to_test || 0, '#60a5fa'],
+      ];
+      stats.innerHTML = cards.map(c=>`
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:${c[2]}">${c[1]}</div>
+          <div style="color:rgba(180,200,220,.62);font-size:.75rem;font-weight:800;text-transform:uppercase">${c[0]}</div>
+        </div>
+      `).join('');
+    }
+
+    renderPluginCards();
+  } catch(e) {
+    document.getElementById('plugin-cards').innerHTML = `<div style="grid-column:1/-1;color:#f87171">Could not load plugins: ${esc(e.message)}</div>`;
+  }
+}
+
+window.filterPlugins = function(category) {
+  window._pluginFilter = category || 'All Plugins';
+  renderPluginCards();
+};
+
+function renderPluginCards() {
+  const wrap = document.getElementById('plugin-cards');
+  if (!wrap) return;
+
+  const q = (document.getElementById('plugin-search')?.value || '').toLowerCase();
+  const filter = window._pluginFilter || 'All Plugins';
+  const plugins = (window._pluginCatalog || []).filter(p => {
+    const matchesFilter = filter === 'All Plugins' || p.category === filter;
+    const text = [p.name, p.category, p.description, ...(p.features || [])].join(' ').toLowerCase();
+    return matchesFilter && (!q || text.includes(q));
+  });
+
+  if (!plugins.length) {
+    wrap.innerHTML = `<div style="grid-column:1/-1;background:rgba(255,255,255,.035);border:1px dashed rgba(255,255,255,.12);border-radius:12px;padding:1rem;text-align:center;color:rgba(180,200,220,.65)">No plugins match this filter.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = plugins.map(renderPluginCard).join('');
+}
+
+function renderPluginCard(p) {
+  const statusColor = p.status === 'connected' ? '#4ade80' : p.status === 'ready_to_test' ? '#60a5fa' : '#fbbf24';
+  const label = p.status === 'connected' ? 'Connected' : p.status === 'ready_to_test' ? 'Ready To Test' : 'Setup Needed';
+  const missing = (p.missing_env || []).length ? `<div style="color:#fbbf24;font-size:.72rem;margin-top:.65rem">Missing: ${esc((p.missing_env || []).join(', '))}</div>` : '';
+  return `
+    <div style="background:rgba(255,255,255,.043);border:1px solid rgba(255,255,255,.085);border-radius:15px;padding:1rem;display:flex;flex-direction:column;justify-content:space-between;min-height:245px">
+      <div>
+        <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:start;margin-bottom:.75rem">
+          <div style="width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.24);font-weight:900;color:#5eeee6">${esc(p.icon)}</div>
+          <div style="font-size:.65rem;font-weight:900;text-transform:uppercase;border-radius:999px;padding:.3rem .5rem;color:${statusColor};background:${statusColor}18;border:1px solid ${statusColor}33;white-space:nowrap">${label}</div>
+        </div>
+        <div style="font-weight:900;color:#fff;margin-bottom:.35rem">${esc(p.name)}</div>
+        <div style="color:rgba(210,235,240,.66);font-size:.78rem;line-height:1.5">${esc(p.description)}</div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.75rem">
+          ${(p.features || []).map(f=>`<span style="font-size:.66rem;color:rgba(235,255,255,.72);border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);border-radius:999px;padding:.25rem .45rem">${esc(f)}</span>`).join('')}
+        </div>
+        ${missing}
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:.9rem">
+        <button onclick="testPlugin('${esc(p.slug)}')" style="flex:1;background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#001110;border-radius:9px;padding:.55rem .65rem;font-weight:900;cursor:pointer">${p.status === 'connected' ? 'Manage' : 'Test'}</button>
+        <button onclick="showPluginDetails('${esc(p.slug)}')" style="flex:1;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:9px;padding:.55rem .65rem;font-weight:900;cursor:pointer">Details</button>
+      </div>
+    </div>
+  `;
+}
+
+window.testPlugin = async function(slug) {
+  try {
+    const res = await apiFetch('/api/plugins/' + slug + '/test', 'POST');
+    const data = await res.json();
+    alert(data.message || 'Plugin test complete.');
+  } catch(e) {
+    alert('Plugin test error: ' + e.message);
+  }
+};
+
+window.showPluginDetails = async function(slug) {
+  try {
+    const res = await apiFetch('/api/plugins/' + slug);
+    const data = await res.json();
+    const p = data.plugin || {};
+    alert(
+      p.name + '\n\n' +
+      (p.description || '') + '\n\n' +
+      'Required Railway Variables: ' + ((p.required_env || []).join(', ') || 'None') + '\n\n' +
+      'Status: ' + p.status + '\n\n' +
+      (data.message || '')
+    );
+  } catch(e) {
+    alert('Plugin detail error: ' + e.message);
+  }
+};
+
+
+
+// ─── SUBSCRIPTION ACCESS — HUMAN CLEAN PLAN GATING ───────────────────────
+window._planAccessCache = null;
+
+async function fetchPlanAccess() {
+  if (window._planAccessCache) return window._planAccessCache;
+  const res = await apiFetch('/api/subscription/access');
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || data.error || 'Could not load plan access.');
+  window._planAccessCache = data.access || {};
+  return window._planAccessCache;
+}
+
+window.applyPlanAccess = async function() {
+  try {
+    const access = await fetchPlanAccess();
+    const allowed = new Set(access.visible_views || []);
+    const role = access.role || 'client';
+
+    // Owner sees owner tools. Clients only see what their plan allows.
+    document.querySelectorAll('.sidebar-link[data-view]').forEach(link => {
+      const view = link.getAttribute('data-view');
+      const isOwnerOnly = link.classList.contains('owner-only');
+      if (role === 'owner') {
+        if (isOwnerOnly) link.style.display = 'flex';
+        return;
+      }
+
+      if (isOwnerOnly) {
+        link.style.display = 'none';
+        return;
+      }
+
+      if (view && allowed.size && !allowed.has(view)) {
+        link.style.display = 'none';
+      } else {
+        link.style.display = 'flex';
+      }
+    });
+
+    const display = document.getElementById('user-plan-display');
+    if (display) display.textContent = (access.label || 'Starter Platform') + ' · ' + (access.mode || 'Plan');
+
+    renderPlanBanner();
+  } catch(e) {
+    console.warn('Plan access:', e);
+  }
+};
+
+window.renderPlanBanner = async function() {
+  const dashboard = document.getElementById('view-dashboard');
+  if (!dashboard) return;
+
+  let banner = document.getElementById('plan-access-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'plan-access-banner';
+    const header = dashboard.querySelector('.view-header');
+    if (header && header.parentNode) header.parentNode.insertBefore(banner, header.nextSibling);
+    else dashboard.prepend(banner);
+  }
+
+  try {
+    const access = await fetchPlanAccess();
+    const tools = (access.included_tools || []).slice(0, 5).map(t => `<span style="display:inline-block;background:rgba(0,196,180,.10);border:1px solid rgba(0,196,180,.22);color:#5eeee6;border-radius:999px;padding:.28rem .55rem;font-size:.72rem;font-weight:800;margin:.15rem">${esc(t)}</span>`).join('');
+
+    banner.innerHTML = `
+      <div style="background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.18);border-radius:14px;padding:1rem;margin:0 0 1.1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="color:#fff;font-weight:900;font-size:.95rem">${esc(access.label || 'Your Plan')} <span style="color:#00c4b4;font-size:.78rem">· ${esc(access.mode || '')}</span></div>
+          <div style="color:rgba(210,235,240,.70);font-size:.82rem;line-height:1.45;margin-top:.25rem">${esc(access.description || 'Your dashboard is adjusted to your subscription.')}</div>
+          <div style="margin-top:.45rem">${tools}</div>
+        </div>
+        <button onclick="navigateTo('plan-access')" style="background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#001110;padding:.65rem .95rem;border-radius:10px;font-weight:900;cursor:pointer">View Plan Access</button>
+      </div>
+    `;
+  } catch(e) {
+    banner.innerHTML = '';
+  }
+};
+
+async function loadSubscriptionAccess() {
+  const el = document.getElementById('subscription-access-content');
+  if (!el) return;
+
+  el.innerHTML = `<div style="color:rgba(210,235,240,.7)">Loading plan access...</div>`;
+
+  try {
+    const [accessRes, plansRes] = await Promise.all([
+      apiFetch('/api/subscription/access'),
+      apiFetch('/api/subscription/plans')
+    ]);
+    const accessData = await accessRes.json();
+    const plansData = await plansRes.json();
+    const current = accessData.access || {};
+    const plans = plansData.plans || [];
+
+    const planCards = plans.map(p => {
+      const active = p.key === current.key;
+      const color = p.key === 'starter' ? '#60a5fa' : p.key === 'pro' ? '#00c4b4' : p.key === 'done_for_you' ? '#fbbf24' : '#a78bfa';
+      return `
+        <div style="background:${active?'rgba(0,196,180,.075)':'rgba(255,255,255,.04)'};border:1px solid ${active?'rgba(0,196,180,.40)':'rgba(255,255,255,.08)'};border-radius:16px;padding:1rem;display:flex;flex-direction:column;min-height:390px;box-shadow:${active?'0 0 30px rgba(0,196,180,.08)':'none'}">
+          <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:start;margin-bottom:.7rem">
+            <div>
+              <div style="font-weight:900;color:#fff;font-size:1rem">${esc(p.label)}</div>
+              <div style="display:inline-block;margin-top:.35rem;color:${color};border:1px solid ${color}55;background:${color}18;border-radius:999px;padding:.18rem .5rem;font-size:.68rem;font-weight:900;text-transform:uppercase">${esc(p.mode)}</div>\n              <div data-label="PlanPriceLine" style="margin-top:.55rem;font-size:1.45rem;font-weight:1000;color:${color}">${esc(p.price_note || "")}</div>
+            </div>
+            ${active ? '<div style="color:#00c4b4;font-weight:900;font-size:.75rem">CURRENT</div>' : ''}
+          </div>
+
+          <div style="color:rgba(210,235,240,.68);font-size:.8rem;line-height:1.45;min-height:58px">${esc(p.description)}</div>
+
+          <div style="margin-top:.85rem;color:#fff;font-weight:900;font-size:.78rem">Included</div>
+          <div style="display:grid;gap:.38rem;margin-top:.45rem">
+            ${(p.included_tools || []).slice(0, 8).map(t => `<div style="color:rgba(235,255,255,.80);font-size:.75rem">✓ ${esc(t)}</div>`).join('')}
+          </div>
+
+          <div style="margin-top:.85rem;color:#fff;font-weight:900;font-size:.78rem">Not included / limited</div>
+          <div style="display:grid;gap:.35rem;margin-top:.45rem">
+            ${(p.locked_tools || []).slice(0, 5).map(t => `<div style="color:rgba(210,235,240,.48);font-size:.73rem">🔒 ${esc(t)}</div>`).join('') || '<div style="color:rgba(210,235,240,.48);font-size:.73rem">No major locked client tools.</div>'}
+          </div>
+
+          <div style="margin-top:auto;padding-top:.9rem;color:rgba(210,235,240,.58);font-size:.72rem;line-height:1.4">${esc(p.best_for || '')}</div>
+        </div>
+      `;
+    }).join('');
+
+    el.innerHTML = `
+      <div style="background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.18);border-radius:14px;padding:1.1rem;margin-bottom:1.2rem">
+        <h2 style="margin:0 0 .45rem;color:#fff;font-size:1.05rem">Your dashboard changes by subscription</h2>
+        <p style="margin:0;color:rgba(210,235,240,.72);font-size:.86rem;line-height:1.55">
+          Starter, Pro, Done-For-You, and Agency users should not all see the same tools.
+          The dashboard now uses plan access so each customer sees what matches their plan.
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1.2rem">
+        ${planCards}
+      </div>
+
+      <div style="background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1rem">
+        <div style="font-weight:900;color:#fff;margin-bottom:.5rem">Truthful build note</div>
+        <div style="color:rgba(210,235,240,.72);font-size:.83rem;line-height:1.55">
+          This makes the platform cleaner and more professional, but it does not guarantee success by itself.
+          The website still needs clear pricing, working onboarding, real examples, strong trust sections, and real customers testing the workflow.
+          Live social publishing and paid AI media still require real provider accounts and API keys.
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    el.innerHTML = `<div style="color:#f87171">Could not load plan access: ${esc(e.message)}</div>`;
+  }
+}
+
+
+
+// ─── CLEAN PRICING PAGE ──────────────────────────────────────────────────
+async function loadPricingPage() {
+  const el = document.getElementById('pricing-content');
+  if (!el) return;
+  el.innerHTML = `<div style="color:rgba(210,235,240,.7)">Loading pricing...</div>`;
+
+  try {
+    const res = await apiFetch('/api/pricing/public');
+    const data = await res.json();
+    const plans = data.plans || [];
+    const colorMap = { starter:'#60a5fa', pro:'#00c4b4', agency:'#a78bfa', done_for_you:'#fbbf24' };
+
+    el.innerHTML = `
+      <div style="background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.18);border-radius:14px;padding:1.1rem;margin-bottom:1.2rem">
+        <h2 style="margin:0 0 .45rem;color:#fff;font-size:1.05rem">Simple pricing. Different dashboards.</h2>
+        <p style="margin:0;color:rgba(210,235,240,.72);font-size:.86rem;line-height:1.55">
+          Each subscription unlocks a different set of tools. Payments are not connected in this preview build.
+        </p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">
+        ${plans.map(p => {
+          const c = colorMap[p.key] || '#00c4b4';
+          return `
+            <div style="background:rgba(255,255,255,.04);border:1px solid ${p.key==='pro'?'rgba(0,196,180,.42)':'rgba(255,255,255,.08)'};border-radius:16px;padding:1rem;display:flex;flex-direction:column;min-height:430px">
+              <div style="display:inline-block;width:max-content;color:${c};border:1px solid ${c}55;background:${c}18;border-radius:999px;padding:.25rem .55rem;font-size:.68rem;font-weight:900;text-transform:uppercase;margin-bottom:.75rem">${esc(p.mode)}</div>
+              <div style="font-weight:900;color:#fff;font-size:1.05rem">${esc(p.label)}</div>
+              <div style="font-size:1.75rem;font-weight:1000;color:${c};margin:.55rem 0">${esc(p.price)} <span style="font-size:.75rem;color:rgba(210,235,240,.55);font-weight:700">${esc(p.period)}</span></div>
+              <div style="color:rgba(210,235,240,.68);font-size:.8rem;line-height:1.45;min-height:62px">${esc(p.description)}</div>
+              <div style="margin-top:.8rem;color:#fff;font-weight:900;font-size:.78rem">Included</div>
+              <div style="display:grid;gap:.38rem;margin-top:.45rem">
+                ${(p.included_tools || []).slice(0, 7).map(t => `<div style="color:rgba(235,255,255,.80);font-size:.75rem">✓ ${esc(t)}</div>`).join('')}
+              </div>
+              <button onclick="navigateTo('plan-access')" style="margin-top:auto;background:linear-gradient(135deg,${c},#008c80);border:none;color:#001110;padding:.7rem;border-radius:10px;font-weight:900;cursor:pointer">View Access</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="margin-top:1rem;color:rgba(210,235,240,.58);font-size:.78rem;line-height:1.5">
+        Honest note: prices can be adjusted after testing with real customers. Stripe/payment checkout is a later step.
+      </div>
+    `;
+  } catch(e) {
+    el.innerHTML = `<div style="color:#f87171">Could not load pricing: ${esc(e.message)}</div>`;
+  }
+}
+
+
+
+// ─── GROWTH OS v1 — ALL 10 SAFE-PREVIEW TOOLS ────────────────────────────
+async function loadGrowthOS() {
+  const el = document.getElementById('growth-os-content');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.18);border-radius:14px;padding:1.1rem;margin-bottom:1.2rem">
+      <h2 style="margin:0 0 .45rem;color:#fff;font-size:1.05rem">Growth OS v1 — all 10 missing pieces</h2>
+      <p style="margin:0;color:rgba(210,235,240,.72);font-size:.86rem;line-height:1.55">
+        This is the safe working version: it creates drafts, checks readiness, builds scenes, tracks usage, and organizes the publish queue.
+        It does not auto-post to social media yet.
+      </p>
+    </div>
+
+    <div id="growth-usage" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.9rem;margin-bottom:1rem"></div>
+
+    <div style="display:grid;grid-template-columns:minmax(280px,.85fr) minmax(360px,1.35fr);gap:1rem;align-items:start">
+      <div style="display:grid;gap:1rem">
+        <div class="growth-card">
+          <h3>1. One Post Everywhere</h3>
+          <p>Turn one idea into platform-specific drafts.</p>
+          <textarea id="growth-idea" rows="4" placeholder="Example: Promote a free marketing consultation for local small businesses"></textarea>
+          <select id="growth-template-select"></select>
+          <button onclick="growthGenerateEverywhere()">Generate Platform Drafts</button>
+        </div>
+
+        <div class="growth-card">
+          <h3>2. Repurpose Content</h3>
+          <p>Paste notes, a script, or article text and turn it into post ideas.</p>
+          <textarea id="growth-repurpose-text" rows="5" placeholder="Paste content to repurpose..."></textarea>
+          <button onclick="growthRepurpose()">Create Repurpose Ideas</button>
+        </div>
+
+        <div class="growth-card">
+          <h3>3. Readiness Checker</h3>
+          <p>Score a caption before it moves forward.</p>
+          <select id="growth-readiness-platform">
+            ${['Instagram','Facebook','TikTok','YouTube Shorts','LinkedIn','X / Twitter','Pinterest'].map(p=>`<option>${p}</option>`).join('')}
+          </select>
+          <textarea id="growth-readiness-caption" rows="4" placeholder="Paste caption to check..."></textarea>
+          <input id="growth-readiness-hashtags" placeholder="#hashtags">
+          <button onclick="growthRunReadiness()">Check Readiness</button>
+        </div>
+
+        <div class="growth-card">
+          <h3>4. Carousel / Video Scenes</h3>
+          <p>Create slide scenes or video storyboard scenes.</p>
+          <input id="growth-scenes-topic" placeholder="Topic: 5 ways to improve your marketing">
+          <button onclick="growthScenes()">Create Scenes</button>
+        </div>
+      </div>
+
+      <div style="display:grid;gap:1rem">
+        <div class="growth-card">
+          <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <div>
+              <h3>Template Library</h3>
+              <p>Viral-style structures for local business content.</p>
+            </div>
+            <button onclick="growthLoadTemplates()" style="max-width:150px">Refresh</button>
+          </div>
+          <div id="growth-templates" class="growth-grid"></div>
+        </div>
+
+        <div class="growth-card">
+          <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap">
+            <div>
+              <h3>Publish Queue Preview</h3>
+              <p>Approved, scheduled, exported, or needs-fix drafts. No auto-posting yet.</p>
+            </div>
+            <button onclick="growthLoadQueue()" style="max-width:150px">Refresh Queue</button>
+          </div>
+          <div id="growth-queue"></div>
+        </div>
+
+        <div class="growth-card">
+          <h3>Onboarding + Trust Checklist</h3>
+          <p>What customers need to understand before they trust and use the platform.</p>
+          <div id="growth-onboarding"></div>
+        </div>
+
+        <div class="growth-card">
+          <h3>API + Automation Guide</h3>
+          <p>Preview of future webhook/API automation. Safe, not live yet.</p>
+          <div id="growth-webhook"></div>
+          <button onclick="growthLoadWebhookGuide()">Load Guide</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="growth-card" style="margin-top:1rem">
+      <h3>Results</h3>
+      <div id="growth-results" style="white-space:pre-wrap;color:rgba(225,240,250,.82);font-size:.82rem;line-height:1.45;max-height:420px;overflow:auto"></div>
+    </div>
+  `;
+
+  growthInjectStyles();
+  await growthLoadUsage();
+  await growthLoadTemplates();
+  await growthLoadQueue();
+  await growthLoadOnboarding();
+}
+
+function growthInjectStyles() {
+  if (document.getElementById('growth-os-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'growth-os-styles';
+  style.textContent = `
+    .growth-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1rem}
+    .growth-card h3{margin:0 0 .35rem;color:#fff;font-size:.95rem}
+    .growth-card p{margin:0 0 .8rem;color:rgba(210,235,240,.65);font-size:.78rem;line-height:1.45}
+    .growth-card input,.growth-card textarea,.growth-card select{width:100%;box-sizing:border-box;margin:.35rem 0;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);color:#fff;border-radius:10px;padding:.65rem;outline:none;font-family:inherit}
+    .growth-card button{width:100%;background:linear-gradient(135deg,#00c4b4,#008c80);border:none;color:#001110;padding:.65rem .8rem;border-radius:10px;font-weight:900;cursor:pointer;margin-top:.45rem}
+    .growth-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
+    .growth-mini{background:rgba(0,196,180,.045);border:1px solid rgba(0,196,180,.14);border-radius:12px;padding:.75rem}
+    .growth-mini b{display:block;color:#fff;margin-bottom:.25rem;font-size:.78rem}
+    .growth-mini span{display:block;color:rgba(210,235,240,.64);font-size:.72rem;line-height:1.4}
+  `;
+  document.head.appendChild(style);
+}
+
+function growthSetResult(title, data) {
+  const el = document.getElementById('growth-results');
+  if (!el) return;
+  el.textContent = title + "\n\n" + (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+}
+
+async function growthLoadUsage() {
+  const wrap = document.getElementById('growth-usage');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/growth/usage');
+    const data = await res.json();
+    const u = data.usage || {};
+    const cards = [
+      ['Posts', u.posts_generated || 0, '#00c4b4'],
+      ['Repurposes', u.repurposes || 0, '#60a5fa'],
+      ['Readiness Checks', u.readiness_checks || 0, '#fbbf24'],
+      ['Queue Items', u.queue_items || 0, '#4ade80'],
+      ['Scene Sets', u.media_scene_sets || 0, '#a78bfa']
+    ];
+    wrap.innerHTML = cards.map(c=>`
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.85rem;text-align:center">
+        <div style="font-size:1.35rem;font-weight:1000;color:${c[2]}">${c[1]}</div>
+        <div style="color:rgba(210,235,240,.58);font-size:.68rem;text-transform:uppercase;font-weight:850">${c[0]}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load usage.</div>`;
+  }
+}
+
+async function growthLoadTemplates() {
+  const wrap = document.getElementById('growth-templates');
+  const select = document.getElementById('growth-template-select');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/growth/templates');
+    const data = await res.json();
+    const templates = data.templates || [];
+    wrap.innerHTML = templates.map(t=>`
+      <div class="growth-mini">
+        <b>${esc(t.name)}</b>
+        <span>${esc(t.category)} · ${esc(t.best_for)}</span>
+        <span style="margin-top:.35rem;color:#5eeee6">${esc(t.hook)}</span>
+      </div>
+    `).join('');
+    if (select) {
+      select.innerHTML = templates.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+    }
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load templates: ${esc(e.message)}</div>`;
+  }
+}
+
+async function growthGenerateEverywhere() {
+  const idea = document.getElementById('growth-idea')?.value || '';
+  const template_id = document.getElementById('growth-template-select')?.value || '';
+  if (!idea.trim()) return alert('Enter one post idea first.');
+  try {
+    const res = await apiFetch('/api/growth/one-post-everywhere', 'POST', { idea, template_id });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Generation failed');
+    growthSetResult('One Post Everywhere created', data);
+    await growthLoadQueue();
+    await growthLoadUsage();
+    await growthUpdateOnboarding('first_post_done', true);
+  } catch(e) {
+    growthSetResult('One Post Everywhere error', e.message);
+  }
+}
+
+async function growthRepurpose() {
+  const source_text = document.getElementById('growth-repurpose-text')?.value || '';
+  if (!source_text.trim()) return alert('Paste content to repurpose first.');
+  try {
+    const res = await apiFetch('/api/growth/repurpose', 'POST', { source_text });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Repurpose failed');
+    growthSetResult('Repurpose Ideas', data);
+    await growthLoadUsage();
+  } catch(e) {
+    growthSetResult('Repurpose error', e.message);
+  }
+}
+
+async function growthRunReadiness() {
+  const platform = document.getElementById('growth-readiness-platform')?.value || 'Instagram';
+  const caption = document.getElementById('growth-readiness-caption')?.value || '';
+  const hashtags = document.getElementById('growth-readiness-hashtags')?.value || '';
+  if (!caption.trim()) return alert('Paste a caption to check first.');
+  try {
+    const res = await apiFetch('/api/growth/readiness-check', 'POST', { platform, caption, hashtags, has_cta:true });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Check failed');
+    growthSetResult('Platform Readiness Score', data);
+    await growthLoadUsage();
+  } catch(e) {
+    growthSetResult('Readiness error', e.message);
+  }
+}
+
+async function growthScenes() {
+  const topic = document.getElementById('growth-scenes-topic')?.value || '';
+  if (!topic.trim()) return alert('Enter a topic first.');
+  try {
+    const res = await apiFetch('/api/growth/carousel-scenes', 'POST', { topic, slides:5 });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Scene generation failed');
+    growthSetResult('Carousel / Video Scenes', data);
+    await growthLoadUsage();
+  } catch(e) {
+    growthSetResult('Scenes error', e.message);
+  }
+}
+
+async function growthLoadQueue() {
+  const wrap = document.getElementById('growth-queue');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/growth/publish-queue');
+    const data = await res.json();
+    const posts = data.posts || [];
+    if (!posts.length) {
+      wrap.innerHTML = `<div style="color:rgba(210,235,240,.62);font-size:.8rem">No queue items yet. Generate one post everywhere to create drafts.</div>`;
+      return;
+    }
+    wrap.innerHTML = posts.slice(0,12).map(p=>`
+      <div class="growth-mini" style="margin-bottom:.55rem">
+        <div style="display:flex;justify-content:space-between;gap:.5rem;align-items:start">
+          <b>${esc(p.platform)} · ${esc(p.post_type)}</b>
+          <span style="color:#00c4b4;font-weight:900">${esc(p.readiness_score)}%</span>
+        </div>
+        <span>${esc((p.caption || '').slice(0,160))}${(p.caption || '').length>160?'...':''}</span>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.55rem">
+          ${['approved','scheduled','exported','needs_fix'].map(s=>`<button onclick="growthUpdateQueueStatus(${p.id},'${s}')" style="width:auto;margin:0;padding:.35rem .5rem;font-size:.7rem">${s}</button>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load queue: ${esc(e.message)}</div>`;
+  }
+}
+
+async function growthUpdateQueueStatus(id, status) {
+  try {
+    const res = await apiFetch('/api/growth/publish-queue/' + id + '/status', 'POST', { status });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || 'Update failed');
+    growthSetResult('Queue Updated', data);
+    await growthLoadQueue();
+    if (status === 'exported') await growthUpdateOnboarding('export_seen', true);
+  } catch(e) {
+    growthSetResult('Queue update error', e.message);
+  }
+}
+
+async function growthLoadOnboarding() {
+  const wrap = document.getElementById('growth-onboarding');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/growth/onboarding');
+    const data = await res.json();
+    const steps = data.steps || [];
+    wrap.innerHTML = steps.map(s=>`
+      <label class="growth-mini" style="display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.5rem;cursor:pointer">
+        <input type="checkbox" ${s.done?'checked':''} onchange="growthUpdateOnboarding('${esc(s.key)}', this.checked)" style="width:auto;margin-top:.1rem">
+        <span><b>${esc(s.label)}</b><span>${esc(s.why)}</span></span>
+      </label>
+    `).join('');
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load onboarding: ${esc(e.message)}</div>`;
+  }
+}
+
+async function growthUpdateOnboarding(key, done) {
+  try {
+    await apiFetch('/api/growth/onboarding', 'POST', { key, done });
+    await growthLoadOnboarding();
+  } catch(e) {
+    console.warn('Onboarding update failed', e);
+  }
+}
+
+async function growthLoadWebhookGuide() {
+  const wrap = document.getElementById('growth-webhook');
+  if (!wrap) return;
+  try {
+    const res = await apiFetch('/api/growth/webhook-guide');
+    const data = await res.json();
+    wrap.innerHTML = `
+      <div class="growth-mini">
+        <b>API ready: ${data.api_ready ? 'Yes' : 'Not yet'}</b>
+        <span>${esc(data.message)}</span>
+        <span style="margin-top:.45rem;color:#5eeee6">${(data.future_endpoints || []).map(esc).join('<br>')}</span>
+      </div>
+    `;
+    growthSetResult('API + Automation Guide', data);
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:#f87171">Could not load guide: ${esc(e.message)}</div>`;
+  }
+}
+
+
+
+// ─── MOBILE RESPONSIVE NAVIGATION ────────────────────────────────────────
+function setupMobileNavigation() {
+  const toggle = document.getElementById('mobile-menu-toggle');
+  const backdrop = document.getElementById('mobile-sidebar-backdrop');
+  const sidebar = document.querySelector('.sidebar, aside.sidebar, #sidebar, .portal-sidebar, nav.sidebar');
+
+  if (!toggle || !sidebar) return;
+
+  sidebar.classList.add('mobile-ready-sidebar');
+
+  function closeMenu() {
+    document.body.classList.remove('mobile-nav-open');
+    toggle.setAttribute('aria-label', 'Open menu');
+    toggle.textContent = '☰';
+  }
+
+  function openMenu() {
+    document.body.classList.add('mobile-nav-open');
+    toggle.setAttribute('aria-label', 'Close menu');
+    toggle.textContent = '×';
+  }
+
+  toggle.addEventListener('click', () => {
+    if (document.body.classList.contains('mobile-nav-open')) closeMenu();
+    else openMenu();
+  });
+
+  if (backdrop) backdrop.addEventListener('click', closeMenu);
+
+  document.querySelectorAll('.sidebar-link, .mobile-ready-sidebar a, .mobile-ready-sidebar button').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 900) closeMenu();
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) closeMenu();
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupMobileNavigation);
+} else {
+  setupMobileNavigation();
+}
+
+
+
+// ─── CUSTOMER READY LAUNCH CHECKLIST ─────────────────────────────────────
+async function loadLaunchChecklist() {
+  const el = document.getElementById('launch-checklist-content');
+  if (!el) return;
+  el.innerHTML = `<div style="color:rgba(210,235,240,.7)">Loading launch checklist...</div>`;
+  try {
+    const res = await apiFetch('/api/customer-ready/launch-checklist');
+    const data = await res.json();
+    const items = data.checklist || [];
+    const ready = items.filter(i => i.done).length;
+    const total = items.length;
+
+    el.innerHTML = `
+      <div style="background:rgba(0,196,180,.055);border:1px solid rgba(0,196,180,.18);border-radius:14px;padding:1.1rem;margin-bottom:1rem">
+        <h2 style="margin:0 0 .45rem;color:#fff;font-size:1.05rem">Customer-ready status: ${ready}/${total} ready</h2>
+        <p style="margin:0;color:rgba(210,235,240,.72);font-size:.86rem;line-height:1.55">
+          This checklist is honest. Some pieces are ready in the ZIP, and some still need real accounts, legal review, payment setup, or live testing.
+        </p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">
+        ${items.map(i => `
+          <div style="background:rgba(255,255,255,.04);border:1px solid ${i.done?'rgba(0,196,180,.25)':'rgba(251,191,36,.25)'};border-radius:14px;padding:1rem">
+            <div style="font-weight:900;color:${i.done?'#00c4b4':'#fbbf24'};margin-bottom:.35rem">${i.done?'READY':'NEEDS NEXT STEP'}</div>
+            <div style="color:#fff;font-weight:850">${esc(i.item)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:1rem;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1rem;color:rgba(210,235,240,.72);font-size:.83rem;line-height:1.55">
+        Best next step after uploading: test the live Railway site on desktop and mobile, click every dashboard section, then connect Stripe only after the flow is approved.
+      </div>
+    `;
+  } catch(e) {
+    el.innerHTML = `<div style="color:#f87171">Could not load launch checklist: ${esc(e.message)}</div>`;
+  }
+}

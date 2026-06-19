@@ -1,0 +1,7 @@
+portal.js syntax via node --check: PASS
+server.py Python syntax: PASS
+token /api/subscription/access: PASS
+token function loadSubscriptionAccess: PASS
+token window.applyPlanAccess: PASS
+token id="view-plan-access": PASS
+token data-view="plan-access": PASS

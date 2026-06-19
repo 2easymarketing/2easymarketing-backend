@@ -1,0 +1,21 @@
+{
+  "package": "2easymarketing-backend-main-HUMAN-CLEAN-SUBSCRIPTION-ACCESS-v1",
+  "based_on": "2easymarketing-backend-main-PLUGIN-HUB-INTEGRATED-PREVIEW-v1.zip",
+  "safe_preview": true,
+  "publishing_enabled": false,
+  "theme": "teal #00c4b4 + dark #031716",
+  "truthful_note": "This improves product structure and presentation but does not guarantee business success.",
+  "changed": [
+    "Added backend subscription access routes and plan metadata",
+    "Checked server.py syntax: PASS",
+    "Added Plan Access navigation link",
+    "Added Plan Access dashboard view",
+    "Hooked plan access into user setup",
+    "Added plan banner hook to dashboard",
+    "Hooked Plan Access view into portal navigation",
+    "Cleaned up several robotic/AI-heavy frontend phrases",
+    "Added subscription access UI, plan cards, dashboard banner, and nav gating",
+    "Exposed navigateTo for plan banner buttons",
+    "Added small CSS polish for subscription access UI"
+  ]
+}
