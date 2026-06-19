@@ -13,7 +13,12 @@ This build fixes the Media Factory buttons so clicking Generate immediately prod
 
 ## Important
 
-This fixes the broken/non-responsive buttons. For true rendered MP4 video files and real MP3 voiceovers, a paid media provider such as a video generation API and a text-to-speech API must be connected later.
+This fixes the broken/non-responsive buttons with a fully free fallback path. For richer production media, start with free/low-friction integrations:
+
+- Stock photos/video: Pexels API first, Pixabay API second.
+- AI image prototypes: Pollinations, or self-hosted Stable Diffusion/ComfyUI for true free production control.
+- Voice preview: browser Web Speech API.
+- Rendered voice files: self-hosted Coqui TTS or Piper instead of a paid TTS API.
 
 ## Changed
 

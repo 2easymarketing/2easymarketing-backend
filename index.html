@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="canonical" href="https://2easymarketing.net" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="shortcut icon" href="favicon.svg" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="manifest" href="manifest.json" />
   <meta name="description" content="2EasyMarketing — AI-powered digital marketing agency in Pawtucket, Rhode Island. No setup fees. No contracts. AI handles the work, you approve the results." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://2easymarketing.net" />
@@ -15,14 +16,12 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="2EasyMarketing — AI-Powered Digital Marketing" />
   <meta name="twitter:description" content="AI handles the marketing. You approve the results. Starting at $497/mo." />
+  <meta name="twitter:image" content="https://2easymarketing.net/hero-bg.png" />
   <!-- Performance: preconnect to external origins -->
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link rel="dns-prefetch" href="https://api.fontshare.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <title>2EasyMarketing — Digital Marketing Made Easy</title>
-  <meta name="description" content="2EasyMarketing makes digital marketing simple, affordable, and effective. Step-by-step strategy, proven tools, and services that get results." />
-  <meta property="og:title" content="2EasyMarketing — Digital Marketing Made Easy" />
-  <meta property="og:description" content="Everything you need to launch, grow, and scale — without the complexity." />
 
   <!-- Fonts -->
     <link rel="preload" href="hero-bg.png" as="image" fetchpriority="high" />
@@ -99,7 +98,7 @@
   <section class="hero" id="hero">
     <!-- Background -->
     <div class="hero-bg">
-      <img src="hero-bg.png" alt="2EasyMarketing — Digital marketing background" class="hero-bg-img" />
+      <img src="hero-bg.png" alt="2EasyMarketing — Digital marketing background" class="hero-bg-img" width="1536" height="1024" />
       <canvas id="particles-canvas" aria-hidden="true"></canvas>
       <div class="hero-overlay"></div>
     </div>
@@ -245,7 +244,7 @@
 
   <!-- ===== SERVICES IMAGE BANNER ===== -->
   <div class="full-bleed-banner">
-    <img src="services-bg.png" alt="AI-powered digital marketing intelligence" loading="lazy" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.2);" />
+    <img src="services-bg.png" alt="AI-powered digital marketing intelligence" width="1717" height="916" loading="lazy" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.2);" />
     <div class="banner-overlay">
       <p class="banner-caption">All services. One integrated strategy. Measurable results.</p>
     </div>
@@ -261,7 +260,7 @@
       </div>
 
       <div class="roadmap-visual">
-        <img src="roadmap.png" alt="Digital marketing journey roadmap" loading="lazy" class="roadmap-img" />
+        <img src="roadmap.png" alt="Digital marketing journey roadmap" width="1693" height="929" loading="lazy" class="roadmap-img" />
       </div>
 
       <div class="steps-grid">
@@ -414,7 +413,7 @@
 
       <div class="tools-layout">
         <div class="tools-image-col">
-          <img src="tools-bg.png" alt="Human and AI collaboration" loading="lazy" class="tools-img" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.3);" />
+          <img src="tools-bg.png" alt="Human and AI collaboration" width="1536" height="1024" loading="lazy" class="tools-img" style="border-radius:16px;box-shadow:0 0 60px rgba(0,196,180,0.3);" />
         </div>
         <div class="tools-list-col">
           <div class="tool-category">
@@ -536,7 +535,7 @@
           <div class="cert-arrow">→</div>
         </a>
 
-        <a href="https://skillshop.withgoogle.com/googleanalytics" target="_blank" class="cert-card">
+        <a href="https://skillshop.docebosaas.com/pages/23/google-analytics" target="_blank" rel="noopener" class="cert-card">
           <div class="cert-logo google">G</div>
           <div class="cert-info">
             <h4 class="cert-name">Google Analytics 4 Certification</h4>
@@ -824,7 +823,7 @@
           <p>Prefer a quick chat?</p>
           <div class="contact-links">
             <a href="mailto:2easymarketing@gmail.com" class="contact-link">📧 2easymarketing@gmail.com</a>
-            <a href="tel:+14015550100" class="contact-link">📞 (401) 555-0100</a>
+            <span class="contact-link contact-note">Fastest response by email</span>
           </div>
         </div>
       </div>
@@ -936,11 +935,6 @@
     <div class="footer-bottom">
       <div class="container">
         <p>© 2026 2EasyMarketing. All rights reserved.</p>
-        <div class="footer-social">
-          <a href="#" aria-label="LinkedIn">in</a>
-          <a href="#" aria-label="Instagram">ig</a>
-          <a href="#" aria-label="Twitter/X">X</a>
-        </div>
       </div>
     </div>
   </footer>
@@ -1595,7 +1589,7 @@
                   <div><h3 style="margin:0">Snapchat Ads</h3><small>Snap Ads Manager</small></div>
                   <span class="ae-plat-status-dot" id="dot-snapchat" title="Not connected"></span>
                 </div>
-                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-snap-token" placeholder="snap_access_token" /><span class="ae-field-hint"><a href="https://adsapi.snapchat.com" target="_blank">Snap Ads API</a> &rarr; OAuth 2.0</span></div>
+                <div class="ae-field"><label>Access Token</label><input type="password" id="ae-snap-token" placeholder="snap_access_token" /><span class="ae-field-hint"><a href="https://developers.snap.com/marketing-api/home" target="_blank" rel="noopener">Snap Marketing API</a> &rarr; OAuth 2.0</span></div>
                 <div class="ae-field"><label>Organization ID</label><input type="text" id="ae-snap-org-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></div>
                 <div class="ae-field"><label>Ad Account ID</label><input type="text" id="ae-snap-account-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" /></div>
                 <div style="display:flex;gap:.75rem;margin-top:1rem"><button class="ae-btn-save-settings" onclick="aePlatSave('snapchat')">Save Snapchat Settings</button></div>
@@ -1727,7 +1721,6 @@
     "name": "2EasyMarketing",
     "description": "AI-powered digital marketing agency. Strategy, SEO, social media, ads and content — all handled by AI, reviewed by humans.",
     "url": "https://2easymarketing.net",
-    "telephone": "+1-401-555-0100",
     "email": "2easymarketing@gmail.com",
     "address": {
       "@type": "PostalAddress",

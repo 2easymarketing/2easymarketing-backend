@@ -2083,6 +2083,24 @@ window.deleteCouncilSession = async function(id) {
 
   const META_GRAPH = 'https://graph.facebook.com/v19.0';
   const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
+  const AE_SENSITIVE_FIELD_RE = /(token|secret|api-key|dev-token)/i;
+  const AE_SENSITIVE_KEY_RE = /(token|secret|apiKey|devToken|refreshToken|metaToken)/i;
+
+  function aeStorageKeyFromField(fieldName) {
+    return fieldName.replace(/-([a-z])/g, function(m,c){ return c.toUpperCase(); });
+  }
+
+  function aeIsSensitiveField(fieldName) {
+    return AE_SENSITIVE_FIELD_RE.test(fieldName);
+  }
+
+  function aePersistSafeSettings() {
+    var safe = {};
+    Object.keys(aeSettings).forEach(function(key) {
+      if (!AE_SENSITIVE_KEY_RE.test(key)) safe[key] = aeSettings[key];
+    });
+    localStorage.setItem(AE_SETTINGS_KEY, JSON.stringify(safe));
+  }
 
   // ── Init ──────────────────────────────────────────────────
   function aeInit() {
@@ -2099,7 +2117,7 @@ window.deleteCouncilSession = async function(id) {
   // ── Load / Save ───────────────────────────────────────────
   function aeLoadSettings() {
     try { aeSettings = JSON.parse(localStorage.getItem(AE_SETTINGS_KEY)) || {}; } catch(e) { aeSettings = {}; }
-    setValue('ae-meta-token',       aeSettings.metaToken || '');
+    setValue('ae-meta-token',       '');
     setValue('ae-ad-account-id',    aeSettings.adAccountId || '');
     setValue('ae-page-id',          aeSettings.pageId || '');
     setValue('ae-ig-id',            aeSettings.igId || '');
@@ -2118,8 +2136,8 @@ window.deleteCouncilSession = async function(id) {
       'amz-client-id','amz-client-secret','amz-refresh-token','amz-profile-id'
     ];
     platFields.forEach(function(f) {
-      var key = f.replace(/-([a-z])/g, function(m,c){ return c.toUpperCase(); });
-      setValue('ae-' + f, aeSettings[key] || '');
+      var key = aeStorageKeyFromField(f);
+      setValue('ae-' + f, aeIsSensitiveField(f) ? '' : (aeSettings[key] || ''));
     });
     aeUpdateStatusDots();
   }
@@ -2144,10 +2162,10 @@ window.deleteCouncilSession = async function(id) {
       'amz-client-id','amz-client-secret','amz-refresh-token','amz-profile-id'
     ];
     platFields.forEach(function(f) {
-      var key = f.replace(/-([a-z])/g, function(m,c){ return c.toUpperCase(); });
+      var key = aeStorageKeyFromField(f);
       aeSettings[key] = getVal('ae-' + f);
     });
-    localStorage.setItem(AE_SETTINGS_KEY, JSON.stringify(aeSettings));
+    aePersistSafeSettings();
     aeUpdateStatusDots();
   }
 
@@ -2812,4 +2830,3 @@ window.deleteCouncilSession = async function(id) {
   }
 
 })(); // end AdEngine IIFE
-

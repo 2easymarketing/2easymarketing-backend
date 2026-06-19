@@ -248,7 +248,7 @@ h1,h2,h3,h4,h5,h6 {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 11000;
   background: rgba(6,16,24,0.98);
   backdrop-filter: blur(20px);
   flex-direction: column;
@@ -257,6 +257,14 @@ h1,h2,h3,h4,h5,h6 {
   gap: var(--space-6);
 }
 .mobile-nav.open { display: flex; }
+.mobile-nav nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  width: min(100%, 360px);
+}
 .mobile-nav-close {
   position: absolute;
   top: var(--space-6);
@@ -266,6 +274,7 @@ h1,h2,h3,h4,h5,h6 {
   color: var(--text);
   font-size: 1.5rem;
   cursor: pointer;
+  z-index: 1;
 }
 .mobile-nav-link {
   font-family: var(--font-display);
@@ -275,6 +284,7 @@ h1,h2,h3,h4,h5,h6 {
   text-decoration: none;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-align: center;
   transition: color var(--transition);
 }
 .mobile-nav-link:hover { color: var(--accent); }
@@ -1440,6 +1450,11 @@ h1,h2,h3,h4,h5,h6 {
   transition: opacity var(--transition);
 }
 .contact-link:hover { opacity: 0.75; }
+.contact-note {
+  color: var(--text-muted);
+  cursor: default;
+}
+.contact-note:hover { opacity: 1; }
 
 /* Contact form submit button — full width, teal filled */
 .contact-form .btn-primary,

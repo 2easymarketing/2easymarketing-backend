@@ -55,6 +55,10 @@
     #em-launcher svg { transition: transform 0.3s ease; }
     #em-launcher.open svg.chat-icon { display: none; }
     #em-launcher.open svg.close-icon { display: block !important; }
+    body.mobile-nav-active #em-launcher,
+    body.mobile-nav-active #em-panel {
+      display: none !important;
+    }
 
     /* Notification dot */
     #em-notif {

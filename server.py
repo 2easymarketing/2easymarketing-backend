@@ -39,6 +39,17 @@ app.add_middleware(
 # FORTRESS — add after CORS (middleware runs in reverse order, Fortress runs first on requests)
 app.add_middleware(FortressMiddleware)
 
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    return response
+
+
 # ─── RESPONSE HELPERS ────────────────────────────────────────────────────────
 from fastapi.responses import Response as FastAPIResponse
 
@@ -3227,3 +3238,44 @@ async def council_stats(session: dict = Depends(require_owner)):
         ],
         "models": get_council_roster(),
     }
+
+
+# ─── FRONTEND STATIC FALLBACK ────────────────────────────────────────────────
+# Allows the same Railway service to serve the landing page if the frontend is
+# deployed with the backend. Keep this last so API routes above win first.
+PUBLIC_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_STATIC_FILES = {
+    "index.html",
+    "robots.txt",
+    "sitemap.xml",
+    "manifest.json",
+    "favicon.ico",
+    "favicon.svg",
+}
+PUBLIC_STATIC_EXTS = (".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico")
+
+
+def public_file_response(path: str) -> FileResponse:
+    full_path = os.path.abspath(os.path.join(PUBLIC_DIR, path))
+    if not full_path.startswith(PUBLIC_DIR + os.sep) and full_path != PUBLIC_DIR:
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not os.path.isfile(full_path):
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(full_path)
+
+
+@app.get("/", include_in_schema=False)
+async def serve_index():
+    return public_file_response("index.html")
+
+
+@app.get("/{path:path}", include_in_schema=False)
+async def serve_frontend_asset_or_spa(path: str):
+    clean_path = (path or "").strip("/")
+    if clean_path.startswith("api/") or clean_path.startswith("media/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    if clean_path in PUBLIC_STATIC_FILES or clean_path.endswith(PUBLIC_STATIC_EXTS):
+        return public_file_response(clean_path)
+
+    return public_file_response("index.html")
